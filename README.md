@@ -1,6 +1,6 @@
 <div>
     <img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" style="width:100px;height:100px;vertical-align: middle;" />
-    <h1 style="vertical-align: middle;">DeltaDB</h1>
+    <h1 style="vertical-align: middle;display:inline">DeltaDB</h1>
 </div>
 ===
 
