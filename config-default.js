@@ -3,6 +3,6 @@
 var Config = function () {};
 
 Config.prototype.POSTGRES_HOST = 'localhost';
-Config.prototype.POSTGRES_USER = 'REPLACEME';
+Config.prototype.POSTGRES_USER = 'postgres';
 
 module.exports = new Config();
