@@ -1,0 +1,10 @@
+.git*
+node_modules
+.DS_Store
+*~
+coverage
+npm-debug.log
+config.js
+vendor/
+beautify
+beautified

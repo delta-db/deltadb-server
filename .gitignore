@@ -1,0 +1,10 @@
+node_modules
+bower_components
+.DS_Store
+*~
+coverage
+test/test-bundle.js
+config.js
+npm-debug.log
+beautify
+beautified
