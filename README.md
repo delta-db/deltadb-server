@@ -1,4 +1,7 @@
-<img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="100" height="100" /> DeltaDB
+<div>
+    <img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" style="width:100px;height:100px;vertical-align: middle;" />
+    <span style="vertical-align: middle;">DeltaDB</span>
+</div>
 ===
 
 DeltaDB is a Front-end-Only Offline-First (FOOF) database designed to talk directly to clients and works great offline and online.
