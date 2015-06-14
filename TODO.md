@@ -1,9 +1,3 @@
-After Launch
----
-- CI
-	- verify that beautified is working -- make sure error says that npm run beautify needs to be run before commiting changes
-- npm & bower
-
 Now
 ---
 - events all the way down to the attr layer, e.g. when change recorded
