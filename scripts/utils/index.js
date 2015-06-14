@@ -1,7 +1,6 @@
 'use strict';
 
-var uuid = require('node-uuid'),
-  Promise = require('bluebird'),
+var uuid = require('node-uuid'), Promise = require('bluebird'),
   bcrypt = require('bcrypt');
 
 var Utils = function () {
