@@ -28,6 +28,5 @@
   ],
   "devDependencies": {},
   "appPath": "app",
-  "dependencies": {
-  }
+  "dependencies": {}
 }
