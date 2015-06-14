@@ -109,13 +109,16 @@ Changes format
 Examples:
 
   Each record is a change - Choosing this for now as we want low load on the server so the structure should probably mimic the DB tables so that less processing has to be done
+```js
   { object: 'task', userId: '123', name: 'attr1', value: 'v1', updatedAt: '2014-01-01 10:00' },
   { object: 'task', userId: '123', name: 'attr2', value: 'v2', updatedAt: '2014-01-01 10:00' },
   { object: 'task', name: 'attr3', value: 'v3', createdAt: '2014-01-02 10:00' },
   { object: 'task', name: 'attr4', value: 'v4', createdAt: '2014-01-02 10:00' },
   { object: 'task', name: 'oldattr', deletedAt: '2013-01-01 10:00' }
+```
 
   Changes nested under object - prob is that userId, changedByUserId, etc... add more complex permutations
+```js
   {
     object: 'task',
     changes: [
@@ -134,8 +137,10 @@ Examples:
       }
     ]
   }
+```
 
   Changes grouped:
+```js
   {
     object: 'task',
     userId: '123',
@@ -152,6 +157,7 @@ Examples:
     deletedAt: '2013-01-01 10:00',
     changes: { oldattr: 'val' }
   }
+```
 
 
 Tombstones
@@ -221,23 +227,30 @@ Probably better to just use Tombstone Window.
 Reserved Names (TODO: needs updating)
 ==========
 
-Attr:
-  name:
-    $user = for editing user
-    $role = for adding/removing user role
-    $policy = for setting policy
-Col:
-  name: TODO
+* Attr:
+  * name:
+    * $user = for editing user
+    * $role = for adding/removing user role
+    * $policy = for setting policy
+* Col:
+  * name: TODO
 
 
 User Roles
 ==========
 
 Adding a user to a role requires access to the user and the role. To accomplish this we dynamically derive 2 changes from every user role modification, e.g.
-  { col: '$urole', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID', userUUID: 'USERUUID' }
+```js
+  { col: '$urole', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID',
+    userUUID: 'USERUUID' }
+```
 becomes:
-  { col: '$ruROLEUUID', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID', userUUID: 'USERUUID' }
-  { col: '$urUSERUUID', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID', userUUID: 'USERUUID' }
+```js
+  { col: '$ruROLEUUID', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID',
+    userUUID: 'USERUUID' }
+  { col: '$urUSERUUID', name: '$urole', val: { action: 'add', roleUUID: 'ROLEUUID',
+    userUUID: 'USERUUID' }
+```
 Furthermore, we also need to do a lookup of the docUUID (via the user_roles table) based on the roleUUID and userUUID as otherwise:
 1. We'd generate docUUIDs and require the app to know the docUUID when removing the user from the role
 2. Or, we'd set docUUID = PREFIX + roleUUID + userUUID, which would make our docUUID twice as long!
