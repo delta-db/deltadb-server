@@ -1,4 +1,4 @@
-<table border="0">
+<table style="border:0px">
     <tr>
         <td valign="top"><img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="100" height="100" /></td>
         <td valign="middle"><h1>DeltaDB</h1></td>
