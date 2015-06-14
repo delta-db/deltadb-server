@@ -1,4 +1,4 @@
-[![DeltaDB](https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png)](https://github.com/delta-db/deltadb-server) DeltaDB
+<img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="100" height="100" /> DeltaDB
 ===
 
 DeltaDB is a Front-end-Only Offline-First (FOOF) database designed to talk directly to clients and works great offline and online.
