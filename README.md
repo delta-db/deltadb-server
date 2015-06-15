@@ -48,7 +48,11 @@ Requirements
 Postgres. (Support for MySQL will be coming soon and after this project reaches a certain level of maturity, support will be added for NoSQL databases like CouchDB, Mongo, etc...)
 
 
-[API](API.md) (Work in progress)
+[API](https://github.com/delta-db/deltadb-server/wiki)
+---
+
+
+[To Do](TODO.md)
 ---
 
 
