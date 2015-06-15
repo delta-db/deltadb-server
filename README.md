@@ -42,12 +42,6 @@ Because it doesn't exist and true support for offline environments needs to be e
 ---
 
 
-Requirements
----
-
-Postgres. (Support for MySQL will be coming soon and after this project reaches a certain level of maturity, support will be added for NoSQL databases like CouchDB, Mongo, etc...)
-
-
 [API](https://github.com/delta-db/deltadb-server/wiki)
 ---
 
