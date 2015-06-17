@@ -9,11 +9,12 @@ Beginning Work on an Issue
 
 Committing Changes
 ---
+[Commit Message Format](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#commit)
+
 	npm run coverage
 	npm run beautify
 	git add -A
 	git commit -m msg
-		See [Commit Message Format](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#commit)
 	git push 
 
 
