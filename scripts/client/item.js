@@ -24,14 +24,6 @@ Item._roleName = '$role';
 
 Item._roleUserName = '$ruser';
 
-Item.prototype._eventVal = function (evnt, name, newValue) {
-  if (evnt === 'attr:destroy') { // destroying? then lookup previous value
-    return this._latest[name].val;
-  } else {
-    return newValue;
-  }
-};
-
 // TODO: split up
 Item.prototype._change = function (name, value, updated, recorded, untracked) {
 
@@ -41,8 +33,7 @@ Item.prototype._change = function (name, value, updated, recorded, untracked) {
 
   // Determine the event before making any changes to the data and then emit the event after the
   // data has been changed
-  var evnt = this._event(name, value, updated);
-  var evntVal = this._eventVal(evnt, name, value);
+  var evnts = this._events(name, value, updated);
 
   // To account for back-to-back writes, increment the seq number if updated is the same
   var seq = this._latest[name] &&
@@ -85,10 +76,17 @@ Item.prototype._change = function (name, value, updated, recorded, untracked) {
     }
   }
 
-  if (evnt) {
-    this._emit(evnt, name, evntVal);
+  if (evnts.length > 0) {
+    this._emitEvents(evnts, name);
   }
 
+};
+
+Item.prototype._emitEvents = function (evnts, name) {
+  var self = this;
+  evnts.forEach(function (evnt) {
+    self._emit(evnt.evnt, name, evnt.val);
+  });
 };
 
 Item.prototype._emit = function (evnt, name, value) {
@@ -157,26 +155,27 @@ Item.prototype._destroying = function (value) {
   return value ? false : true;
 };
 
-Item.prototype._event = function (name, value, updated) {
-  var evnt = null;
+Item.prototype._events = function (name, value, updated) {
+  var evnts = [];
 
   if (name) { // attr change?
     if (utils.notDefined(this._doc[name])) { // attr doesn't exist?
-      evnt = 'attr:create';
+      evnts.push({ evnt: 'attr:create', val: value });
     } else if (!this._latest[name] ||
       updated.getTime() > this._latest[name].up.getTime()) { // change most recent?
       if (this._destroying(value)) { // destroying?
-        evnt = 'attr:destroy';
+        evnts.push({ evnt: 'attr:destroy', val: this._latest[name].val});
       } else { // updating
-        evnt = 'attr:update';
+        evnts.push({ evnt: 'attr:update', val: value });
       }
     }
+    evnts.push({ evnt: 'doc:update', val: value });
   } else { // destroying doc?
     if (!this._updatedAt || updated.getTime() > this._updatedAt.getTime()) { // most recent?
-      evnt = 'doc:destroy';
+      evnts.push({ evnt: 'doc:destroy', val: value });
     }
   }
-  return evnt;
+  return evnts;
 };
 
 Item.prototype._set = function (name, value, updated, recorded, untracked) {

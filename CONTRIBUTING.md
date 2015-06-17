@@ -66,7 +66,7 @@ Setup Travis CI (only do once)
 Run single test
 ---
 
-    mocha -g 'default policy' test/test.js
+    node_modules/mocha/bin/mocha -g 'default policy' test/test.js
 
 
 Run subset of tests and analyze coverage

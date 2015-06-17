@@ -8,7 +8,7 @@
 // DONE: * attr:destroy: attr destroyed
 // DONE: * attr:record: attr recorded: create, update, destroy
 // DONE: * doc:create: doc created
-// * doc:update: attr updated
+// DONE: * doc:update: attr updated
 // DONE: * doc:destroy: doc destroyed
 // * doc:record: doc record
 // * col:create
@@ -483,6 +483,54 @@ describe('events', function () {
 
   it('client: doc:create remote', function () {
     return docCreateRemote(client);
+  });
+
+  // ------------------------
+
+  var docUpdateLocal = function (emitter) {
+    return testUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
+      updateShouldEql(args);
+    });
+  };
+
+  it('doc: doc:update local', function () {
+    return docUpdateLocal(task);
+  });
+
+  it('col: doc:update local', function () {
+    return docUpdateLocal(tasks);
+  });
+
+  it('db: doc:update local', function () {
+    return docUpdateLocal(db);
+  });
+
+  it('client: doc:update local', function () {
+    return docUpdateLocal(client);
+  });
+
+  var docUpdateRemote = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
+      return testUtils.shouldDoAndOnce(updateRemote, emitter, 'doc:update');
+    }).then(function (args) {
+      updateShouldEql(args);
+    });
+  };
+
+  it('doc: doc:update remote', function () {
+    return docUpdateRemote(task);
+  });
+
+  it('col: doc:update remote', function () {
+    return docUpdateRemote(tasks);
+  });
+
+  it('db: doc:update remote', function () {
+    return docUpdateRemote(db);
+  });
+
+  it('client: doc:update remote', function () {
+    return docUpdateRemote(client);
   });
 
   // ------------------------
