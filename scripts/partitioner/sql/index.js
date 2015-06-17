@@ -78,6 +78,7 @@ Part.prototype._initPartitions = function () {
 
 Part.prototype._host = config.POSTGRES_HOST;
 Part.prototype._dbUser = config.POSTGRES_USER;
+Part.prototype._dbPwd = config.POSTGRES_PWD;
 
 Part.prototype._DB_NAME_PREFIX = 'delta_';
 
@@ -135,7 +136,8 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 
 Part.prototype.connect = function () {
   // TODO: throw error if _dbName is reserved
-  return this._sql.connectAndUse(this._toUniqueDBName(this._dbName), this._host, this._dbUser);
+  return this._sql.connectAndUse(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
+    this._dbPwd);
 };
 
 Part.prototype.createDatabase = function () {

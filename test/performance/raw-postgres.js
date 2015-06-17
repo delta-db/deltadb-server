@@ -44,7 +44,8 @@ describe('raw-postgres', function () {
   };
 
   before(function () {
-    return sql.connectAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER).then(
+    return sql.connectAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
+      config.POSTGRES_PWD).then(
       function () {
         return createTable();
       });

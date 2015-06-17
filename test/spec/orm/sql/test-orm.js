@@ -14,7 +14,8 @@ var testORM = function (name, Adapter) {
     testUtils.setUp(this);
 
     var createDatabase = function () {
-      return sql.connectAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER).then(
+      return sql.connectAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+        config.POSTGRES_PWD).then(
         function () {
           return sql.createTable('attrs', {
             id: {
