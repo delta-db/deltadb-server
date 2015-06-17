@@ -25,11 +25,17 @@ DB.prototype.use = function (name) {
       self._db._db = self; // allow the wrapping DB to be pased down to the wrapping item
       var use = self._db.use(name).then(function (collection) {
         self._collections[name] = collection;
+        self._emitColCreate(collection);
         return collection;
       });
       resolve(use);
     }
   });
+};
+
+DB.prototype._emitColCreate = function (col) {
+  this.emit('col:create', col);
+  this._adapter._emit('col:create', col); // also bubble up to adapter layer
 };
 
 // TODO: defer to collection or item to retrieve from correct layer
@@ -103,9 +109,9 @@ DB.prototype.sync = function (db, quorum) {
   });
 };
 
-DB.prototype._emit = function (event, attr, item) {
-  this.emit(event, attr, item);
-  this._adapter._emit(event, attr, item); // also bubble up to adapter layer
+DB.prototype._emit = function (evnt, attr, item) {
+  this.emit(evnt, attr, item);
+  this._adapter._emit(evnt, attr, item); // also bubble up to adapter layer
 };
 
 module.exports = DB;

@@ -11,7 +11,7 @@
 // DONE: * doc:update: attr updated
 // DONE: * doc:destroy: doc destroyed
 // DONE: * doc:record: doc record
-// * col:create
+// DONE: * col:create
 // * col:update: col updated
 // * col:destroy: col destroyed
 // * col:record:
@@ -60,8 +60,6 @@
 //  destroy: when client destroys
 //           server destroys (only if actually destroys locally)
 //  record: if not already recorded and change is recorded by server
-// TODO: earlier changes that are ignored should not generate events
-// TODO: UPDATE API DOCS
 
 // ---- END TMP COMMENTS
 
@@ -633,6 +631,68 @@ describe('events', function () {
 
   it('client: doc:record', function () {
     return docRecord(client);
+  });
+
+  // ------------------------
+
+  var tasks2 = null;
+
+  var colCreateShouldEql = function (args) {
+    args[0].should.eql(tasks2);
+  };
+
+  var colCreateLocal = function () {
+    return db.use('tasks2').then(function (_tasks2) {
+      tasks2 = _tasks2;
+    });
+  }
+
+  var colShouldCreateLocal = function (emitter) {
+    return testUtils.shouldDoAndOnce(colCreateLocal, emitter, 'col:create').then(function (
+      args) {
+      colCreateShouldEql(args);
+    });
+  };
+
+  // Note: no col:create at col layer as col:create emitted immediately after db.use()
+
+  it('db: col:create local', function () {
+    return colShouldCreateLocal(db);
+  });
+
+  it('client: col:create local', function () {
+    return colShouldCreateLocal(client);
+  });
+
+  var colCreateRemote = function () {
+    var server = new Server([{
+      id: '2',
+      col: 'tasks2',
+      name: 'thing',
+      val: '"sing"',
+      seq: 0,
+      up: nowStr,
+      re: nowStr
+    }]);
+    return db.sync(server, true);
+  };
+
+  var colShouldCreateRemote = function (emitter) {
+    return testUtils.shouldDoAndOnce(colCreateRemote, emitter, 'col:create').then(function (
+      args) {
+      return args[0].at('2');
+    }).then(function (doc) {
+      var obj = doc.get();
+      obj.thing.should.eql('sing');
+    });
+  };
+
+  it('db: col:create remote', function () {
+    return colShouldCreateRemote(db);
+  });
+
+  it('client: col:create remote', function () {
+    return colShouldCreateRemote(client);
   });
 
 });

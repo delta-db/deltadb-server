@@ -156,19 +156,34 @@ Item.prototype._events = function (name, value, updated) {
 
   if (name) { // attr change?
     if (utils.notDefined(this._doc[name])) { // attr doesn't exist?
-      evnts.push({ evnt: 'attr:create', val: value });
+      evnts.push({
+        evnt: 'attr:create',
+        val: value
+      });
     } else if (!this._latest[name] ||
       updated.getTime() > this._latest[name].up.getTime()) { // change most recent?
       if (this._destroying(value)) { // destroying?
-        evnts.push({ evnt: 'attr:destroy', val: this._latest[name].val});
+        evnts.push({
+          evnt: 'attr:destroy',
+          val: this._latest[name].val
+        });
       } else { // updating
-        evnts.push({ evnt: 'attr:update', val: value });
+        evnts.push({
+          evnt: 'attr:update',
+          val: value
+        });
       }
     }
-    evnts.push({ evnt: 'doc:update', val: value });
+    evnts.push({
+      evnt: 'doc:update',
+      val: value
+    });
   } else { // destroying doc?
     if (!this._updatedAt || updated.getTime() > this._updatedAt.getTime()) { // most recent?
-      evnts.push({ evnt: 'doc:destroy', val: value });
+      evnts.push({
+        evnt: 'doc:destroy',
+        val: value
+      });
     }
   }
   return evnts;
