@@ -15,7 +15,7 @@
     "front-end-only"
   ],
   "author": "Geoffrey Cox",
-  "license": "Apache",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/redgeoff/deltadb/issues"
   },
