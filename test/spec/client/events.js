@@ -10,7 +10,7 @@
 // DONE: * doc:create: doc created
 // DONE: * doc:update: attr updated
 // DONE: * doc:destroy: doc destroyed
-// * doc:record: doc record
+// DONE: * doc:record: doc record
 // * col:create
 // * col:update: col updated
 // * col:destroy: col destroyed
@@ -610,5 +610,29 @@ describe('events', function () {
   });
 
   // ------------------------
+
+  var docRecord = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
+      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'doc:record');
+    }).then(function (args) {
+      createLocalShouldEql(args);
+    });
+  };
+
+  it('doc: doc:record', function () {
+    return docRecord(task);
+  });
+
+  it('col: doc:record', function () {
+    return docRecord(tasks);
+  });
+
+  it('db: doc:record', function () {
+    return docRecord(db);
+  });
+
+  it('client: doc:record', function () {
+    return docRecord(client);
+  });
 
 });

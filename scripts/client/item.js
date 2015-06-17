@@ -104,11 +104,6 @@ Item.prototype._emitDocCreate = function () {
   this._emit('doc:create', this._idName, this.id());
 };
 
-// Item.prototype._emitDocDestroy = function () {
-//   // Always emit the id as the destroying attr
-//   this._emit('doc:destroy', this._idName, this.id());
-// };
-
 // TODO: better "changes" structure needed so that recording can happen faster? Use Dictionary to
 // index by docUUID and attrName?
 Item.prototype._record = function (name, value, updated, seq, recorded) {
@@ -134,6 +129,7 @@ Item.prototype._record = function (name, value, updated, seq, recorded) {
       if (name && self._latest[name]) {
 
         self._emit('attr:record', name, value);
+        self._emit('doc:record', name, value);
 
         self._latest[name].re = recorded;
         self._recordedAt = recorded;

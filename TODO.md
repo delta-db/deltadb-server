@@ -1,7 +1,6 @@
 Now
 ---
 - events all the way down to the attr layer, e.g. when change recorded
-- vagrant setup
 - API docs - review NoSQL ORM and make any changes
 - Roadmap
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define()
