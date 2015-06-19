@@ -180,4 +180,8 @@ Utils.prototype.sort = function (items, attrs) {
   return items;
 };
 
+Utils.prototype.toArgsArray = function (argsObj) {
+  return Array.prototype.slice.call(argsObj);
+};
+
 module.exports = new Utils();

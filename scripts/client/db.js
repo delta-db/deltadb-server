@@ -109,9 +109,10 @@ DB.prototype.sync = function (db, quorum) {
   });
 };
 
-DB.prototype._emit = function (evnt, attr, item) {
-  this.emit(evnt, attr, item);
-  this._adapter._emit(evnt, attr, item); // also bubble up to adapter layer
+DB.prototype._emit = function () { // event, arg1, ... argN
+  var args = utils.toArgsArray(arguments);
+  this.emit.apply(this, args);
+  this._adapter._emit.apply(this._adapter, args); // also bubble up to adapter layer
 };
 
 module.exports = DB;

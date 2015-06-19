@@ -4,7 +4,8 @@ var inherits = require('inherits'),
   AdapterWrapper = require('../orm/nosql/wrapper/adapter'),
   ClientDB = require('./db'),
   ClientCollection = require('./collection'),
-  ClientItem = require('./item');
+  ClientItem = require('./item'),
+  utils = require('../utils');
 
 var Adapter = function (store) {
   AdapterWrapper.apply(this, arguments); // apply parent constructor
@@ -20,8 +21,8 @@ var Adapter = function (store) {
 
 inherits(Adapter, AdapterWrapper);
 
-Adapter.prototype._emit = function (event, attr, item) {
-  this.emit(event, attr, item);
+Adapter.prototype._emit = function () { // event, arg1, ... argN
+  this.emit.apply(this, utils.toArgsArray(arguments));
 };
 
 module.exports = Adapter;

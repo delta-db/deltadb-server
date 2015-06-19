@@ -12,7 +12,7 @@
 // DONE: * doc:destroy: doc destroyed
 // DONE: * doc:record: doc record
 // DONE: * col:create
-// * col:update: col updated
+// DONE: * col:update: col updated
 // * col:destroy: col destroyed
 // * col:record:
 // * db:create:
@@ -688,12 +688,36 @@ describe('events', function () {
   });
 
   it('db: col:update remote', function () {
-    return colShouldUpdateRemote(tasks);
+    return colShouldUpdateRemote(db);
   });
 
   it('client: col:update remote', function () {
-    return colShouldUpdateRemote(tasks);
+    return colShouldUpdateRemote(client);
   });
+
+  // ------------------------
+
+  // var colDestroyShouldEql = function (args) {
+  //   eventArgsShouldEql(args, '1', null, null);
+  // };
+
+  // var destroyColLocal = function () {
+  //   return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+  //     return tasks.destroy();
+  //   });
+  // };
+
+  // var colShouldDestroyLocal = function (emitter) {
+  //   return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
+  //     return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
+  //   }).then(function (args) {
+  //     colDestroyShouldEql(args);
+  //   });
+  // };
+
+  // it('col: col:destroy local', function () {
+  //   return colShouldDestroyLocal(tasks);
+  // });
 
   // ------------------------
 
