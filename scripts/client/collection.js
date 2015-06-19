@@ -5,7 +5,8 @@
 
 var inherits = require('inherits'),
   Promise = require('bluebird'),
-  CollectionWrapper = require('../orm/nosql/wrapper/collection');
+  CollectionWrapper = require('../orm/nosql/wrapper/collection'),
+  utils = require('../utils');
 
 var Collection = function () {
   CollectionWrapper.apply(this, arguments); // apply parent constructor
@@ -30,15 +31,36 @@ Collection.prototype._setChange = function (change) {
   });
 };
 
-Collection.prototype._emit = function (event, attr, item) {
-  this.emit(event, attr, item);
-  this._db._emit(event, attr, item); // also bubble up to db layer
+Collection.prototype._emit = function (evnt) { // evnt, arg1, ... argN
+  var args = utils.toArgsArray(arguments);
+  this.emit.apply(this, args);
+
+  this._db._emit.apply(this._db, args); // also bubble up to db layer
+
+  // Prevent infinite recursion
+  if (evnt !== 'col:create' && evnt !== 'col:update') {
+    this._emit.apply(this, ['col:update', this]);
+  }
+
+  if (evnt === 'doc:record') {
+    this._emit.apply(this, ['col:record', this]);
+  }
+};
+
+Collection.prototype._emitColDestroy = function () {
+  this._emit('col:destroy', this);
 };
 
 Collection.prototype._register = function (item) {
-  var self = this;
-  return self._collection._register.apply(this, arguments).then(function () {
+  return this._collection._register.apply(this, arguments).then(function () {
     item._emitDocCreate();
+  });
+};
+
+Collection.prototype.destroy = function () {
+  var self = this;
+  return self._collection.destroy.apply(this, arguments).then(function () {
+    self._emitColDestroy();
   });
 };
 

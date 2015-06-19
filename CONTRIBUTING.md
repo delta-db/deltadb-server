@@ -66,13 +66,13 @@ Setup Travis CI (only do once)
 Run single test
 ---
 
-    mocha -g 'default policy' test/test.js
+    node_modules/mocha/bin/mocha -g 'default policy' test/test.js
 
 
 Run subset of tests and analyze coverage
 ---
 
-    istanbul cover _mocha -- -g 'regex' test/test.js
+	node_modules/istanbul/lib/cli.js cover _mocha -- -g 'regex' test/test.js
 
 
 Running Basic Performance Test

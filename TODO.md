@@ -1,7 +1,8 @@
 Now
 ---
 - events all the way down to the attr layer, e.g. when change recorded
-- vagrant setup
+  - emit doc instead of attr for doc: events - update code and wiki
+  - emit col instead of attr for col: events - update wiki
 - API docs - review NoSQL ORM and make any changes
 - Roadmap
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define()
@@ -46,6 +47,7 @@ Next
 - could speed up write by writting batches to flat files and letting process routine read from files
 - could speed up read for certain scenarios by caching non-essential data say every 30 mins in flat files and then having clients read just this data and only query the DB directly for the essential data. Could separate the essential and non-essential via DB's and sync modes, could then put a DB in cache mode and all syncs would be cached and the cached syncs could be rotated.
 - tool in admin UI or code that helps you unit test policies
+- there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
 
 NoSQL support
 ---
