@@ -212,7 +212,7 @@ describe('e2e', function () {
       // For the sake of this test, we need to guarantee that the deleting and restoring changes
       // happen at different times as deletions are given priority and we want to ensure that the
       // update happens after the delete
-      return utils.timeout(1);
+      return utils.timeout(10);
     }).then(function () {
       return task1.set({
         priority: 'medium'

@@ -20,52 +20,11 @@
 // * db:destroy: db destroyed
 // * db:record
 
-
-// DOC:
-// * attr:create: attr created
-// * attr:update: attr updated
-// * attr:destroy: attr destroyed
-// * attr:record: attr recorded
-// * doc:create:
-// * doc:update: attr updated
-// * doc:destroy: doc destroyed
-// * doc:record: doc record
-
-// COL:
-// * ALL ABOVE
-// * doc:create: doc created
-// * col:update: col updated
-// * col:destroy: col destroyed
-// * col:record:
-
-// DB:
-// * ALL ABOVE
-// * col:create: col created
-// * db:update: db updated
-// * db:destroy: db destroyed
-// * db:record
-
-// NODE:
-// * ALL ABOVE
-// * db:create
-
-
-// TODO: (make sure to test cases when already exists or was recorded, etc..)
-// TODO: need to adjust event name based on receiving layer, e.g. doc may have been created,
-//       but col already exists
-//  create: when client creates
-//          when server creates (only if not local)
-//  update: when client updates
-//          server updates (only if changes data)
-//  destroy: when client destroys
-//           server destroys (only if actually destroys locally)
-//  record: if not already recorded and change is recorded by server
-
 // ---- END TMP COMMENTS
 
 // TODO: error event?
 
-// TODO: split tests up by event
+// TODO: split up tests by event
 
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
@@ -694,5 +653,48 @@ describe('events', function () {
   it('client: col:create remote', function () {
     return colShouldCreateRemote(client);
   });
+
+  // ------------------------
+
+  var colShouldUpdateLocal = function (emitter) {
+    return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
+      updateShouldEql(args);
+    });
+  };
+
+  it('col: col:update local', function () {
+    return colShouldUpdateLocal(tasks);
+  });
+
+  it('db: col:update local', function () {
+    return colShouldUpdateLocal(db);
+  });
+
+  it('client: col:update local', function () {
+    return colShouldUpdateLocal(client);
+  });
+
+  var colShouldUpdateRemote = function (emitter) {
+    // We cannot first listen to col:create as the col was created with db.col()
+    return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
+      return testUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
+    }).then(function (args) {
+      updateShouldEql(args);
+    });
+  };
+
+  it('col: col:update remote', function () {
+    return colShouldUpdateRemote(tasks);
+  });
+
+  it('db: col:update remote', function () {
+    return colShouldUpdateRemote(tasks);
+  });
+
+  it('client: col:update remote', function () {
+    return colShouldUpdateRemote(tasks);
+  });
+
+  // ------------------------
 
 });

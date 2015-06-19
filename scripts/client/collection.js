@@ -30,9 +30,14 @@ Collection.prototype._setChange = function (change) {
   });
 };
 
-Collection.prototype._emit = function (event, attr, item) {
-  this.emit(event, attr, item);
-  this._db._emit(event, attr, item); // also bubble up to db layer
+Collection.prototype._emit = function (evnt, attr, item) {
+  this.emit(evnt, attr, item);
+  this._db._emit(evnt, attr, item); // also bubble up to db layer
+
+  // Prevent infinite recursion
+  if (evnt !== 'col:create' && evnt !== 'col:update') {
+    this._emit('col:update', attr, item);
+  }
 };
 
 Collection.prototype._register = function (item) {

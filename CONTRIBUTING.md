@@ -72,7 +72,7 @@ Run single test
 Run subset of tests and analyze coverage
 ---
 
-    istanbul cover _mocha -- -g 'regex' test/test.js
+	node_modules/istanbul/lib/cli.js cover _mocha -- -g 'regex' test/test.js
 
 
 Running Basic Performance Test
