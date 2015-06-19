@@ -13,7 +13,7 @@
 // DONE: * doc:record: doc record
 // DONE: * col:create
 // DONE: * col:update: col updated
-// * col:destroy: col destroyed
+// DONE: * col:destroy: col destroyed
 // * col:record:
 // * db:create:
 // * db:update: db updated
@@ -656,11 +656,12 @@ describe('events', function () {
 
   // ------------------------
 
-// TODO: col:update needs to emit col!!
-
   var colShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
-      updateShouldEql(args);
+      return args[0].at('1');
+    }).then(function (doc) {
+      var obj = doc.get();
+      obj.priority.should.eql('high');
     });
   };
 
@@ -681,7 +682,10 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
     }).then(function (args) {
-      updateShouldEql(args);
+      return args[0].at('1');
+    }).then(function (doc) {
+      var obj = doc.get();
+      obj.priority.should.eql('high');
     });
   };
 
@@ -728,8 +732,8 @@ describe('events', function () {
     return colShouldDestroyLocal(client);
   });
 
-  // TODO: create construct for passing col destroy via delta? e.g. { name: '$col', value: null } so that we can emit
-  // col:destroy when receive this delta?
+  // TODO: create construct for passing col destroy via delta? e.g. { name: '$col', value: null } so
+  // that we can emit col:destroy when receive this delta?
 
   // ------------------------
 

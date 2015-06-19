@@ -39,8 +39,7 @@ Collection.prototype._emit = function (evnt) { // evnt, arg1, ... argN
 
   // Prevent infinite recursion
   if (evnt !== 'col:create' && evnt !== 'col:update') {
-    args[0] = 'col:update';
-    this._emit.apply(this, args);
+    this._emit.apply(this, ['col:update', this]);
   }
 };
 
@@ -54,7 +53,7 @@ Collection.prototype._register = function (item) {
   });
 };
 
-Collection.prototype.destroy = function (item) {
+Collection.prototype.destroy = function () {
   var self = this;
   return self._collection.destroy.apply(this, arguments).then(function () {
     self._emitColDestroy();
