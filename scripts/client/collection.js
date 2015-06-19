@@ -41,6 +41,10 @@ Collection.prototype._emit = function (evnt) { // evnt, arg1, ... argN
   if (evnt !== 'col:create' && evnt !== 'col:update') {
     this._emit.apply(this, ['col:update', this]);
   }
+
+  if (evnt === 'doc:record') {
+    this._emit.apply(this, ['col:record', this]);
+  }
 };
 
 Collection.prototype._emitColDestroy = function () {

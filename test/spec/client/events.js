@@ -737,4 +737,29 @@ describe('events', function () {
 
   // ------------------------
 
+  var colShouldRecord = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
+      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'col:record');
+    }).then(function (args) {
+      return args[0].at('1');
+    }).then(function (doc) {
+      var obj = doc.get();
+      obj.priority.should.eql('low');
+    });
+  };
+
+  it('col: col:record', function () {
+    return colShouldRecord(tasks);
+  });
+
+  it('db: col:record', function () {
+    return colShouldRecord(db);
+  });
+
+  it('client: col:record', function () {
+    return colShouldRecord(client);
+  });
+
+  // ------------------------
+
 });
