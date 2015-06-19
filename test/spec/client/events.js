@@ -14,7 +14,7 @@
 // DONE: * col:create
 // DONE: * col:update: col updated
 // DONE: * col:destroy: col destroyed
-// * col:record:
+// DONE: * col:record:
 // * db:create:
 // * db:update: db updated
 // * db:destroy: db destroyed
