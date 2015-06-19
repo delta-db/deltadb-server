@@ -44,9 +44,9 @@ Collection.prototype._emit = function (evnt) { // evnt, arg1, ... argN
   }
 };
 
-// Collection.prototype._emitColDestroy = function () {
-//   this.
-// };
+Collection.prototype._emitColDestroy = function () {
+  this._emit('col:destroy', this);
+};
 
 Collection.prototype._register = function (item) {
   return this._collection._register.apply(this, arguments).then(function () {
@@ -54,11 +54,11 @@ Collection.prototype._register = function (item) {
   });
 };
 
-// Collection.prototype.destroy = function (item) {
-//   var self = this;
-//   return self._collection.destroy.apply(this, arguments).then(function () {
-//     self._emitColDestroy();
-//   });
-// };
+Collection.prototype.destroy = function (item) {
+  var self = this;
+  return self._collection.destroy.apply(this, arguments).then(function () {
+    self._emitColDestroy();
+  });
+};
 
 module.exports = Collection;

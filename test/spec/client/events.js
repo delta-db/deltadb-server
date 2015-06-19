@@ -656,6 +656,8 @@ describe('events', function () {
 
   // ------------------------
 
+// TODO: col:update needs to emit col!!
+
   var colShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
       updateShouldEql(args);
@@ -697,27 +699,37 @@ describe('events', function () {
 
   // ------------------------
 
-  // var colDestroyShouldEql = function (args) {
-  //   eventArgsShouldEql(args, '1', null, null);
-  // };
+  var destroyColLocal = function () {
+    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+      return tasks.destroy();
+    });
+  };
 
-  // var destroyColLocal = function () {
-  //   return testUtils.timeout(1).then(function () { // sleep so destroy is after create
-  //     return tasks.destroy();
-  //   });
-  // };
+  var colShouldDestroyLocal = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
+      return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
+    }).then(function (args) {
+      return args[0].at('1');
+    }).then(function (doc) {
+      var obj = doc.get();
+      obj.priority.should.eql('low');
+    });
+  };
 
-  // var colShouldDestroyLocal = function (emitter) {
-  //   return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-  //     return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
-  //   }).then(function (args) {
-  //     colDestroyShouldEql(args);
-  //   });
-  // };
+  it('col: col:destroy local', function () {
+    return colShouldDestroyLocal(tasks);
+  });
 
-  // it('col: col:destroy local', function () {
-  //   return colShouldDestroyLocal(tasks);
-  // });
+  it('db: col:destroy local', function () {
+    return colShouldDestroyLocal(db);
+  });
+
+  it('client: col:destroy local', function () {
+    return colShouldDestroyLocal(client);
+  });
+
+  // TODO: create construct for passing col destroy via delta? e.g. { name: '$col', value: null } so that we can emit
+  // col:destroy when receive this delta?
 
   // ------------------------
 
