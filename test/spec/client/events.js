@@ -820,4 +820,18 @@ describe('events', function () {
   // TODO: how can the client detect that a database has been destroyed remotely? Currently, syncing
   // is done per database and instead we would require a notification at the layer above.
 
+  // ------------------------
+
+  var dbShouldRecord = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
+      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'db:record');
+    }).then(function (args) {
+      args[0].should.eql(db);
+    });
+  };
+
+  it('db: db:record', function () {
+    return attrShouldRecord(db);
+  });
+
 });

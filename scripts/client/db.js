@@ -14,6 +14,7 @@ var DB = function () {
   this._collections = {};
   this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
+  this._recorded = false;
 };
 
 inherits(DB, DBWrapper);
@@ -115,6 +116,11 @@ DB.prototype._emit = function () { // event, arg1, ... argN
   var args = utils.toArgsArray(arguments);
   this.emit.apply(this, args);
   this._adapter._emit.apply(this._adapter, args); // also bubble up to adapter layer
+
+  if (!this._recorded && args[0] === 'attr:record') { // not recorded yet?
+    this.emit('db:record', this);
+    this._recorded = true;
+  }
 };
 
 module.exports = DB;
