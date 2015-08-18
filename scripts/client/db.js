@@ -2,6 +2,8 @@
 
 // TODO: later db should be passed in a constructor so that it doesn't have to be passed to sync??
 
+// TODO: create destroy() that sends { col: '', name: null, val: null }
+
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),

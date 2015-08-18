@@ -15,9 +15,9 @@
 // DONE: * col:update: col updated
 // DONE: * col:destroy: col destroyed
 // DONE: * col:record:
-// * db:create:
-// * db:update: db updated
-// * db:destroy: db destroyed
+// DONE: * db:create:
+// DONE: * db:update: db updated
+// DONE: * db:destroy: db destroyed
 // * db:record
 
 // ---- END TMP COMMENTS
@@ -782,10 +782,42 @@ describe('events', function () {
   };
 
   it('client: db:create local', function () {
-    return dbShouldCreateLocal(db);
+    return dbShouldCreateLocal();
   });
 
   // TODO: how can the client detect that a database has been created remotely? Currently, syncing
+  // is done per database and instead we would require a notification at the layer above.
+
+  // ------------------------
+
+  // Note: we don't support db:update as there is no database rename function and no other way to
+  // update a database.
+
+  // ------------------------
+
+  // var dbDestroyLocal = function () {
+  //   return client2.connect({
+  //     db: 'myotherdb'
+  //   }).then(function (_db2) {
+  //     db2 = _db2;
+  //   }).then(function () {
+  //     return db2.destroy();
+  //   });
+  // };
+
+  // var dbShouldDestroyLocal = function () {
+  //   return testUtils.shouldDoAndOnce(dbDestroyLocal, client2, 'db:destroy').then(function (
+  //     args) {
+  //     args[0].should.eql(db2);
+  //   });
+  // };
+
+  // TODO: need to first implement db.destroy() 
+  // it('client: db:destroy local', function () {
+  //   return dbShouldDestroyLocal();
+  // });
+
+  // TODO: how can the client detect that a database has been destroyed remotely? Currently, syncing
   // is done per database and instead we would require a notification at the layer above.
 
 });
