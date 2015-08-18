@@ -1,27 +1,5 @@
 'use strict';
 
-// --- BEGIN TMP COMMENTS
-
-// ALL EVENTS:
-// DONE: * attr:create: attr created
-// DONE: * attr:update: attr updated
-// DONE: * attr:destroy: attr destroyed
-// DONE: * attr:record: attr recorded: create, update, destroy
-// DONE: * doc:create: doc created
-// DONE: * doc:update: attr updated
-// DONE: * doc:destroy: doc destroyed
-// DONE: * doc:record: doc record
-// DONE: * col:create
-// DONE: * col:update: col updated
-// DONE: * col:destroy: col destroyed
-// DONE: * col:record:
-// DONE: * db:create:
-// DONE: * db:update: db updated
-// DONE: * db:destroy: db destroyed
-// * db:record
-
-// ---- END TMP COMMENTS
-
 // TODO: error event?
 
 // TODO: split up tests by event
@@ -831,7 +809,7 @@ describe('events', function () {
   };
 
   it('db: db:record', function () {
-    return attrShouldRecord(db);
+    return dbShouldRecord(db);
   });
 
 });
