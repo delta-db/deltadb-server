@@ -369,7 +369,7 @@ describe('events', function () {
   // ------------------------
 
   var docCreateShouldEql = function (args) {
-    eventArgsShouldEql(args, '1', '$id', '1');
+    args[0].should.eql(task);
   };
 
   var docShouldCreateLocal = function (emitter) {
@@ -394,9 +394,15 @@ describe('events', function () {
     return docShouldCreateLocal(client);
   });
 
+  var argsShouldEqlTask = function (args) {
+    return tasks.at('1').then(function (newTask) {
+      args[0].should.eql(newTask);
+    });
+  };
+
   var docShouldCreateRemote = function (emitter) {
     return testUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (args) {
-      docCreateShouldEql(args);
+      return argsShouldEqlTask(args);
     });
   };
 
@@ -424,7 +430,7 @@ describe('events', function () {
 
   var docShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
-      updateShouldEql(args);
+      args[0].should.eql(task);
     });
   };
 
@@ -448,7 +454,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(updateRemote, emitter, 'doc:update');
     }).then(function (args) {
-      updateShouldEql(args);
+      return argsShouldEqlTask(args);
     });
   };
 
@@ -471,7 +477,7 @@ describe('events', function () {
   // ------------------------
 
   var docDestroyShouldEql = function (args) {
-    eventArgsShouldEql(args, '1', null, null);
+    docCreateShouldEql(args);
   };
 
   var destroyDocLocal = function () {
@@ -550,7 +556,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(recordRemote, emitter, 'doc:record');
     }).then(function (args) {
-      createLocalShouldEql(args);
+      docCreateShouldEql(args);
     });
   };
 
