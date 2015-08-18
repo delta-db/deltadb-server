@@ -119,6 +119,7 @@ DB.prototype._emit = function () { // event, arg1, ... argN
 
   if (!this._recorded && args[0] === 'attr:record') { // not recorded yet?
     this.emit('db:record', this);
+    this._adapter._emit('db:record', this); // also bubble up to adapter layer
     this._recorded = true;
   }
 };

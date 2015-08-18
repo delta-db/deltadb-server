@@ -812,4 +812,8 @@ describe('events', function () {
     return dbShouldRecord(db);
   });
 
+  it('client: db:record', function () {
+    return dbShouldRecord(client);
+  });
+
 });
