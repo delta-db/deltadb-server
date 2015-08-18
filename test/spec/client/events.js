@@ -762,4 +762,30 @@ describe('events', function () {
 
   // ------------------------
 
+  var store2 = new MemAdapter();
+  var client2 = new Client(store2);
+  var db2 = null;
+
+  var dbCreateLocal = function () {
+    return client2.connect({
+      db: 'myotherdb'
+    }).then(function (_db2) {
+      db2 = _db2;
+    });
+  };
+
+  var dbShouldCreateLocal = function () {
+    return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
+      args) {
+      args[0].should.eql(db2);
+    });
+  };
+
+  it('client: db:create local', function () {
+    return dbShouldCreateLocal(db);
+  });
+
+  // TODO: how can the client detect that a database has been created remotely? Currently, syncing
+  // is done per database and instead we would require a notification at the layer above.
+
 });
