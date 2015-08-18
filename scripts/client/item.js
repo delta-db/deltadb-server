@@ -89,14 +89,24 @@ Item.prototype._emitEvents = function (evnts, name) {
   });
 };
 
-Item.prototype._emit = function (evnt, name, value) {
-  var attr = {
-    name: name,
-    value: value
-  };
-  this.emit(evnt, attr, this);
+Item.prototype._eventLayer = function (evnt) {
+  var parts = evnt.split(':');
+  return parts[0];
+};
 
-  this._collection._emit(evnt, attr, this); // bubble up to collection layer
+Item.prototype._emit = function (evnt, name, value) {
+  if (this._eventLayer(evnt) === 'doc') {
+    this.emit(evnt, this);
+    this._collection._emit(evnt, this);
+  } else {
+    var attr = {
+      name: name,
+      value: value
+    };
+    this.emit(evnt, attr, this);
+
+    this._collection._emit(evnt, attr, this); // bubble up to collection layer    
+  }
 };
 
 Item.prototype._emitDocCreate = function () {

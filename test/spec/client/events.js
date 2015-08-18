@@ -1,27 +1,5 @@
 'use strict';
 
-// --- BEGIN TMP COMMENTS
-
-// ALL EVENTS:
-// DONE: * attr:create: attr created
-// DONE: * attr:update: attr updated
-// DONE: * attr:destroy: attr destroyed
-// DONE: * attr:record: attr recorded: create, update, destroy
-// DONE: * doc:create: doc created
-// DONE: * doc:update: attr updated
-// DONE: * doc:destroy: doc destroyed
-// DONE: * doc:record: doc record
-// DONE: * col:create
-// DONE: * col:update: col updated
-// DONE: * col:destroy: col destroyed
-// DONE: * col:record:
-// * db:create:
-// * db:update: db updated
-// * db:destroy: db destroyed
-// * db:record
-
-// ---- END TMP COMMENTS
-
 // TODO: error event?
 
 // TODO: split up tests by event
@@ -391,7 +369,7 @@ describe('events', function () {
   // ------------------------
 
   var docCreateShouldEql = function (args) {
-    eventArgsShouldEql(args, '1', '$id', '1');
+    args[0].should.eql(task);
   };
 
   var docShouldCreateLocal = function (emitter) {
@@ -416,9 +394,15 @@ describe('events', function () {
     return docShouldCreateLocal(client);
   });
 
+  var argsShouldEqlTask = function (args) {
+    return tasks.at('1').then(function (newTask) {
+      args[0].should.eql(newTask);
+    });
+  };
+
   var docShouldCreateRemote = function (emitter) {
     return testUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (args) {
-      docCreateShouldEql(args);
+      return argsShouldEqlTask(args);
     });
   };
 
@@ -446,7 +430,7 @@ describe('events', function () {
 
   var docShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
-      updateShouldEql(args);
+      args[0].should.eql(task);
     });
   };
 
@@ -470,7 +454,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(updateRemote, emitter, 'doc:update');
     }).then(function (args) {
-      updateShouldEql(args);
+      return argsShouldEqlTask(args);
     });
   };
 
@@ -493,7 +477,7 @@ describe('events', function () {
   // ------------------------
 
   var docDestroyShouldEql = function (args) {
-    eventArgsShouldEql(args, '1', null, null);
+    docCreateShouldEql(args);
   };
 
   var destroyDocLocal = function () {
@@ -572,7 +556,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(recordRemote, emitter, 'doc:record');
     }).then(function (args) {
-      createLocalShouldEql(args);
+      docCreateShouldEql(args);
     });
   };
 
@@ -761,5 +745,81 @@ describe('events', function () {
   });
 
   // ------------------------
+
+  var store2 = new MemAdapter();
+  var client2 = new Client(store2);
+  var db2 = null;
+
+  var dbCreateLocal = function () {
+    return client2.connect({
+      db: 'myotherdb'
+    }).then(function (_db2) {
+      db2 = _db2;
+    });
+  };
+
+  var dbShouldCreateLocal = function () {
+    return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
+      args) {
+      args[0].should.eql(db2);
+    });
+  };
+
+  it('client: db:create local', function () {
+    return dbShouldCreateLocal();
+  });
+
+  // TODO: how can the client detect that a database has been created remotely? Currently, syncing
+  // is done per database and instead we would require a notification at the layer above.
+
+  // ------------------------
+
+  // Note: we don't support db:update as there is no database rename function and no other way to
+  // update a database.
+
+  // ------------------------
+
+  // var dbDestroyLocal = function () {
+  //   return client2.connect({
+  //     db: 'myotherdb'
+  //   }).then(function (_db2) {
+  //     db2 = _db2;
+  //   }).then(function () {
+  //     return db2.destroy();
+  //   });
+  // };
+
+  // var dbShouldDestroyLocal = function () {
+  //   return testUtils.shouldDoAndOnce(dbDestroyLocal, client2, 'db:destroy').then(function (
+  //     args) {
+  //     args[0].should.eql(db2);
+  //   });
+  // };
+
+  // TODO: need to first implement db.destroy() 
+  // it('client: db:destroy local', function () {
+  //   return dbShouldDestroyLocal();
+  // });
+
+  // TODO: how can the client detect that a database has been destroyed remotely? Currently, syncing
+  // is done per database and instead we would require a notification at the layer above.
+
+  // ------------------------
+
+  var dbShouldRecord = function (emitter) {
+    return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
+      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'db:record');
+    }).then(function (args) {
+      args[0].should.eql(db);
+    });
+  };
+
+  it('db: db:record', function () {
+    return dbShouldRecord(db);
+  });
+
+  it('client: db:record', function () {
+    return dbShouldRecord(client);
+  });
 
 });

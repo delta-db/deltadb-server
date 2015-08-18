@@ -27,7 +27,9 @@ inherits(Adapter, AbstractAdapter);
 Adapter.prototype.connect = function (opts) {
   var self = this;
   return new Promise(function (resolve) {
-    resolve(new self._provider.DBWrapper(new self._provider.DB(self._provider, opts.db, self)));
+    var db = new self._provider.DBWrapper(new self._provider.DB(self._provider, opts.db, self));
+    self.emit('db:create', db);
+    resolve(db);
   });
 };
 

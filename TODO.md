@@ -1,12 +1,9 @@
 Now
 ---
-- events all the way down to the attr layer, e.g. when change recorded
-  - emit doc instead of attr for doc: events - update code and wiki
-  - emit col instead of attr for col: events - update wiki
 - API docs - review NoSQL ORM and make any changes
-- Roadmap
-- client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define()
+- client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define(). Make sure save version of DB so that later versions can patch to latest
 - express (or better) server - use web socket
+- Roadmap
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - Admin UI, e.g. "Delta Admin"
 - mysql adapter
