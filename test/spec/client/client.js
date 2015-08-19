@@ -99,7 +99,7 @@ describe('client', function () {
   };
 
   it('should set doc', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       thing: 'write a song',
       priority: 'high',
       type: 'fun'
@@ -174,7 +174,7 @@ describe('client', function () {
   });
 
   it('should handle back-to-back changes', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
         priority: 'high'
       }),
       updated = null,
@@ -276,7 +276,7 @@ describe('client', function () {
   });
 
   it('should handle update followed immediately by attr deletion', function () {
-    var task1 = tasks.define({}),
+    var task1 = tasks.doc({}),
       updated = null;
     updated = new Date(); // use the same updated date for the next 2 changes
     task1._set('priority', 'low', updated);
@@ -315,7 +315,7 @@ describe('client', function () {
   });
 
   it('should handle update followed immediately by doc deletion', function () {
-    var task1 = tasks.define({});
+    var task1 = tasks.doc({});
     var updated = new Date(); // use the same updated date for the next 2 changes
     task1._set('priority', 'low', updated);
     return task1.save().then(function () {
@@ -351,7 +351,7 @@ describe('client', function () {
   });
 
   it('should track local changes', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       thing: 'write a song',
       priority: 'high'
     });
@@ -434,7 +434,7 @@ describe('client', function () {
       };
       latestShouldEql(latest);
     }).then(function () {
-      var task2 = tasks.define({
+      var task2 = tasks.doc({
         thing: 'sing a song',
         priority: 'medium'
       });
@@ -619,7 +619,7 @@ describe('client', function () {
           up: changes[1].up
         }]);
     };
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
         thing: 'play a song',
         priority: 'high'
       }),
@@ -806,7 +806,7 @@ describe('client', function () {
   });
 
   it('should send doc deletions', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     return task1.save().then(function () {
@@ -843,7 +843,7 @@ describe('client', function () {
   });
 
   it('should send attr deletions', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     return task1.save().then(function () {
@@ -886,7 +886,7 @@ describe('client', function () {
   it('should sync updates', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -951,7 +951,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -1029,7 +1029,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -1116,7 +1116,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
@@ -1162,7 +1162,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
@@ -1209,7 +1209,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1264,7 +1264,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1321,7 +1321,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1379,7 +1379,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1429,7 +1429,7 @@ describe('client', function () {
   });
 
   it('should unset id', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     task1.unset('$id');

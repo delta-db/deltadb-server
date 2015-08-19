@@ -13,8 +13,8 @@ var Collection = function (collection) {
 
 inherits(Collection, AbstractCollection);
 
-Collection.prototype.define = function (doc) {
-  return new Item(doc, this);
+Collection.prototype.doc = function (obj) {
+  return new Item(obj, this);
 };
 
 Collection.prototype.at = function (id) {
@@ -26,7 +26,7 @@ Collection.prototype.at = function (id) {
       if (err) {
         reject(err);
       } else {
-        resolve(self.define(doc));
+        resolve(self.doc(doc));
       }
     });
   });

@@ -25,7 +25,7 @@ describe('events', function () {
       return db.use('tasks');
     }).then(function (collection) {
       tasks = collection;
-      task = tasks.define();
+      task = tasks.doc();
       task.id('1');
     });
   });

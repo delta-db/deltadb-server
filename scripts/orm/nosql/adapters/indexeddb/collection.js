@@ -19,8 +19,8 @@ var Collection = function (db, storeName) {
 
 inherits(Collection, AbstractCollection);
 
-Collection.prototype.define = function (doc) {
-  return new Item(doc, this);
+Collection.prototype.doc = function (obj) {
+  return new Item(obj, this);
 };
 
 Collection.prototype.at = function (id) {

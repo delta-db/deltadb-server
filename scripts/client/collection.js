@@ -18,7 +18,7 @@ Collection.prototype._setChange = function (change) {
   var item = this._getItem(change.id),
     promise = null;
   if (!item) {
-    item = this.define();
+    item = this.doc();
     item.id(change.id);
     promise = this._register(item);
   } else {

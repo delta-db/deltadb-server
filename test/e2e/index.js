@@ -43,7 +43,7 @@ describe('e2e', function () {
   };
 
   it('client: should perform initial sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -68,7 +68,7 @@ describe('e2e', function () {
   });
 
   it('client: should perform recent sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -103,7 +103,7 @@ describe('e2e', function () {
   });
 
   it('client: should perform non-recent sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -136,7 +136,7 @@ describe('e2e', function () {
     // b syncs
     // a syncs
     // a's and b's data should be change from b
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -193,7 +193,7 @@ describe('e2e', function () {
     // a: edits { priority: 'low' }
     // b: syncs
     // a: syncs in 1 yr => restore doc and apply changes
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write',
       priority: 'high'
     });

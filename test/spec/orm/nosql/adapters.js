@@ -15,11 +15,11 @@ describe('adapters', function () {
       db: 'mydb'
     }).then(function (db) {
       return db.use('users').then(function (users) {
-        var user1 = users.define({
+        var user1 = users.doc({
           name: 'Jack',
           age: 24
         });
-        var user2 = users.define({
+        var user2 = users.doc({
           name: 'Jill',
           age: 23
         });
