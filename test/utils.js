@@ -263,6 +263,18 @@ Utils.prototype.queueAndProcess = function (db, changes, quorum, superUUID) {
   });
 };
 
+Utils.prototype.queueAndProcessEach = function (db, changes, quorum, superUUID) {
+  var self = this, chain = Promise.resolve();
+  changes.forEach(function (change) {
+    chain = chain.then(function () {
+      return self.queueAndProcess(db, [change], quorum, superUUID).then(function () {
+        return self.timeout(1);
+      });
+    });
+  });
+  return chain;
+};
+
 // Helper function so that userId doesn't have to be looked up externally
 Utils.prototype.changes = function (partitioner, since, history, limit, offset, all, userUUID) {
   return partitioner._users.getUserId(userUUID).then(function (userId) {
