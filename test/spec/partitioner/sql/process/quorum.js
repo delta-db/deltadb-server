@@ -160,7 +160,7 @@ describe('quorum', function () {
     };
 
     // Simulate changes first from client, i.e. not setting quorum
-    return utils.queueAndProcess(args.db, changes).then(function () {
+    return utils.queueAndProcessEach(args.db, changes).then(function () {
       return allAttrsAfterClient();
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
