@@ -2,7 +2,7 @@
 
 /* global before, after */
 
-var Promise = require('bluebird'), partUtils = require('../utils'),
+var partUtils = require('../utils'),
   Changes = require('../../../../../scripts/partitioner/sql/changes');
 
 describe('offset', function () {
@@ -10,11 +10,13 @@ describe('offset', function () {
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
   var testUtils = args.utils;
 
-  var queueAndProcess = function (changes) {
+  // Note: to reliably ensure that changes are stored in a particular order, we need to
+  // queueAndProcess() and then sleep after adding each change
+  var queueAndProcessEach = function (changes) {
     // Force quorum=true. We don't need to consider quorum when getting changes as only changes
     // recorded by quorum are added to LATEST and server downloads all changes regardless of quorum
     // status.
-    return testUtils.queueAndProcess(args.db, changes, true);
+    return testUtils.queueAndProcessEach(args.db, changes, true);
   };
 
   it('should get changes by offset', function () {
@@ -40,15 +42,6 @@ describe('offset', function () {
         up: up
       });
     }
-
-    // Note: to reliably ensure that changes are stored in particular order, we need to
-    // queueAndProcess() and then sleep after adding each change
-    var queueAndProcessEach = function (changes) {
-      // Force quorum=true. We don't need to consider quorum when getting changes as only changes
-      // recorded by quorum are added to LATEST and server downloads all changes regardless of quorum
-      // status.
-      return testUtils.queueAndProcessEach(args.db, changes, true);
-    };
 
     return queueAndProcessEach(changes1).then(function () {
     }).then(function () {
