@@ -64,4 +64,9 @@ Collection.prototype.destroy = function () {
   });
 };
 
+Collection.prototype.policy = function (policy) {
+  var item = this.doc();
+  return item.policy(policy);
+};
+
 module.exports = Collection;

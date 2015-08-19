@@ -1,5 +1,6 @@
 Now
 ---
+- Any other API fn's missing?
 - API docs - review NoSQL ORM and make any changes
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define(). Make sure save version of DB so that later versions can patch to latest
 - express (or better) server - use web socket

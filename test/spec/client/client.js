@@ -3,7 +3,8 @@
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter');
+  Client = require('../../../scripts/client/adapter'),
+  Item = require('../../../scripts/client/item');
 
 describe('client', function () {
 
@@ -1433,6 +1434,32 @@ describe('client', function () {
       priority: 'high'
     });
     task1.unset('$id');
+  });
+
+  // TODO: create db & collection layer tests and move this test accordingly
+  it('should set policy', function () {
+
+    var policy = {
+      col: {
+        read: 'myrole'
+      }
+    };
+
+    var savedDoc = null;
+
+    return db.policy('mycol', policy).then(function (doc) {
+      savedDoc = doc;
+      return db.use('mycol');
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._policyName].should.eql(policy);
+        doc.should.eql(savedDoc);
+      });
+    });
+
   });
 
 });

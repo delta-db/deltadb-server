@@ -124,4 +124,11 @@ DB.prototype._emit = function () { // event, arg1, ... argN
   }
 };
 
+DB.prototype.policy = function (colName, policy) {
+  // Find/create collection and set policy for new item
+  return this.use(colName).then(function (col) {
+    return col.policy(policy);
+  });
+};
+
 module.exports = DB;
