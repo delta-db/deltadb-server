@@ -23,7 +23,7 @@ Collection.prototype.doc = function (obj) {
   return new Item(obj, this);
 };
 
-Collection.prototype.at = function (id) {
+Collection.prototype.get = function (id) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._db._db.transaction(self._storeName, 'readwrite'),

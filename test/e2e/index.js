@@ -160,7 +160,7 @@ describe('e2e', function () {
     }).then(function () {
       return utils.timeout(1); // ensure following update not on same timestamp
     }).then(function () {
-      return bTasks.at(task1.id());
+      return bTasks.get(task1.id());
     }).then(function (bTask1) {
       return bTask1.set({
         priority: 'low'
@@ -207,7 +207,7 @@ describe('e2e', function () {
       return b.use('tasks');
     }).then(function (collection) {
       bTasks = collection;
-      return bTasks.at(task1.id());
+      return bTasks.get(task1.id());
     }).then(function (bTask1) {
       return bTask1.destroy();
     }).then(function () {

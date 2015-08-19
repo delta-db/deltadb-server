@@ -10,7 +10,7 @@ inherits(Collection, EventEmitter);
 
 // Collection.prototype.define = function ( /* doc */ ) {};
 
-// Collection.prototype.at = function ( /* id */ ) {};
+// Collection.prototype.get = function ( /* id */ ) {};
 
 // Collection.prototype.find = function ( /* query */ ) {};
 

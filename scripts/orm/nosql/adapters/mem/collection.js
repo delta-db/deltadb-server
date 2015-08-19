@@ -23,8 +23,7 @@ Collection.prototype.doc = function (obj) {
   return item;
 };
 
-// TODO: rename to get
-Collection.prototype.at = function (id) {
+Collection.prototype.get = function (id) {
   return Promise.resolve(this._items[id]);
 };
 

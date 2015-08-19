@@ -26,7 +26,7 @@ describe('adapters', function () {
         return user1.save().then(function () {
           return user2.save();
         }).then(function () {
-          return users.at(user1.id());
+          return users.get(user1.id());
         }).then(function (userFound) {
           var doc = userFound.get();
           doc.should.eql({
@@ -42,7 +42,7 @@ describe('adapters', function () {
           });
           return user1.save();
         }).then(function () {
-          return users.at(user1.id());
+          return users.get(user1.id());
         }).then(function (userFound) {
           var doc = userFound.get();
           doc.should.eql({

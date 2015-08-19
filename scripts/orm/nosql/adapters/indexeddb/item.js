@@ -55,7 +55,7 @@ Item.prototype._save = function () {
 // IndexedDB doesn't support a partial update so we have to get the record, merge and then save
 Item.prototype._merge = function () {
   var self = this;
-  return self._collection.at(self.id()).then(function (doc) {
+  return self._collection.get(self.id()).then(function (doc) {
     var updates = self.get(self.dirty());
     updates = utils.merge(doc._doc, updates);
     return self._put(updates);

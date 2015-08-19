@@ -395,7 +395,7 @@ describe('events', function () {
   });
 
   var argsShouldEqlTask = function (args) {
-    return tasks.at('1').then(function (newTask) {
+    return tasks.get('1').then(function (newTask) {
       args[0].should.eql(newTask);
     });
   };
@@ -623,7 +623,7 @@ describe('events', function () {
   var colShouldCreateRemote = function (emitter) {
     return testUtils.shouldDoAndOnce(colCreateRemote, emitter, 'col:create').then(function (
       args) {
-      return args[0].at('2');
+      return args[0].get('2');
     }).then(function (doc) {
       var obj = doc.get();
       obj.thing.should.eql('sing');
@@ -642,7 +642,7 @@ describe('events', function () {
 
   var colShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('high');
@@ -666,7 +666,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('high');
@@ -697,7 +697,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
       return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('low');
@@ -725,7 +725,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(recordRemote, emitter, 'col:record');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('low');
