@@ -166,6 +166,8 @@ describe('e2e', function () {
         priority: 'low'
       });
     }).then(function () {
+      return utils.timeout(1); // ensure sync happens after last update
+    }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
       return syncAndProcess(a);
