@@ -2,7 +2,7 @@
 
 /* global before, after */
 
-var partUtils = require('../utils'),
+var Promise = require('bluebird'), partUtils = require('../utils'),
   Changes = require('../../../../../scripts/partitioner/sql/changes');
 
 describe('offset', function () {
@@ -41,19 +41,30 @@ describe('offset', function () {
       });
     }
 
-    return queueAndProcess(changes1).then(function () {
-      return testUtils.timeout(10); // sleep to guarantee order of changes
+    // Note: to reliably ensure that changes are stored in particular order, we need to
+    // queueAndProcess() and then sleep after adding each change
+    var queueAndProcessAndSleep = function (changes) {
+      var chain = Promise.resolve();
+      changes.forEach(function (change) {
+        chain = chain.then(function () {
+          return queueAndProcess([change]).then(function () {
+            return testUtils.timeout(1);
+          });
+        });
+      });
+      return chain;
+    };
+
+    return queueAndProcessAndSleep(changes1).then(function () {
     }).then(function () {
-      return queueAndProcess(changes2);
-    }).then(function () {
-      return testUtils.timeout(10); // sleep to guarantee order of changes
+      return queueAndProcessAndSleep(changes2);
     }).then(function () {
       return args.db.changes(null, null, 5, 0);
     }).then(function (changes) {
       changes1.push('more'); // indicates more pages
       testUtils.changesShouldEql(changes1, changes);
     }).then(function () {
-      return queueAndProcess(changes3); // simulate change between reads
+      return queueAndProcessAndSleep(changes3); // simulate change between reads
     }).then(function () {
       return args.db.changes(null, null, 5, 5);
     }).then(function (changes) {
