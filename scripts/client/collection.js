@@ -6,7 +6,8 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   CollectionWrapper = require('../orm/nosql/wrapper/collection'),
-  utils = require('../utils');
+  utils = require('../utils'),
+  clientUtils = require('./utils');
 
 var Collection = function () {
   CollectionWrapper.apply(this, arguments); // apply parent constructor
@@ -67,6 +68,13 @@ Collection.prototype.destroy = function () {
 Collection.prototype.policy = function (policy) {
   var item = this.doc();
   return item.policy(policy);
+};
+
+// Shouldn't be called directly as the colName needs to be set properly
+Collection.prototype._createUser = function (userUUID, username, password, status) {
+  var doc = this.doc();
+  doc.id(clientUtils.toDocUUID(userUUID));
+  return doc._createUser(userUUID, username, password, status);
 };
 
 module.exports = Collection;

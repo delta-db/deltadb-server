@@ -2,6 +2,7 @@
 
 var inherits = require('inherits'),
   utils = require('../utils'),
+  clientUtils = require('./utils'),
   ItemWrapper = require('../orm/nosql/wrapper/item');
 
 var Item = function (item) {
@@ -288,6 +289,15 @@ Item.prototype.policy = function (policy) {
   var doc = {};
   doc[Item._policyName] = policy;
   return this._setAndSave(doc);
+};
+
+// Shouldn't be called directly as the docUUID needs to be set properly
+Item.prototype._createUser = function (userUUID, username, password, status) {
+  var self = this, doc = {};
+  return clientUtils.genUser(userUUID, username, password, status).then(function (user) {
+    doc[Item._userName] = user;
+    return self._setAndSave(doc);
+  });
 };
 
 module.exports = Item;

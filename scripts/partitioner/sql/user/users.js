@@ -6,7 +6,8 @@ var Promise = require('bluebird'),
   SQLError = require('../../../orm/sql/common/sql-error'),
   MissingError = require('../../../orm/sql/common/missing-error'),
   AuthenticationError = require('../authentication-error'),
-  Cols = require('../col/cols');
+  Cols = require('../col/cols'),
+  clientUtils = require('../../../client/utils');
 
 var Users = function (sql, roles, userRoles, partitioner) {
   this._sql = sql;
@@ -16,12 +17,10 @@ var Users = function (sql, roles, userRoles, partitioner) {
 };
 
 // Use a prefix so that user UUIDs don't conflict with UUIDs of other docs
-Users.UUID_PRE = '$u';
+Users.UUID_PRE = clientUtils.UUID_PRE;
 
-Users.toDocUUID = function (userUUID) {
-  // docUUID is derived from userUUID as we need to create user's dynamically when we first
-  // encounter a change and need a way to reference that user later
-  return Users.UUID_PRE + userUUID;
+Users.toDocUUID = function () {
+  return clientUtils.toDocUUID.apply(clientUtils, arguments);
 };
 
 Users.NAME = 'users';
@@ -34,7 +33,7 @@ Users.SUPER_USER = '$super';
 Users.SUPER_PWD = 'super';
 Users.SUPER_SALT = null;
 
-Users.STATUS_ENABLED = 'enabled';
+Users.STATUS_ENABLED = clientUtils.STATUS_ENABLED;
 Users.STATUS_DISABLED = 'disabled';
 
 Users.prototype.createTable = function () {

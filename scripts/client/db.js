@@ -7,7 +7,8 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
-  DBWrapper = require('../orm/nosql/wrapper/db');
+  DBWrapper = require('../orm/nosql/wrapper/db'),
+  Item = require('./item');
 
 var DB = function () {
   DBWrapper.apply(this, arguments); // apply parent constructor
@@ -129,6 +130,12 @@ DB.prototype.policy = function (colName, policy) {
   // Find/create collection and set policy for new item
   return this.col(colName).then(function (col) {
     return col.policy(policy);
+  });
+};
+
+DB.prototype.createUser = function (userUUID, username, password, status) {
+  return this.col(Item._userName).then(function (col) {
+    return col._createUser(userUUID, username, password, status);
   });
 };
 

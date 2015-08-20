@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: split up
+
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
@@ -1454,6 +1456,26 @@ describe('client', function () {
       return docs.each(function (doc) {
         var obj = doc.get();
         obj[Item._policyName].should.eql(policy);
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  // TODO: create db & collection layer tests and move this test accordingly
+  it('should create user', function () {
+
+    var savedDoc = null;
+
+    return db.createUser('user-uuid', 'username', 'secret').then(function (doc) {
+      savedDoc = doc;
+      return db.col(Item._userName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
       });
     });

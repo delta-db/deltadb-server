@@ -217,6 +217,8 @@ describe('e2e', function () {
         priority: 'medium'
       });
     }).then(function () {
+      return utils.timeout(1); // ensure update happens before sync
+    }).then(function () {
       return syncAndProcess(b); // send del
     }).then(function () {
       return syncAndProcess(a); // send update

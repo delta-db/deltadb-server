@@ -4,24 +4,15 @@ var utils = require('../utils'),
   Item = require('../client/item'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
-  UserRoles = require('../partitioner/sql/user/user-roles');
+  UserRoles = require('../partitioner/sql/user/user-roles'),
+  clientUtils = require('../client/utils');
 
 var Manager = function (partitioner) {
   this._partitioner = partitioner;
 };
 
-Manager.prototype.genUser = function (userUUID, username, password, status) {
-  // Include uuid in user so that can retrieve userUUIDs using deltas
-  var user = {
-    uuid: userUUID,
-    username: username,
-    status: status ? status : Users.STATUS_ENABLED
-  };
-  return utils.genSaltAndHashPassword(password).then(function (saltAndPwd) {
-    user.salt = saltAndPwd.salt;
-    user.password = saltAndPwd.hash;
-    return user;
-  });
+Manager.prototype.genUser = function () {
+  return clientUtils.genUser.apply(clientUtils, arguments);
 };
 
 // TODO: remove docUUID param as derived from userUUID
