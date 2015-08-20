@@ -31,4 +31,9 @@ Utils.prototype.toDocUUID = function (userUUID) {
   return this.UUID_PRE + userUUID;
 };
 
+Utils.prototype.NAME_PRE_USER_ROLES = '$ur';
+
+Utils.prototype.ACTION_ADD = 'add';
+Utils.prototype.ACTION_REMOVE = 'remove';
+
 module.exports = new Utils();

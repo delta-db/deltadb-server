@@ -6,7 +6,8 @@ var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Item = require('../../../scripts/client/item');
+  Item = require('../../../scripts/client/item'),
+  clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
 
@@ -1495,6 +1496,48 @@ describe('client', function () {
       return docs.each(function (doc) {
         var obj = doc.get();
         obj[Item._userName].uuid.should.eql('user-uuid');
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  it('should add role', function () {
+
+    var savedDoc = null, userUUID = 'user-uuid', roleName = 'role-name',
+      colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+
+    return db.addRole(userUUID, roleName).then(function (doc) {
+      savedDoc = doc;
+      return db.col(colName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var data = doc.get();
+        data.userUUID.should.eql(userUUID);
+        data.roleName.should.eql(roleName);
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  it('should remove role', function () {
+
+    var savedDoc = null, userUUID = 'user-uuid', roleName = 'role-name',
+      colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+
+    return db.removeRole(userUUID, roleName).then(function (doc) {
+      savedDoc = doc;
+      return db.col(colName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var data = doc.get();
+        data.userUUID.should.eql(userUUID);
+        data.roleName.should.eql(roleName);
         doc.should.eql(savedDoc);
       });
     });

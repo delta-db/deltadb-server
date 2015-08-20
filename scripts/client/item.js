@@ -300,4 +300,22 @@ Item.prototype._createUser = function (userUUID, username, password, status) {
   });
 };
 
+Item.prototype._addRole = function (userUUID, roleName) {
+  var data = {
+    action: clientUtils.ACTION_ADD,
+    userUUID: userUUID,
+    roleName: roleName
+  };
+  return this._setAndSave(data);
+};
+
+Item.prototype._removeRole = function (userUUID, roleName) {
+  var data = {
+    action: clientUtils.ACTION_REMOVE,
+    userUUID: userUUID,
+    roleName: roleName
+  };
+  return this._setAndSave(data);
+};
+
 module.exports = Item;

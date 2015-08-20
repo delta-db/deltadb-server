@@ -8,7 +8,8 @@ var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
   DBWrapper = require('../orm/nosql/wrapper/db'),
-  Item = require('./item');
+  Item = require('./item'),
+  clientUtils = require('./utils');
 
 var DB = function () {
   DBWrapper.apply(this, arguments); // apply parent constructor
@@ -141,6 +142,20 @@ DB.prototype.createUser = function (userUUID, username, password, status) {
 
 DB.prototype.updateUser = function (userUUID, username, password, status) {
   return this.createUser(userUUID, username, password, status);
+};
+
+DB.prototype.addRole = function (userUUID, roleName) {
+  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+  return this.col(colName).then(function (col) {
+    return col._addRole(userUUID, roleName);
+  });
+};
+
+DB.prototype.removeRole = function (userUUID, roleName) {
+  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+  return this.col(colName).then(function (col) {
+    return col._removeRole(userUUID, roleName);
+  });
 };
 
 module.exports = DB;

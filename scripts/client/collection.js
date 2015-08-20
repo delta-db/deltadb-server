@@ -77,4 +77,14 @@ Collection.prototype._createUser = function (userUUID, username, password, statu
   return doc._createUser(userUUID, username, password, status);
 };
 
+Collection.prototype._addRole = function (userUUID, roleName) {
+  var doc = this.doc();
+  return doc._addRole(userUUID, roleName);
+};
+
+Collection.prototype._removeRole = function (userUUID, roleName) {
+  var doc = this.doc();
+  return doc._removeRole(userUUID, roleName);
+};
+
 module.exports = Collection;
