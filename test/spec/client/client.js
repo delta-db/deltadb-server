@@ -182,7 +182,7 @@ describe('client', function () {
       nextUpdated = null;
     // For some reason, waiting 1 millisecond can still occassionally result in all changes having
     // the same timestamp so we'll bump it to 2 milliseconds
-    return testUtils.timeout(2).then(function () { // make sure changes occur at later timestamp
+    return testUtils.sleep().then(function () { // make sure changes occur at later timestamp
       updated = new Date(); // use the same updated date for the next 2 updates
       task1._set('priority', 'low', updated);
       task1._set('priority', 'medium', updated);
