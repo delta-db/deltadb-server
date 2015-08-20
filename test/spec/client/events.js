@@ -7,7 +7,8 @@
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter');
+  Client = require('../../../scripts/client/adapter'),
+  Promise = require('bluebird');
 
 describe('events', function () {
 
@@ -18,12 +19,10 @@ describe('events', function () {
     task = null;
 
   beforeEach(function () {
-    return client.connect({
+    db = client.db({
       db: 'mydb'
-    }).then(function (_db) {
-      db = _db;
-      return db.use('tasks');
-    }).then(function (collection) {
+    });
+    return db.col('tasks').then(function (collection) {
       tasks = collection;
       task = tasks.doc();
       task.id('1');
@@ -585,7 +584,7 @@ describe('events', function () {
   };
 
   var colCreateLocal = function () {
-    return db.use('tasks2').then(function (_tasks2) {
+    return db.col('tasks2').then(function (_tasks2) {
       tasks2 = _tasks2;
     });
   };
@@ -597,7 +596,7 @@ describe('events', function () {
     });
   };
 
-  // Note: no col:create at col layer as col:create emitted immediately after db.use()
+  // Note: no col:create at col layer as col:create emitted immediately after db.col()
 
   it('db: col:create local', function () {
     return colShouldCreateLocal(db);
@@ -751,11 +750,10 @@ describe('events', function () {
   var db2 = null;
 
   var dbCreateLocal = function () {
-    return client2.connect({
+    db2 = client2.db({
       db: 'myotherdb'
-    }).then(function (_db2) {
-      db2 = _db2;
     });
+    return Promise.resolve();
   };
 
   var dbShouldCreateLocal = function () {

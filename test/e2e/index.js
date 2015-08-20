@@ -19,19 +19,16 @@ describe('e2e', function () {
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   beforeEach(function () {
-    return client.connect({
+    a = client.db({
       db: 'mydb'
-    }).then(function (db) {
-      a = db;
-      return a.use('tasks');
-    }).then(function (collection) {
+    });
+
+    b = client.db({
+      db: 'mydb'
+    });
+
+    return a.col('tasks').then(function (collection) {
       aTasks = collection;
-    }).then(function () {
-      return client.connect({
-        db: 'mydb'
-      });
-    }).then(function (db) {
-      b = db;
     });
   });
 
@@ -56,7 +53,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -77,7 +74,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -116,7 +113,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -145,7 +142,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -204,7 +201,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return bTasks.get(task1.id());

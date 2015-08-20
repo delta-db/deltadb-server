@@ -1,7 +1,6 @@
 'use strict';
 
-var Promise = require('bluebird'),
-  inherits = require('inherits'),
+var inherits = require('inherits'),
   AbstractAdapter = require('../../common/adapter'),
   DB = require('./db'),
   DBWrapper = require('../../wrapper/db'),
@@ -23,14 +22,12 @@ var Adapter = function () {
 
 inherits(Adapter, AbstractAdapter);
 
+// TODO: shouldn't this be moved to the layer above?
 // opts: db
-Adapter.prototype.connect = function (opts) {
-  var self = this;
-  return new Promise(function (resolve) {
-    var db = new self._provider.DBWrapper(new self._provider.DB(self._provider, opts.db, self));
-    self.emit('db:create', db);
-    resolve(db);
-  });
+Adapter.prototype.db = function (opts) {
+  var db = new this._provider.DBWrapper(new this._provider.DB(this._provider, opts.db, this));
+  this.emit('db:create', db);
+  return db;
 };
 
 module.exports = Adapter;

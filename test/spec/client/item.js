@@ -40,12 +40,11 @@ describe('item', function () {
     // TODO: is there a better way to fake the underlying dependices so that we don't have to
     // connect(), col(), etc... just to get an item?
 
-    return client.connect({
+    db = client.db({
       db: 'mydb'
-    }).then(function (_db) {
-      db = _db;
-      return db.use('tasks');
-    }).then(function (collection) {
+    });
+
+    return db.col('tasks').then(function (collection) {
       tasks = collection;
     }).then(function () {
       return tasks.doc();

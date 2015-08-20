@@ -8,7 +8,7 @@ var Collection = function () {};
 
 inherits(Collection, EventEmitter);
 
-// Collection.prototype.define = function ( /* doc */ ) {};
+// Collection.prototype.doc = function ( /* obj */ ) {};
 
 // Collection.prototype.get = function ( /* id */ ) {};
 

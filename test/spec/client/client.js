@@ -14,12 +14,10 @@ describe('client', function () {
     tasks = null;
 
   beforeEach(function () {
-    return client.connect({
+    db = client.db({
       db: 'mydb'
-    }).then(function (_db) {
-      db = _db;
-      return db.use('tasks');
-    }).then(function (collection) {
+    });
+    return db.col('tasks').then(function (collection) {
       tasks = collection;
     });
   });
@@ -1449,7 +1447,7 @@ describe('client', function () {
 
     return db.policy('mycol', policy).then(function (doc) {
       savedDoc = doc;
-      return db.use('mycol');
+      return db.col('mycol');
     }).then(function (col) {
       return col.all();
     }).then(function (docs) {
