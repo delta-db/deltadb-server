@@ -1482,4 +1482,23 @@ describe('client', function () {
 
   });
 
+  it('should update user', function () {
+
+    var savedDoc = null;
+
+    return db.updateUser('user-uuid', 'username', 'secret').then(function (doc) {
+      savedDoc = doc;
+      return db.col(Item._userName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._userName].uuid.should.eql('user-uuid');
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
 });

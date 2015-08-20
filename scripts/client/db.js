@@ -139,4 +139,8 @@ DB.prototype.createUser = function (userUUID, username, password, status) {
   });
 };
 
+DB.prototype.updateUser = function (userUUID, username, password, status) {
+  return this.createUser(userUUID, username, password, status);
+};
+
 module.exports = DB;
