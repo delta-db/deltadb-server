@@ -63,7 +63,7 @@ describe('quorum', function () {
     return utils.queueAndProcess(args.db, changes).then(function () {
       return allAttrs(null);
     }).then(function () {
-      return utils.timeout(1); // ensure changes w/o quorum processed first
+      return utils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
       return utils.queueAndProcess(args.db, changes, secondQuorum);
@@ -165,7 +165,7 @@ describe('quorum', function () {
     return utils.queueAndProcessEach(args.db, changes).then(function () {
       return allAttrsAfterClient();
     }).then(function () {
-      return utils.timeout(1); // ensure changes w/o quorum processed first
+      return utils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
       return utils.queueAndProcess(args.db, [changes[0]], true);
@@ -257,7 +257,7 @@ describe('quorum', function () {
     return utils.queueAndProcess(args.db, changes).then(function () {
       return allAttrsAfterClient();
     }).then(function () {
-      return utils.timeout(1); // ensure changes w/o quorum processed first
+      return utils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
       return utils.queueAndProcess(args.db, [changes[1]], true);
@@ -349,7 +349,7 @@ describe('quorum', function () {
     return utils.queueAndProcess(args.db, changes, true).then(function () {
       return allAttrs();
     }).then(function () {
-      return utils.timeout(1); // ensure changes w/o quorum processed first
+      return utils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from syncing with second server where duplicate changes would be received
       return utils.queueAndProcess(args.db, changes, true);

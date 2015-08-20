@@ -108,7 +108,7 @@ describe('server', function () {
     var archived = null,
       since = new Date(),
       sinceFirstSync = null;
-    return testUtils.timeout(1).then(function () {
+    return testUtils.sleep().then(function () {
       // Get changes before last archived, i.e. need to look at ALL
       archived = new Date();
     }).then(function () {
@@ -116,13 +116,13 @@ describe('server', function () {
     }).then(function () {
       return b.archive(archived); // initial archive
     }).then(function () {
-      return testUtils.timeout(1); // delay so that since is not the same time as archived
+      return testUtils.sleep(); // delay so that since is not the same time as archived
     }).then(function () {
       return testUtils.queueAndProcess(a, changes); // populate a
     }).then(function () {
       return sync(a, b, since); // a syncs with b
     }).then(function () {
-      return testUtils.timeout(1); // delay so archive all changes
+      return testUtils.sleep(); // delay so archive all changes
     }).then(function () {
       // Archive again so that next sync is also getting changes from ALL
       sinceFirstSync = new Date();
@@ -149,14 +149,14 @@ describe('server', function () {
     return a.archive(archived).then(function () { // archive so call to changes() returns recent
       return b.archive(archived); // archive so call to changes() returns recent
     }).then(function () {
-      return testUtils.timeout(1); // delay so that since is not the same time as archived
+      return testUtils.sleep(); // delay so that since is not the same time as archived
     }).then(function () {
       since = new Date();
       return testUtils.queueAndProcess(a, changes); // populate a
     }).then(function () {
       return sync(a, b, since); // a syncs with b
     }).then(function () {
-      return testUtils.timeout(1); // so sinceFirstSync is after 1st sync
+      return testUtils.sleep(); // so sinceFirstSync is after 1st sync
     }).then(function () {
       sinceFirstSync = new Date();
       return b.changes(since, true);

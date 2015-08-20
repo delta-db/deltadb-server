@@ -155,7 +155,7 @@ describe('e2e', function () {
         priority: 'high'
       });
     }).then(function () {
-      return utils.timeout(1); // ensure following update not on same timestamp
+      return utils.sleep(); // ensure following update not on same timestamp
     }).then(function () {
       return bTasks.get(task1.id());
     }).then(function (bTask1) {
@@ -163,7 +163,7 @@ describe('e2e', function () {
         priority: 'low'
       });
     }).then(function () {
-      return utils.timeout(1); // ensure sync happens after last update
+      return utils.sleep(); // ensure sync happens after last update
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
@@ -217,7 +217,7 @@ describe('e2e', function () {
         priority: 'medium'
       });
     }).then(function () {
-      return utils.timeout(1); // ensure update happens before sync
+      return utils.sleep(); // ensure update happens before sync
     }).then(function () {
       return syncAndProcess(b); // send del
     }).then(function () {

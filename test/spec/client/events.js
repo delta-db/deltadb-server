@@ -179,7 +179,7 @@ describe('events', function () {
   // ------------------------
 
   var updateLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so update is after create
+    return testUtils.sleep().then(function () { // sleep so update is after create
       task.set({
         'priority': 'high'
       }); // use _set so we can force a timestamp
@@ -254,7 +254,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       task.unset('priority'); // use _set so we can force a timestamp
     });
   };
@@ -294,7 +294,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -336,7 +336,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so record is after create
+    return testUtils.sleep().then(function () { // sleep so record is after create
       return db.sync(server, true);
     });
   };
@@ -480,7 +480,7 @@ describe('events', function () {
   };
 
   var destroyDocLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return task.destroy();
     });
   };
@@ -520,7 +520,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -687,7 +687,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyColLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return tasks.destroy();
     });
   };

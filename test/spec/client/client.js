@@ -225,7 +225,7 @@ describe('client', function () {
       };
       latestShouldEql(latest);
     }).then(function () {
-      return testUtils.timeout(1); // ensure different timestamp for upcoming change
+      return testUtils.sleep(); // ensure different timestamp for upcoming change
     }).then(function () {
       // Make another update at later timestamp and make sure the seq is 0
       nextUpdated = new Date();
