@@ -6,7 +6,8 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   CollectionWrapper = require('../orm/nosql/wrapper/collection'),
-  utils = require('../utils');
+  utils = require('../utils'),
+  clientUtils = require('./utils');
 
 var Collection = function () {
   CollectionWrapper.apply(this, arguments); // apply parent constructor
@@ -18,7 +19,7 @@ Collection.prototype._setChange = function (change) {
   var item = this._getItem(change.id),
     promise = null;
   if (!item) {
-    item = this.define();
+    item = this.doc();
     item.id(change.id);
     promise = this._register(item);
   } else {
@@ -62,6 +63,28 @@ Collection.prototype.destroy = function () {
   return self._collection.destroy.apply(this, arguments).then(function () {
     self._emitColDestroy();
   });
+};
+
+Collection.prototype.policy = function (policy) {
+  var item = this.doc();
+  return item.policy(policy);
+};
+
+// Shouldn't be called directly as the colName needs to be set properly
+Collection.prototype._createUser = function (userUUID, username, password, status) {
+  var doc = this.doc();
+  doc.id(clientUtils.toDocUUID(userUUID));
+  return doc._createUser(userUUID, username, password, status);
+};
+
+Collection.prototype._addRole = function (userUUID, roleName) {
+  var doc = this.doc();
+  return doc._addRole(userUUID, roleName);
+};
+
+Collection.prototype._removeRole = function (userUUID, roleName) {
+  var doc = this.doc();
+  return doc._removeRole(userUUID, roleName);
 };
 
 module.exports = Collection;

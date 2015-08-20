@@ -3,7 +3,8 @@
 var Promise = require('bluebird'),
   utils = require('../../../utils'),
   constants = require('../constants'),
-  ForbiddenError = require('../forbidden-error');
+  ForbiddenError = require('../forbidden-error'),
+  clientUtils = require('../../../client/utils');
 
 var Cols = function (sql, policy) {
   this._sql = sql;
@@ -26,7 +27,7 @@ Cols.ID_USER_ROLES_SUPER = 4;
 Cols.USER_ROLES_SUPER = '$ur$super';
 
 Cols.NAME_PRE_ROLE_USERS = '$ru';
-Cols.NAME_PRE_USER_ROLES = '$ur';
+Cols.NAME_PRE_USER_ROLES = clientUtils.NAME_PRE_USER_ROLES;
 
 Cols.ID_LAST_RESERVED = constants.ID_LAST_RESERVED;
 

@@ -7,7 +7,8 @@
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter');
+  Client = require('../../../scripts/client/adapter'),
+  Promise = require('bluebird');
 
 describe('events', function () {
 
@@ -18,14 +19,12 @@ describe('events', function () {
     task = null;
 
   beforeEach(function () {
-    return client.connect({
+    db = client.db({
       db: 'mydb'
-    }).then(function (_db) {
-      db = _db;
-      return db.use('tasks');
-    }).then(function (collection) {
+    });
+    return db.col('tasks').then(function (collection) {
       tasks = collection;
-      task = tasks.define();
+      task = tasks.doc();
       task.id('1');
     });
   });
@@ -180,7 +179,7 @@ describe('events', function () {
   // ------------------------
 
   var updateLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so update is after create
+    return testUtils.sleep().then(function () { // sleep so update is after create
       task.set({
         'priority': 'high'
       }); // use _set so we can force a timestamp
@@ -255,7 +254,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       task.unset('priority'); // use _set so we can force a timestamp
     });
   };
@@ -295,7 +294,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -337,7 +336,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so record is after create
+    return testUtils.sleep().then(function () { // sleep so record is after create
       return db.sync(server, true);
     });
   };
@@ -395,7 +394,7 @@ describe('events', function () {
   });
 
   var argsShouldEqlTask = function (args) {
-    return tasks.at('1').then(function (newTask) {
+    return tasks.get('1').then(function (newTask) {
       args[0].should.eql(newTask);
     });
   };
@@ -481,7 +480,7 @@ describe('events', function () {
   };
 
   var destroyDocLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return task.destroy();
     });
   };
@@ -521,7 +520,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -585,7 +584,7 @@ describe('events', function () {
   };
 
   var colCreateLocal = function () {
-    return db.use('tasks2').then(function (_tasks2) {
+    return db.col('tasks2').then(function (_tasks2) {
       tasks2 = _tasks2;
     });
   };
@@ -597,7 +596,7 @@ describe('events', function () {
     });
   };
 
-  // Note: no col:create at col layer as col:create emitted immediately after db.use()
+  // Note: no col:create at col layer as col:create emitted immediately after db.col()
 
   it('db: col:create local', function () {
     return colShouldCreateLocal(db);
@@ -623,7 +622,7 @@ describe('events', function () {
   var colShouldCreateRemote = function (emitter) {
     return testUtils.shouldDoAndOnce(colCreateRemote, emitter, 'col:create').then(function (
       args) {
-      return args[0].at('2');
+      return args[0].get('2');
     }).then(function (doc) {
       var obj = doc.get();
       obj.thing.should.eql('sing');
@@ -642,7 +641,7 @@ describe('events', function () {
 
   var colShouldUpdateLocal = function (emitter) {
     return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('high');
@@ -666,7 +665,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('high');
@@ -688,7 +687,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyColLocal = function () {
-    return testUtils.timeout(1).then(function () { // sleep so destroy is after create
+    return testUtils.sleep().then(function () { // sleep so destroy is after create
       return tasks.destroy();
     });
   };
@@ -697,7 +696,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
       return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('low');
@@ -725,7 +724,7 @@ describe('events', function () {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
       return testUtils.shouldDoAndOnce(recordRemote, emitter, 'col:record');
     }).then(function (args) {
-      return args[0].at('1');
+      return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
       obj.priority.should.eql('low');
@@ -751,11 +750,10 @@ describe('events', function () {
   var db2 = null;
 
   var dbCreateLocal = function () {
-    return client2.connect({
+    db2 = client2.db({
       db: 'myotherdb'
-    }).then(function (_db2) {
-      db2 = _db2;
     });
+    return Promise.resolve();
   };
 
   var dbShouldCreateLocal = function () {

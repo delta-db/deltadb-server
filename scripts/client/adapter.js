@@ -25,4 +25,8 @@ Adapter.prototype._emit = function () { // event, arg1, ... argN
   this.emit.apply(this, utils.toArgsArray(arguments));
 };
 
+Adapter.prototype.uuid = function () {
+  return utils.uuid();
+};
+
 module.exports = Adapter;

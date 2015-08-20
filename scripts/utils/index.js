@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: move any code needed by the client to client/utils.js
+
 var uuid = require('node-uuid'),
   Promise = require('bluebird'),
   bcrypt = require('bcrypt');

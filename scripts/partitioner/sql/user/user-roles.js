@@ -5,7 +5,8 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   Roles = require('../roles'),
   Users = require('./users'),
-  SQLError = require('../../../orm/sql/common/sql-error');
+  SQLError = require('../../../orm/sql/common/sql-error'),
+  clientUtils = require('../../../client/utils');
 
 var UserRoles = function (sql) {
   this._sql = sql;
@@ -19,8 +20,8 @@ UserRoles.ID_SUPER = 1;
 // Use a prefix so that the role user docUUID can be derived
 UserRoles.UUID_PRE = '$g';
 
-UserRoles.ACTION_ADD = 'add';
-UserRoles.ACTION_REMOVE = 'remove';
+UserRoles.ACTION_ADD = clientUtils.ACTION_ADD;
+UserRoles.ACTION_REMOVE = clientUtils.ACTION_REMOVE;
 
 UserRoles.prototype.toRoleUserDocUUID = function (userRoleDocUUID) {
   return UserRoles.UUID_PRE + userRoleDocUUID;

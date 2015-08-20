@@ -10,11 +10,13 @@ describe('offset', function () {
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
   var testUtils = args.utils;
 
-  var queueAndProcess = function (changes) {
+  // Note: to reliably ensure that changes are stored in a particular order, we need to
+  // queueAndProcess() and then sleep after adding each change
+  var queueAndProcessEach = function (changes) {
     // Force quorum=true. We don't need to consider quorum when getting changes as only changes
     // recorded by quorum are added to LATEST and server downloads all changes regardless of quorum
     // status.
-    return testUtils.queueAndProcess(args.db, changes, true);
+    return testUtils.queueAndProcessEach(args.db, changes, true);
   };
 
   it('should get changes by offset', function () {
@@ -41,19 +43,15 @@ describe('offset', function () {
       });
     }
 
-    return queueAndProcess(changes1).then(function () {
-      return testUtils.timeout(10); // sleep to guarantee order of changes
-    }).then(function () {
-      return queueAndProcess(changes2);
-    }).then(function () {
-      return testUtils.timeout(10); // sleep to guarantee order of changes
+    return queueAndProcessEach(changes1).then(function () {}).then(function () {
+      return queueAndProcessEach(changes2);
     }).then(function () {
       return args.db.changes(null, null, 5, 0);
     }).then(function (changes) {
       changes1.push('more'); // indicates more pages
       testUtils.changesShouldEql(changes1, changes);
     }).then(function () {
-      return queueAndProcess(changes3); // simulate change between reads
+      return queueAndProcessEach(changes3); // simulate change between reads
     }).then(function () {
       return args.db.changes(null, null, 5, 5);
     }).then(function (changes) {

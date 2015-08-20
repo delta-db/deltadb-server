@@ -36,7 +36,7 @@ describe('archive', function () {
     }];
 
     return utils.queueAndProcess(args.db, createChanges, quorum).then(function () {
-      return utils.timeout(1); // ensure different timestamp
+      return utils.sleep(); // ensure different timestamp
     }).then(function () {
       updated = new Date();
       return utils.queueAndProcess(args.db, updateChanges, quorum);

@@ -1,9 +1,13 @@
 'use strict';
 
+// TODO: split up
+
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter');
+  Client = require('../../../scripts/client/adapter'),
+  Item = require('../../../scripts/client/item'),
+  clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
 
@@ -13,12 +17,10 @@ describe('client', function () {
     tasks = null;
 
   beforeEach(function () {
-    return client.connect({
+    db = client.db({
       db: 'mydb'
-    }).then(function (_db) {
-      db = _db;
-      return db.use('tasks');
-    }).then(function (collection) {
+    });
+    return db.col('tasks').then(function (collection) {
       tasks = collection;
     });
   });
@@ -99,7 +101,7 @@ describe('client', function () {
   };
 
   it('should set doc', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       thing: 'write a song',
       priority: 'high',
       type: 'fun'
@@ -174,14 +176,14 @@ describe('client', function () {
   });
 
   it('should handle back-to-back changes', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
         priority: 'high'
       }),
       updated = null,
       nextUpdated = null;
     // For some reason, waiting 1 millisecond can still occassionally result in all changes having
     // the same timestamp so we'll bump it to 2 milliseconds
-    return testUtils.timeout(2).then(function () { // make sure changes occur at later timestamp
+    return testUtils.sleep().then(function () { // make sure changes occur at later timestamp
       updated = new Date(); // use the same updated date for the next 2 updates
       task1._set('priority', 'low', updated);
       task1._set('priority', 'medium', updated);
@@ -224,7 +226,7 @@ describe('client', function () {
       };
       latestShouldEql(latest);
     }).then(function () {
-      return testUtils.timeout(1); // ensure different timestamp for upcoming change
+      return testUtils.sleep(); // ensure different timestamp for upcoming change
     }).then(function () {
       // Make another update at later timestamp and make sure the seq is 0
       nextUpdated = new Date();
@@ -276,7 +278,7 @@ describe('client', function () {
   });
 
   it('should handle update followed immediately by attr deletion', function () {
-    var task1 = tasks.define({}),
+    var task1 = tasks.doc({}),
       updated = null;
     updated = new Date(); // use the same updated date for the next 2 changes
     task1._set('priority', 'low', updated);
@@ -315,7 +317,7 @@ describe('client', function () {
   });
 
   it('should handle update followed immediately by doc deletion', function () {
-    var task1 = tasks.define({});
+    var task1 = tasks.doc({});
     var updated = new Date(); // use the same updated date for the next 2 changes
     task1._set('priority', 'low', updated);
     return task1.save().then(function () {
@@ -351,7 +353,7 @@ describe('client', function () {
   });
 
   it('should track local changes', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       thing: 'write a song',
       priority: 'high'
     });
@@ -434,7 +436,7 @@ describe('client', function () {
       };
       latestShouldEql(latest);
     }).then(function () {
-      var task2 = tasks.define({
+      var task2 = tasks.doc({
         thing: 'sing a song',
         priority: 'medium'
       });
@@ -619,7 +621,7 @@ describe('client', function () {
           up: changes[1].up
         }]);
     };
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
         thing: 'play a song',
         priority: 'high'
       }),
@@ -806,7 +808,7 @@ describe('client', function () {
   });
 
   it('should send doc deletions', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     return task1.save().then(function () {
@@ -843,7 +845,7 @@ describe('client', function () {
   });
 
   it('should send attr deletions', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     return task1.save().then(function () {
@@ -886,7 +888,7 @@ describe('client', function () {
   it('should sync updates', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -951,7 +953,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -1029,7 +1031,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
@@ -1116,7 +1118,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
@@ -1162,7 +1164,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
@@ -1209,7 +1211,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1264,7 +1266,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1321,7 +1323,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1379,7 +1381,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.define();
+    var task1 = tasks.doc();
     task1.id('1');
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
@@ -1429,10 +1431,121 @@ describe('client', function () {
   });
 
   it('should unset id', function () {
-    var task1 = tasks.define({
+    var task1 = tasks.doc({
       priority: 'high'
     });
     task1.unset('$id');
+  });
+
+  // TODO: create db & collection layer tests and move this test accordingly
+  it('should set policy', function () {
+
+    var policy = {
+      col: {
+        read: 'myrole'
+      }
+    };
+
+    var savedDoc = null;
+
+    return db.policy('mycol', policy).then(function (doc) {
+      savedDoc = doc;
+      return db.col('mycol');
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._policyName].should.eql(policy);
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  // TODO: create db & collection layer tests and move this test accordingly
+  it('should create user', function () {
+
+    var savedDoc = null;
+
+    return db.createUser('user-uuid', 'username', 'secret').then(function (doc) {
+      savedDoc = doc;
+      return db.col(Item._userName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._userName].uuid.should.eql('user-uuid');
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  it('should update user', function () {
+
+    var savedDoc = null;
+
+    return db.updateUser('user-uuid', 'username', 'secret').then(function (doc) {
+      savedDoc = doc;
+      return db.col(Item._userName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var obj = doc.get();
+        obj[Item._userName].uuid.should.eql('user-uuid');
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  it('should add role', function () {
+
+    var savedDoc = null,
+      userUUID = 'user-uuid',
+      roleName = 'role-name',
+      colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+
+    return db.addRole(userUUID, roleName).then(function (doc) {
+      savedDoc = doc;
+      return db.col(colName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var data = doc.get();
+        data.userUUID.should.eql(userUUID);
+        data.roleName.should.eql(roleName);
+        doc.should.eql(savedDoc);
+      });
+    });
+
+  });
+
+  it('should remove role', function () {
+
+    var savedDoc = null,
+      userUUID = 'user-uuid',
+      roleName = 'role-name',
+      colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+
+    return db.removeRole(userUUID, roleName).then(function (doc) {
+      savedDoc = doc;
+      return db.col(colName);
+    }).then(function (col) {
+      return col.all();
+    }).then(function (docs) {
+      return docs.each(function (doc) {
+        var data = doc.get();
+        data.userUUID.should.eql(userUUID);
+        data.roleName.should.eql(roleName);
+        doc.should.eql(savedDoc);
+      });
+    });
+
   });
 
 });

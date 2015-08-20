@@ -1,7 +1,8 @@
 Now
 ---
-- API docs - review NoSQL ORM and make any changes
+- Rename Item to Doc (separate branch)
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define(). Make sure save version of DB so that later versions can patch to latest
+- should col.doc() return a promise? If so then also modify API docs. If not then how to justify that db.col() returns a promise? Shouldn't they be consistent?
 - express (or better) server - use web socket
 - Roadmap
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng

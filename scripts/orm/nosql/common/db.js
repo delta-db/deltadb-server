@@ -8,7 +8,7 @@ var DB = function () {};
 
 inherits(DB, EventEmitter);
 
-// DB.prototype.use = function ( /* name */ ) {};
+// DB.prototype.col = function ( /* name */ ) {};
 
 DB.prototype.close = utils.resolveFactory();
 

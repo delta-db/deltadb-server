@@ -14,7 +14,7 @@ var DB = function (provider, dbName, adapter) {
 
 inherits(DB, AbstractDB);
 
-DB.prototype.use = function (name) {
+DB.prototype.col = function (name) {
   return Promise.resolve(new this._provider.CollectionWrapper(
     new this._provider.Collection(this._provider, name, this._db)));
 };

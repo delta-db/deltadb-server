@@ -7,7 +7,9 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
-  DBWrapper = require('../orm/nosql/wrapper/db');
+  DBWrapper = require('../orm/nosql/wrapper/db'),
+  Item = require('./item'),
+  clientUtils = require('./utils');
 
 var DB = function () {
   DBWrapper.apply(this, arguments); // apply parent constructor
@@ -19,19 +21,19 @@ var DB = function () {
 
 inherits(DB, DBWrapper);
 
-DB.prototype.use = function (name) {
+DB.prototype.col = function (name) {
   var self = this;
   return new Promise(function (resolve) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
       self._db._db = self; // allow the wrapping DB to be pased down to the wrapping item
-      var use = self._db.use(name).then(function (collection) {
+      var col = self._db.col(name).then(function (collection) {
         self._collections[name] = collection;
         self._emitColCreate(collection);
         return collection;
       });
-      resolve(use);
+      resolve(col);
     }
   });
 };
@@ -77,7 +79,7 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
 };
 
 DB.prototype._setChange = function (change) {
-  return this.use(change.col).then(function (collection) {
+  return this.col(change.col).then(function (collection) {
     return collection._setChange(change);
   });
 };
@@ -97,6 +99,7 @@ DB.prototype._setChanges = function (changes) {
   return chain;
 };
 
+// TODO: rename to _sync as shouldn't be called by user
 DB.prototype.sync = function (db, quorum) {
   var self = this,
     since = null;
@@ -122,6 +125,37 @@ DB.prototype._emit = function () { // event, arg1, ... argN
     this._adapter._emit('db:record', this); // also bubble up to adapter layer
     this._recorded = true;
   }
+};
+
+DB.prototype.policy = function (colName, policy) {
+  // Find/create collection and set policy for new item
+  return this.col(colName).then(function (col) {
+    return col.policy(policy);
+  });
+};
+
+DB.prototype.createUser = function (userUUID, username, password, status) {
+  return this.col(Item._userName).then(function (col) {
+    return col._createUser(userUUID, username, password, status);
+  });
+};
+
+DB.prototype.updateUser = function (userUUID, username, password, status) {
+  return this.createUser(userUUID, username, password, status);
+};
+
+DB.prototype.addRole = function (userUUID, roleName) {
+  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+  return this.col(colName).then(function (col) {
+    return col._addRole(userUUID, roleName);
+  });
+};
+
+DB.prototype.removeRole = function (userUUID, roleName) {
+  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
+  return this.col(colName).then(function (col) {
+    return col._removeRole(userUUID, roleName);
+  });
 };
 
 module.exports = DB;

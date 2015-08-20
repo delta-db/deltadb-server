@@ -55,7 +55,7 @@ DB.prototype._open = function (name, version) {
   });
 };
 
-DB.prototype.use = function (name) {
+DB.prototype.col = function (name) {
   // First attempt to open the database, but if the store doesn't exist, which can happen if the
   // store was just destroyed, we need to close the database, reopen it with a version change and
   // then add the store. (The same process would be needed if we wanted to changed the indexes).

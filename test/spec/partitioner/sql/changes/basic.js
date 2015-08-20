@@ -205,7 +205,7 @@ describe('basic', function () {
           up: '2014-01-01T10:00:00.000Z'
         }], chngs);
     }).then(function () {
-      return testUtils.timeout(1); // ensure next changes called at least 1 ms after process
+      return testUtils.sleep(); // ensure next changes called at least 1 ms after process
     }).then(function () {
       since = new Date();
       return queueAndProcess(
@@ -231,7 +231,7 @@ describe('basic', function () {
     }).then(function (chngs) {
       changesShouldEqlChangesNoDel(chngs);
     }).then(function () {
-      return testUtils.timeout(1); // ensure next changes called at least 1 ms after process
+      return testUtils.sleep(); // ensure next changes called at least 1 ms after process
     }).then(function () {
       since = new Date();
       return queueAndProcess(
@@ -259,7 +259,7 @@ describe('basic', function () {
   it('client: should get recent changes with deletions', function () {
     var since = new Date();
     return queueAndProcess(changesWithDel).then(function () {
-      return testUtils.timeout(1); // ensure changes called at least 1 ms after archive
+      return testUtils.sleep(); // ensure changes called at least 1 ms after archive
     }).then(function () {
       return args.db.changes(since);
     }).then(function (chngs) {
@@ -300,7 +300,7 @@ describe('basic', function () {
   it('server: should get recent changes with deletions', function () {
     var since = new Date();
     return queueAndProcess(changesWithDel).then(function () {
-      return testUtils.timeout(1); // ensure changes called at least 1 ms after archive
+      return testUtils.sleep(); // ensure changes called at least 1 ms after archive
     }).then(function () {
       return args.db.changes(since, true);
     }).then(function (chngs) {
@@ -380,10 +380,10 @@ describe('basic', function () {
   it('server: should get changes with deletions that are not recent', function () {
     var beforeProcess = new Date(),
       afterProcess = null;
-    return testUtils.timeout(1).then(function () { // ensure beforeProcess 1 ms before process
+    return testUtils.sleep().then(function () { // ensure beforeProcess 1 ms before process
       return queueAndProcess(changesWithDel);
     }).then(function () {
-      return testUtils.timeout(1); // ensure archive called at least 1 ms after processing changes
+      return testUtils.sleep(); // ensure archive called at least 1 ms after processing changes
     }).then(function () {
       afterProcess = new Date();
       return args.db.archive(new Date());
@@ -417,7 +417,7 @@ describe('basic', function () {
       val: '"low"',
       up: '2014-01-01T10:01:00.300Z'
     }];
-    return testUtils.timeout(1).then(function () { // ensure beforeProcess 1 ms before process
+    return testUtils.sleep().then(function () { // ensure beforeProcess 1 ms before process
       return queueAndProcess(changes);
     }).then(function () {
       return args.db.changes(beforeProcess);

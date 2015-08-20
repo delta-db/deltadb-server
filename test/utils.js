@@ -103,6 +103,16 @@ Utils.prototype.timeout = function (ms) {
   });
 };
 
+Utils.prototype.sleep = function () {
+  // Ensure a different timestamp will be generated after this function resolves.
+  // Occasionally, using timeout(1) will not guarantee a different timestamp, e.g.:
+  //   1. (new Date()).getTime()
+  //   2. timeout(1)
+  //   3. (new Date()).getTime()
+  // It is not clear as to what causes this but the solution is to sleep for 2 ms
+  return this.timeout(2);
+};
+
 Utils.prototype._toDate = function (val) {
   return val instanceof Date ? val : new Date(val);
 };
@@ -261,6 +271,19 @@ Utils.prototype.queueAndProcess = function (db, changes, quorum, superUUID) {
   return db.queue(changes, quorum, superUUID).then(function () {
     return db.process();
   });
+};
+
+Utils.prototype.queueAndProcessEach = function (db, changes, quorum, superUUID) {
+  var self = this,
+    chain = Promise.resolve();
+  changes.forEach(function (change) {
+    chain = chain.then(function () {
+      return self.queueAndProcess(db, [change], quorum, superUUID).then(function () {
+        return self.sleep();
+      });
+    });
+  });
+  return chain;
 };
 
 // Helper function so that userId doesn't have to be looked up externally

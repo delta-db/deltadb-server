@@ -19,19 +19,16 @@ describe('e2e', function () {
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   beforeEach(function () {
-    return client.connect({
+    a = client.db({
       db: 'mydb'
-    }).then(function (db) {
-      a = db;
-      return a.use('tasks');
-    }).then(function (collection) {
+    });
+
+    b = client.db({
+      db: 'mydb'
+    });
+
+    return a.col('tasks').then(function (collection) {
       aTasks = collection;
-    }).then(function () {
-      return client.connect({
-        db: 'mydb'
-      });
-    }).then(function (db) {
-      b = db;
     });
   });
 
@@ -43,7 +40,7 @@ describe('e2e', function () {
   };
 
   it('client: should perform initial sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -56,7 +53,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -68,7 +65,7 @@ describe('e2e', function () {
   });
 
   it('client: should perform recent sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -77,7 +74,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -103,7 +100,7 @@ describe('e2e', function () {
   });
 
   it('client: should perform non-recent sync', function () {
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -116,7 +113,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -136,7 +133,7 @@ describe('e2e', function () {
     // b syncs
     // a syncs
     // a's and b's data should be change from b
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write a song',
       priority: 'medium'
     });
@@ -145,7 +142,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
       return utils.allShouldEql(bTasks, [{
@@ -158,13 +155,15 @@ describe('e2e', function () {
         priority: 'high'
       });
     }).then(function () {
-      return utils.timeout(1); // ensure following update not on same timestamp
+      return utils.sleep(); // ensure following update not on same timestamp
     }).then(function () {
-      return bTasks.at(task1.id());
+      return bTasks.get(task1.id());
     }).then(function (bTask1) {
       return bTask1.set({
         priority: 'low'
       });
+    }).then(function () {
+      return utils.sleep(); // ensure sync happens after last update
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
@@ -193,7 +192,7 @@ describe('e2e', function () {
     // a: edits { priority: 'low' }
     // b: syncs
     // a: syncs in 1 yr => restore doc and apply changes
-    var task1 = aTasks.define({
+    var task1 = aTasks.doc({
       thing: 'write',
       priority: 'high'
     });
@@ -202,10 +201,10 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.use('tasks');
+      return b.col('tasks');
     }).then(function (collection) {
       bTasks = collection;
-      return bTasks.at(task1.id());
+      return bTasks.get(task1.id());
     }).then(function (bTask1) {
       return bTask1.destroy();
     }).then(function () {
@@ -217,6 +216,8 @@ describe('e2e', function () {
       return task1.set({
         priority: 'medium'
       });
+    }).then(function () {
+      return utils.sleep(); // ensure update happens before sync
     }).then(function () {
       return syncAndProcess(b); // send del
     }).then(function () {

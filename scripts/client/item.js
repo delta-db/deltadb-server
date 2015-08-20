@@ -2,6 +2,7 @@
 
 var inherits = require('inherits'),
   utils = require('../utils'),
+  clientUtils = require('./utils'),
   ItemWrapper = require('../orm/nosql/wrapper/item');
 
 var Item = function (item) {
@@ -273,6 +274,49 @@ Item.prototype._setChange = function (change) {
 
 Item.prototype._include = function () {
   return this._destroyedAt === null;
+};
+
+Item.prototype._setAndSave = function (doc) {
+  var self = this;
+  return self.set(doc).then(function () {
+    return self.save();
+  }).then(function () {
+    return self;
+  });
+};
+
+Item.prototype.policy = function (policy) {
+  var doc = {};
+  doc[Item._policyName] = policy;
+  return this._setAndSave(doc);
+};
+
+// Shouldn't be called directly as the docUUID needs to be set properly
+Item.prototype._createUser = function (userUUID, username, password, status) {
+  var self = this,
+    doc = {};
+  return clientUtils.genUser(userUUID, username, password, status).then(function (user) {
+    doc[Item._userName] = user;
+    return self._setAndSave(doc);
+  });
+};
+
+Item.prototype._addRole = function (userUUID, roleName) {
+  var data = {
+    action: clientUtils.ACTION_ADD,
+    userUUID: userUUID,
+    roleName: roleName
+  };
+  return this._setAndSave(data);
+};
+
+Item.prototype._removeRole = function (userUUID, roleName) {
+  var data = {
+    action: clientUtils.ACTION_REMOVE,
+    userUUID: userUUID,
+    roleName: roleName
+  };
+  return this._setAndSave(data);
 };
 
 module.exports = Item;

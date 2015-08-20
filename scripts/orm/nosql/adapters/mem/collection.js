@@ -18,13 +18,12 @@ var Collection = function (provider, name, db) {
 
 inherits(Collection, AbstractCollection);
 
-Collection.prototype.define = function (doc) {
-  var item = new this._provider.ItemWrapper(new this._provider.Item(doc, this));
+Collection.prototype.doc = function (obj) {
+  var item = new this._provider.ItemWrapper(new this._provider.Item(obj, this));
   return item;
 };
 
-// TODO: rename to get? Or no, cause then implies there probably is a "put" method?
-Collection.prototype.at = function (id) {
+Collection.prototype.get = function (id) {
   return Promise.resolve(this._items[id]);
 };
 
