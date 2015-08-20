@@ -29,7 +29,9 @@ describe('item', function () {
   it('should set policy', function () {
     var store = new MemAdapter();
     var client = new Client(store);
-    var db = null, tasks = null, task;
+    var db = null,
+      tasks = null,
+      task;
 
     var policy = {
       col: {

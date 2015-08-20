@@ -6,8 +6,10 @@ var Adapter = require('./adapter'),
 var store = new MemAdapter(); // TODO: change to web socket
 var client = new Adapter(store);
 
-var DeltaDB = function (name /* , host, username, password */) {
-  return client.db({ db: name });
+var DeltaDB = function (name /* , host, username, password */ ) {
+  return client.db({
+    db: name
+  });
 };
 
 var wrapFunction = function (fn) {

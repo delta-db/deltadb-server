@@ -293,7 +293,8 @@ Item.prototype.policy = function (policy) {
 
 // Shouldn't be called directly as the docUUID needs to be set properly
 Item.prototype._createUser = function (userUUID, username, password, status) {
-  var self = this, doc = {};
+  var self = this,
+    doc = {};
   return clientUtils.genUser(userUUID, username, password, status).then(function (user) {
     doc[Item._userName] = user;
     return self._setAndSave(doc);

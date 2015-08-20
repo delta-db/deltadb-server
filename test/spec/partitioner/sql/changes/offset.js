@@ -43,8 +43,7 @@ describe('offset', function () {
       });
     }
 
-    return queueAndProcessEach(changes1).then(function () {
-    }).then(function () {
+    return queueAndProcessEach(changes1).then(function () {}).then(function () {
       return queueAndProcessEach(changes2);
     }).then(function () {
       return args.db.changes(null, null, 5, 0);

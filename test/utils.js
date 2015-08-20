@@ -274,7 +274,8 @@ Utils.prototype.queueAndProcess = function (db, changes, quorum, superUUID) {
 };
 
 Utils.prototype.queueAndProcessEach = function (db, changes, quorum, superUUID) {
-  var self = this, chain = Promise.resolve();
+  var self = this,
+    chain = Promise.resolve();
   changes.forEach(function (change) {
     chain = chain.then(function () {
       return self.queueAndProcess(db, [change], quorum, superUUID).then(function () {

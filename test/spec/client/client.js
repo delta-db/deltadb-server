@@ -1504,7 +1504,9 @@ describe('client', function () {
 
   it('should add role', function () {
 
-    var savedDoc = null, userUUID = 'user-uuid', roleName = 'role-name',
+    var savedDoc = null,
+      userUUID = 'user-uuid',
+      roleName = 'role-name',
       colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
 
     return db.addRole(userUUID, roleName).then(function (doc) {
@@ -1525,7 +1527,9 @@ describe('client', function () {
 
   it('should remove role', function () {
 
-    var savedDoc = null, userUUID = 'user-uuid', roleName = 'role-name',
+    var savedDoc = null,
+      userUUID = 'user-uuid',
+      roleName = 'role-name',
       colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
 
     return db.removeRole(userUUID, roleName).then(function (doc) {
