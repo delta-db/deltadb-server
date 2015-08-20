@@ -275,14 +275,19 @@ Item.prototype._include = function () {
   return this._destroyedAt === null;
 };
 
-Item.prototype.policy = function (policy) {
-  var self = this, doc = {};
-  doc[Item._policyName] = policy;
+Item.prototype._setAndSave = function (doc) {
+  var self = this;
   return self.set(doc).then(function () {
     return self.save();
   }).then(function () {
     return self;
   });
+};
+
+Item.prototype.policy = function (policy) {
+  var doc = {};
+  doc[Item._policyName] = policy;
+  return this._setAndSave(doc);
 };
 
 module.exports = Item;
