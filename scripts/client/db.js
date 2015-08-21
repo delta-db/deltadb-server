@@ -8,7 +8,7 @@ var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
   DBWrapper = require('../orm/nosql/wrapper/db'),
-  Item = require('./item'),
+  Doc = require('./doc'),
   clientUtils = require('./utils');
 
 var DB = function () {
@@ -27,7 +27,7 @@ DB.prototype.col = function (name) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
-      self._db._db = self; // allow the wrapping DB to be pased down to the wrapping item
+      self._db._db = self; // allow the wrapping DB to be pased down to the wrapping doc
       var col = self._db.col(name).then(function (collection) {
         self._collections[name] = collection;
         self._emitColCreate(collection);
@@ -43,7 +43,7 @@ DB.prototype._emitColCreate = function (col) {
   this._adapter._emit('col:create', col); // also bubble up to adapter layer
 };
 
-// TODO: defer to collection or item to retrieve from correct layer
+// TODO: defer to collection or doc to retrieve from correct layer
 DB.prototype._localChanges = function (retryAfter, returnSent) {
   var self = this,
     now = (new Date()).getTime();
@@ -51,8 +51,8 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
   return new Promise(function (resolve) {
     var changes = [];
     utils.each(self._collections, function (collection) {
-      utils.each(collection._items, function (item) {
-        utils.each(item._changes, function (change) {
+      utils.each(collection._docs, function (doc) {
+        utils.each(doc._changes, function (change) {
           // Use >= to ensure we get all changes when retryAfter=0
           if (!change.sent || now >= change.sent.getTime() + retryAfter) { // never sent or retry?
             var chng = utils.clone(change); // clone so that we don't modify original data
@@ -60,7 +60,7 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
               delete chng.sent; // server doesn't need sent
             }
             chng.col = collection._name;
-            chng.id = item.id();
+            chng.id = doc.id();
             chng.up = change.up.toISOString();
             if (chng.val) { // don't set val if falsy
               chng.val = JSON.stringify(chng.val);
@@ -128,14 +128,14 @@ DB.prototype._emit = function () { // event, arg1, ... argN
 };
 
 DB.prototype.policy = function (colName, policy) {
-  // Find/create collection and set policy for new item
+  // Find/create collection and set policy for new doc
   return this.col(colName).then(function (col) {
     return col.policy(policy);
   });
 };
 
 DB.prototype.createUser = function (userUUID, username, password, status) {
-  return this.col(Item._userName).then(function (col) {
+  return this.col(Doc._userName).then(function (col) {
     return col._createUser(userUUID, username, password, status);
   });
 };

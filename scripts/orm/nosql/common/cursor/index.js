@@ -4,11 +4,11 @@ var Cursor = function () {};
 
 Cursor.prototype.array = function () {
   var self = this,
-    items = [];
-  return self.each(function (item) {
-    items.push(item);
+    docs = [];
+  return self.each(function (doc) {
+    docs.push(doc);
   }).then(function () {
-    return items;
+    return docs;
   });
 };
 

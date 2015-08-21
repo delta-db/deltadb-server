@@ -5,7 +5,7 @@
 var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
-  Item = require('../../../scripts/client/item'),
+  Doc = require('../../../scripts/client/doc'),
   partUtils = require('../../../scripts/utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
   SQL = require('../../../scripts/orm/sql/adapters/postgres'); // needs to be dynamic
@@ -40,8 +40,8 @@ describe('manager', function () {
       return testUtils.changes(partitioner, null, null, null, null, true, 'user-uuid');
     }).then(function (changes) {
       testUtils.contains([{
-          col: Item._userName,
-          name: Item._userName,
+          col: Doc._userName,
+          name: Doc._userName,
           val: JSON.stringify(user)
         }],
         testUtils.sortChanges(changes));
@@ -68,8 +68,8 @@ describe('manager', function () {
       return testUtils.changes(partitioner, null, null, null, null, true, 'user-uuid');
     }).then(function (changes) {
       testUtils.contains([{
-          col: Item._userName,
-          name: Item._userName,
+          col: Doc._userName,
+          name: Doc._userName,
           val: JSON.stringify(updatedUser)
         }],
         testUtils.sortChanges(changes));
@@ -94,15 +94,15 @@ describe('manager', function () {
       });
       testUtils.contains([{
         col: '$rusome-role',
-        name: Item._roleUserName,
+        name: Doc._roleUserName,
         val: actionStr
       }, {
         col: '$uruser-uuid',
-        name: Item._roleName,
+        name: Doc._roleName,
         val: actionStr
       }, {
         id: '$uuser-uuid',
-        name: Item._userName
+        name: Doc._userName
       }], testUtils.sortChanges(changes));
     });
   });
@@ -129,15 +129,15 @@ describe('manager', function () {
       });
       testUtils.contains([{
         col: '$rusome-role',
-        name: Item._roleUserName,
+        name: Doc._roleUserName,
         val: removeActionStr
       }, {
         col: '$uruser-uuid',
-        name: Item._roleName,
+        name: Doc._roleName,
         val: removeActionStr
       }, {
         id: '$uuser-uuid',
-        name: Item._userName
+        name: Doc._userName
       }], changes);
     });
   });
@@ -158,7 +158,7 @@ describe('manager', function () {
     }).then(function (changes) {
       testUtils.contains(
         [{
-          name: Item._policyName,
+          name: Doc._policyName,
           val: JSON.stringify(policy)
         }], testUtils.sortChanges(changes));
     });

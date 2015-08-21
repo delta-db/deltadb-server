@@ -2,7 +2,7 @@
 
 var inherits = require('inherits'),
   AbstractCursor = require('../../cursor'),
-  Item = require('./item');
+  Doc = require('./doc');
 
 var Cursor = function (cursor, collection) {
   this._cursor = cursor;
@@ -16,7 +16,7 @@ Cursor.prototype.each = function (callback) {
   var self = this;
   self._cursor.each(function (err, doc) {
     if (doc) {
-      callback(new Item(doc, self._collection));
+      callback(new Doc(doc, self._collection));
     }
   });
 };

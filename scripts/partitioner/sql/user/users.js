@@ -171,7 +171,7 @@ Users.prototype.createUserAndImplicitRole = function (userUUID, username, salt, 
     userId = _userId;
     var docUUID = utils.uuid(); // Generate docUUID for user role
     var colName = Cols.NAME_PRE_USER_ROLES + userUUID;
-    var attrName = null; // don't use Item._roleName as this would create an inifinite loop
+    var attrName = null; // don't use Doc._roleName as this would create an inifinite loop
     return self._partitioner._docs._createDoc(constants.LATEST, colName, docUUID, userId,
       updatedAt, attrName, changedByUUID);
   }).then(function (docId) {

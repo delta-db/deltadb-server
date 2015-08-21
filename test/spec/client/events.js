@@ -64,7 +64,7 @@ describe('events', function () {
 
   var createLocal = function () {
     task._set('priority', 'low', now); // use _set so we can force a timestamp
-    return task.save(); // item not registered with collection until save()
+    return task.save(); // doc not registered with collection until save()
   };
 
   var attrShouldCreateLocal = function (emitter) {
@@ -147,7 +147,7 @@ describe('events', function () {
 
   it('doc: attr:create remote same', function () {
     // TODO: does this one test cover the code path for all events?
-    // TODO: better to just test all cases of Item._event?? Probably!
+    // TODO: better to just test all cases of Doc._event?? Probably!
     return attrShouldCreateRemoteSame(task);
   });
 
@@ -172,7 +172,7 @@ describe('events', function () {
 
   it('doc: attr:create remote earlier', function () {
     // TODO: does this one test cover the code path for all events?
-    // TODO: better to just test all cases of Item._event?? Probably!
+    // TODO: better to just test all cases of Doc._event?? Probably!
     return attrShouldCreateRemoteEarlier(task);
   });
 

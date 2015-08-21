@@ -6,7 +6,7 @@ var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Item = require('../../../scripts/client/item'),
+  Doc = require('../../../scripts/client/doc'),
   clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
@@ -27,15 +27,15 @@ describe('client', function () {
 
   var latestShouldEql = function (expected) {
     // TODO: ensure up in the last couple seconds
-    utils.each(tasks._items, function (item) {
-      var exp = expected[item.id()];
+    utils.each(tasks._docs, function (doc) {
+      var exp = expected[doc.id()];
       (typeof exp !== 'undefined').should.eql(true);
       utils.each(exp, function (attr) {
         if (typeof attr.seq === 'undefined') {
           attr.seq = 0;
         }
       });
-      item._latest.should.eql(exp);
+      doc._latest.should.eql(exp);
     });
   };
 
@@ -831,7 +831,7 @@ describe('client', function () {
           up: changes[1].up
         }]);
 
-      // check latest - item still exists as not yet recorded by quorum
+      // check latest - doc still exists as not yet recorded by quorum
       var latest = {};
       latest[changes[0].id] = {
         priority: {
@@ -1137,7 +1137,7 @@ describe('client', function () {
           sent: changes[0].sent
         }]);
 
-      // check latest - item not destroyed as the local change is the latest
+      // check latest - doc not destroyed as the local change is the latest
       var latest = {};
       latest['1'] = {
         priority: {
@@ -1456,7 +1456,7 @@ describe('client', function () {
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._policyName].should.eql(policy);
+        obj[Doc._policyName].should.eql(policy);
         doc.should.eql(savedDoc);
       });
     });
@@ -1470,13 +1470,13 @@ describe('client', function () {
 
     return db.createUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Item._userName);
+      return db.col(Doc._userName);
     }).then(function (col) {
       return col.all();
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._userName].uuid.should.eql('user-uuid');
+        obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
       });
     });
@@ -1489,13 +1489,13 @@ describe('client', function () {
 
     return db.updateUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Item._userName);
+      return db.col(Doc._userName);
     }).then(function (col) {
       return col.all();
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._userName].uuid.should.eql('user-uuid');
+        obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
       });
     });

@@ -10,7 +10,7 @@ var partDir = '../../../../scripts/partitioner/sql',
   DocRecs = require(partDir + '/doc/doc-recs'),
   Cols = require(partDir + '/col/cols'),
   Manager = require(partDir + '/../../manager'),
-  Item = require(partDir + '/../../client/item');
+  Doc = require(partDir + '/../../client/doc');
 
 describe('policy', function () {
 
@@ -384,9 +384,9 @@ describe('policy', function () {
     }).then(function (changes) {
       testUtils.contains(
         [{
-          name: Item._policyName
+          name: Doc._policyName
         }, {
-          name: Item._userName
+          name: Doc._userName
         }, {
           name: 'priority',
           val: '"high"'
@@ -401,9 +401,9 @@ describe('policy', function () {
     }).then(function (changes) {
       testUtils.contains(
         [{
-          name: Item._policyName
+          name: Doc._policyName
         }, {
-          name: Item._userName
+          name: Doc._userName
         }, {
           name: 'priority',
           val: '"low"'

@@ -4,16 +4,16 @@ var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
 
-var Item = function (doc) {
-  this._doc = typeof doc === 'undefined' ? {} : doc;
+var Doc = function (data) {
+  this._data = typeof data === 'undefined' ? {} : data;
   this._dirty = {};
 };
 
-inherits(Item, EventEmitter);
+inherits(Doc, EventEmitter);
 
-Item.prototype._idName = '$id';
+Doc.prototype._idName = '$id';
 
-Item.prototype.id = function (id) {
+Doc.prototype.id = function (id) {
   if (typeof id === 'undefined') {
     return this.get(this._idName);
   } else {
@@ -22,28 +22,28 @@ Item.prototype.id = function (id) {
 };
 
 // Usage: get(name) or get(dirty)
-Item.prototype.get = function (name, dirty) {
+Doc.prototype.get = function (name, dirty) {
   var self = this;
   if (typeof name === 'boolean') {
     dirty = name;
     name = null;
   }
   if (name) {
-    return self._doc[name];
+    return self._data[name];
   } else if (dirty) {
     var doc = {};
-    utils.each(self._doc, function (value, name) {
+    utils.each(self._data, function (value, name) {
       if (self.dirty(name)) {
         doc[name] = value;
       }
     });
     return doc;
   } else {
-    return self._doc;
+    return self._data;
   }
 };
 
-Item.prototype.dirty = function (name) {
+Doc.prototype.dirty = function (name) {
   if (typeof name === 'undefined') {
     return !utils.empty(this._dirty);
   } else {
@@ -51,11 +51,11 @@ Item.prototype.dirty = function (name) {
   }
 };
 
-Item.prototype.taint = function (name) {
+Doc.prototype.taint = function (name) {
   this._dirty[name] = true;
 };
 
-Item.prototype.clean = function (name) {
+Doc.prototype.clean = function (name) {
   var self = this;
   if (typeof name === 'undefined') {
     utils.each(self._dirty, function (value, name) {
@@ -66,55 +66,55 @@ Item.prototype.clean = function (name) {
   }
 };
 
-Item.prototype._set = function (name, value, clean) {
-  if (!clean && (typeof this._doc[name] === 'undefined' || value !== this._doc[name])) {
+Doc.prototype._set = function (name, value, clean) {
+  if (!clean && (typeof this._data[name] === 'undefined' || value !== this._data[name])) {
     this.taint(name);
   }
-  this._doc[name] = value;
+  this._data[name] = value;
 };
 
-Item.prototype.set = function (doc) {
+Doc.prototype.set = function (data) {
   var self = this;
-  utils.each(doc, function (value, name) {
+  utils.each(data, function (value, name) {
     self._set(name, value);
   });
   return self.save();
 };
 
-Item.prototype.unset = function (name) {
-  delete this._doc[name];
+Doc.prototype.unset = function (name) {
+  delete this._data[name];
   return this.save();
 };
 
-Item.prototype._include = function () { // Include in cursor?
+Doc.prototype._include = function () { // Include in cursor?
   return true;
 };
 
-Item.prototype._register = function () {
-  var item = this._collection._getItem(this.id());
-  if (!item) { // doesn't exist? Don't re-register
+Doc.prototype._register = function () {
+  var doc = this._collection._getDoc(this.id());
+  if (!doc) { // doesn't exist? Don't re-register
     return this._collection._register(this);
   }
 };
 
-Item.prototype._unregister = function () {
+Doc.prototype._unregister = function () {
   return this._collection._unregister(this);
 };
 
-Item.prototype.save = function () {
-  // We don't register the item (consider it created) until after it is saved. This way items can be
+Doc.prototype.save = function () {
+  // We don't register the doc (consider it created) until after it is saved. This way docs can be
   // instantiated but not committed to memory
   var self = this;
-  return self._item._save.apply(this, arguments).then(function () {
+  return self._doc._save.apply(this, arguments).then(function () {
     return self._register();
   });
 };
 
-Item.prototype.destroy = function () {
+Doc.prototype.destroy = function () {
   var self = this;
-  return self._item._destroy.apply(this, arguments).then(function () {
+  return self._doc._destroy.apply(this, arguments).then(function () {
     return self._unregister();
   });
 };
 
-module.exports = Item;
+module.exports = Doc;

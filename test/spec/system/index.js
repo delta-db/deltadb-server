@@ -9,7 +9,7 @@ var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
   System = require('../../../scripts/system'),
-  Item = require('../../../scripts/client/item');
+  Doc = require('../../../scripts/client/doc');
 
 describe('system', function () {
 
@@ -47,7 +47,7 @@ describe('system', function () {
             // policy
             {
               col: Cols.ALL,
-              name: Item._policyName,
+              name: Doc._policyName,
               val: JSON.stringify(defaultPolicy)
             },
 
@@ -61,8 +61,8 @@ describe('system', function () {
 
             // $admin user
             {
-              col: Item._userName,
-              name: Item._userName
+              col: Doc._userName,
+              name: Doc._userName
             }
           ], changes);
       });

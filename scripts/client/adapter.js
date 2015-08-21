@@ -4,7 +4,7 @@ var inherits = require('inherits'),
   AdapterWrapper = require('../orm/nosql/wrapper/adapter'),
   ClientDB = require('./db'),
   ClientCollection = require('./collection'),
-  ClientItem = require('./item'),
+  ClientDoc = require('./doc'),
   utils = require('../utils');
 
 var Adapter = function (store) {
@@ -14,8 +14,8 @@ var Adapter = function (store) {
     DB: store._provider.DB,
     CollectionWrapper: ClientCollection,
     Collection: store._provider.Collection,
-    ItemWrapper: ClientItem,
-    Item: store._provider.Item
+    DocWrapper: ClientDoc,
+    Doc: store._provider.Doc
   };
 };
 

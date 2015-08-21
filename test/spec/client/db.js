@@ -8,7 +8,7 @@ describe('db', function () {
 
     db._collections = {
       0: {
-        _items: {
+        _docs: {
           0: {
             _changes: {
               0: {

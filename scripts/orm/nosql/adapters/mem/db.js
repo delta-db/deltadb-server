@@ -8,7 +8,7 @@ var DB = function (provider, dbName, adapter) {
   this._provider = provider;
   this._dbName = dbName;
   this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
-  this._db = this; // allow a wrapping DB to be pased down to the wrapping item
+  this._db = this; // allow a wrapping DB to be pased down to the wrapping doc
   this._adapter = adapter;
 };
 

@@ -13,24 +13,24 @@ var Collection = function (provider, name, db) {
   this._provider = provider;
   this._name = name;
   this._db = db;
-  this._items = {};
+  this._docs = {};
 };
 
 inherits(Collection, AbstractCollection);
 
 Collection.prototype.doc = function (obj) {
-  var item = new this._provider.ItemWrapper(new this._provider.Item(obj, this));
-  return item;
+  var doc = new this._provider.DocWrapper(new this._provider.Doc(obj, this));
+  return doc;
 };
 
 Collection.prototype.get = function (id) {
-  return Promise.resolve(this._items[id]);
+  return Promise.resolve(this._docs[id]);
 };
 
 Collection.prototype.find = function (query) {
   var self = this;
   return new Promise(function (resolve) {
-    var cursor = new Cursor(self._items, self),
+    var cursor = new Cursor(self._docs, self),
       filter = query && query.where ? where.filter(query.where) : null,
       filterCursor = new FilterCursor(cursor, filter);
     if (query && query.order) {
@@ -42,18 +42,18 @@ Collection.prototype.find = function (query) {
   });
 };
 
-Collection.prototype._getItem = function (id) {
-  var item = this._items[id];
-  return item;
+Collection.prototype._getDoc = function (id) {
+  var doc = this._docs[id];
+  return doc;
 };
 
-Collection.prototype._register = function (item) {
-  this._items[item.id()] = item;
+Collection.prototype._register = function (doc) {
+  this._docs[doc.id()] = doc;
   return Promise.resolve();
 };
 
-Collection.prototype._unregister = function (item) {
-  delete this._items[item.id()];
+Collection.prototype._unregister = function (doc) {
+  delete this._docs[doc.id()];
   return Promise.resolve();
 };
 

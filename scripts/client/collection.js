@@ -1,6 +1,6 @@
 'use strict';
 
-// TODO: items/changes need to be in store (i.e. separate instance of orm) so that they can be
+// TODO: docs/changes need to be in store (i.e. separate instance of orm) so that they can be
 // persistent
 
 var inherits = require('inherits'),
@@ -16,19 +16,19 @@ var Collection = function () {
 inherits(Collection, CollectionWrapper);
 
 Collection.prototype._setChange = function (change) {
-  var item = this._getItem(change.id),
+  var doc = this._getDoc(change.id),
     promise = null;
-  if (!item) {
-    item = this.doc();
-    item.id(change.id);
-    promise = this._register(item);
+  if (!doc) {
+    doc = this.doc();
+    doc.id(change.id);
+    promise = this._register(doc);
   } else {
     promise = Promise.resolve();
   }
   // TODO: in future, if sequence of changes for same doc then set for all changes and then issue a
   // single save?
   return promise.then(function () {
-    return item._setChange(change);
+    return doc._setChange(change);
   });
 };
 
@@ -52,9 +52,9 @@ Collection.prototype._emitColDestroy = function () {
   this._emit('col:destroy', this);
 };
 
-Collection.prototype._register = function (item) {
+Collection.prototype._register = function (doc) {
   return this._collection._register.apply(this, arguments).then(function () {
-    item._emitDocCreate();
+    doc._emitDocCreate();
   });
 };
 
@@ -66,8 +66,8 @@ Collection.prototype.destroy = function () {
 };
 
 Collection.prototype.policy = function (policy) {
-  var item = this.doc();
-  return item.policy(policy);
+  var doc = this.doc();
+  return doc.policy(policy);
 };
 
 // Shouldn't be called directly as the colName needs to be set properly
