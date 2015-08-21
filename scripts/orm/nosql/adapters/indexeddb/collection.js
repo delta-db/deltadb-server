@@ -9,7 +9,7 @@ var Promise = require('bluebird'),
   SortCursor = require('../../sort-cursor'),
   where = require('../../where'),
   order = require('../../order'),
-  Item = require('./item'),
+  Doc = require('./item'),
   Cursor = require('./cursor');
 
 var Collection = function (db, storeName) {
@@ -20,7 +20,7 @@ var Collection = function (db, storeName) {
 inherits(Collection, AbstractCollection);
 
 Collection.prototype.doc = function (obj) {
-  return new Item(obj, this);
+  return new Doc(obj, this);
 };
 
 Collection.prototype.get = function (id) {
@@ -31,7 +31,7 @@ Collection.prototype.get = function (id) {
       request = store.get(id);
 
     request.onsuccess = function () {
-      resolve(new Item(request.result, self));
+      resolve(new Doc(request.result, self));
     };
 
     request.onerror = function () {

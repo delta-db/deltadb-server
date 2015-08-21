@@ -3,17 +3,17 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   utils = require('../../../../utils'),
-  AbstractItem = require('../../common/item');
+  AbstractDoc = require('../../common/item');
 
-var Item = function (doc, collection) {
-  AbstractItem.apply(this, arguments); // apply parent constructor
+var Doc = function (doc, collection) {
+  AbstractDoc.apply(this, arguments); // apply parent constructor
   this._collection = collection;
   this._idName = collection._db._idName;
 };
 
-inherits(Item, AbstractItem);
+inherits(Doc, AbstractDoc);
 
-Item.prototype._insert = function () {
+Doc.prototype._insert = function () {
   // if (!this.id()) { // TODO: is id ever null?
   this.id(utils.uuid());
   //  this._collection._register(this);
@@ -22,11 +22,11 @@ Item.prototype._insert = function () {
   return Promise.resolve();
 };
 
-Item.prototype._update = function () {
+Doc.prototype._update = function () {
   return Promise.resolve();
 };
 
-Item.prototype._save = function () {
+Doc.prototype._save = function () {
   var self = this,
     promise = self.id() ? self._update() : self._insert();
   return promise.then(function () {
@@ -35,7 +35,7 @@ Item.prototype._save = function () {
 };
 
 // TODO: keep?
-// Item.prototype.merge = function () {
+// Doc.prototype.merge = function () {
 //   var self = this,
 //     promise = self.id() ? self._update() : self._insert();
 //   return promise.then(function () {
@@ -43,10 +43,10 @@ Item.prototype._save = function () {
 //   });
 // };
 
-Item.prototype._destroy = function () {
+Doc.prototype._destroy = function () {
   // TODO: move _unregister to item-common like register
   this._collection._unregister(this);
   return Promise.resolve();
 };
 
-module.exports = Item;
+module.exports = Doc;

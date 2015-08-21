@@ -3,17 +3,17 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   utils = require('../../utils'),
-  AbstractItem = require('../../item');
+  AbstractDoc = require('../../item');
 
-var Item = function (doc, collection) {
-  AbstractItem.apply(this, arguments); // apply parent constructor
+var Doc = function (doc, collection) {
+  AbstractDoc.apply(this, arguments); // apply parent constructor
   this._collection = collection;
   this._idName = collection._db._idName;
 };
 
-inherits(Item, AbstractItem);
+inherits(Doc, AbstractDoc);
 
-Item.prototype._put = function (doc) {
+Doc.prototype._put = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
@@ -34,17 +34,17 @@ Item.prototype._put = function (doc) {
   });
 };
 
-Item.prototype._insert = function () {
+Doc.prototype._insert = function () {
   this.id(utils.uuid());
   // TODO: should we clear the id if there is an error?
   return this._put(this._doc);
 };
 
-Item.prototype._update = function () {
+Doc.prototype._update = function () {
   return this._put(this._doc);
 };
 
-Item.prototype._save = function () {
+Doc.prototype._save = function () {
   var self = this,
     promise = self.id() ? self._update() : self._insert();
   return promise.then(function () {
@@ -53,7 +53,7 @@ Item.prototype._save = function () {
 };
 
 // IndexedDB doesn't support a partial update so we have to get the record, merge and then save
-Item.prototype._merge = function () {
+Doc.prototype._merge = function () {
   var self = this;
   return self._collection.get(self.id()).then(function (doc) {
     var updates = self.get(self.dirty());
@@ -64,7 +64,7 @@ Item.prototype._merge = function () {
 
 // TODO: need to implement "merge" vs "save" in mongo adapter
 
-Item.prototype.merge = function () {
+Doc.prototype.merge = function () {
   var self = this,
     promise = self.id() ? self._merge() : self._insert();
   return promise.then(function () {
@@ -72,7 +72,7 @@ Item.prototype.merge = function () {
   });
 };
 
-Item.prototype._destroy = function () {
+Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
@@ -90,4 +90,4 @@ Item.prototype._destroy = function () {
   });
 };
 
-module.exports = Item;
+module.exports = Doc;

@@ -4,15 +4,15 @@
 
 var inherits = require('inherits'),
   utils = require('../../../utils'),
-  AbstractItem = require('../common/item');
+  AbstractDoc = require('../common/item');
 
-var Item = function (item) {
+var Doc = function (item) {
   utils.wrapMissing(this, item);
   this._item = item;
 };
 
-inherits(Item, AbstractItem);
+inherits(Doc, AbstractDoc);
 
-utils.wrapFunctions(Item, '_item');
+utils.wrapFunctions(Doc, '_item');
 
-module.exports = Item;
+module.exports = Doc;

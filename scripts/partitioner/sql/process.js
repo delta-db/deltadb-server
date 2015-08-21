@@ -21,7 +21,7 @@ var Promise = require('bluebird'),
   QueueAttrRec = require('./queue/queue-attr-rec'),
   Cols = require('./col/cols'),
   Users = require('./user/users'),
-  Item = require('../../client/item'),
+  Doc = require('../../client/item'),
   UserRoles = require('./user/user-roles'),
   Docs = require('./doc/docs');
 
@@ -86,10 +86,10 @@ Process.prototype._getOrCreateUser = function (userUUID, updatedAt, changedByUUI
 // -----
 
 Process.prototype._forUserUUID = function (attr) {
-  if (attr.attr_name === Item._userName) { // creating a user?
+  if (attr.attr_name === Doc._userName) { // creating a user?
     var user = JSON.parse(attr.attr_val);
     return user.uuid;
-  } else if (attr.attr_name === Item._roleName) { // adding user to role?
+  } else if (attr.attr_name === Doc._roleName) { // adding user to role?
     return this._roles.toUserUUID(attr.col_name);
   }
 };
@@ -191,7 +191,7 @@ Process.prototype._cacheRoleIds = function (attr) {
   // Note: we only need to get roleIds and not create them as we use them to look up the docUUID and
   // only if the role already exists
   var self = this;
-  if (attr.attr_name === Item._roleName) { // modifying user role?
+  if (attr.attr_name === Doc._roleName) { // modifying user role?
 
     var action = JSON.parse(attr.attr_val);
     var roleUUID = self._roles.toUUID(action.roleName);
@@ -534,7 +534,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
   // change to $urROLENAME. The permission checks are done here so that we can utilize our existing
   // caching system. If we did the permission checks later then it is possible that we would have
   // access to just the role or the user and this could result in an inconsistency.
-  if (attr.attr_name === Item._roleName) { // adding user to role?
+  if (attr.attr_name === Doc._roleName) { // adding user to role?
 
     var userColName = attr.col_name;
     var forUserUUID = self._forUserUUID(attr);
@@ -574,7 +574,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
           roleUserAttr.updated_at = attr.updated_at;
 
           roleUserAttr.col_name = roleColName;
-          roleUserAttr.attr_name = Item._roleUserName;
+          roleUserAttr.attr_name = Doc._roleUserName;
           roleUserAttr.doc_uuid = docUUIDs.roleDocUUID; // pop docUUID from lookup or generation
 
           self._deltas.push(roleUserAttr);

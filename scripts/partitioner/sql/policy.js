@@ -6,7 +6,7 @@ var utils = require('../../utils'),
   ColRoles = require('./col/col-roles'),
   UserRoles = require('./user/user-roles'),
   DocRecs = require('./doc/doc-recs'),
-  Item = require('../../client/item'),
+  Doc = require('../../client/item'),
   Users = require('./user/users');
 
 var Policy = function (sql, roles, colRoles, userRoles) {
@@ -257,7 +257,7 @@ Policy.prototype.createDefaultPolicy = function (colId, userUUID) {
   // to support null updated_at's so that the default col role can always be overwritten.
   var updatedAt = '1981-01-01T00:00:00.000Z';
   var policy = this.getDefaultPolicy(userUUID);
-  return this.createPolicyIfMissing(null, Item._policyName, policy, null, null, updatedAt, null,
+  return this.createPolicyIfMissing(null, Doc._policyName, policy, null, null, updatedAt, null,
     null,
     true, colId, userUUID);
 };

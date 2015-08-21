@@ -6,7 +6,7 @@ var order = require('../../../../../scripts/orm/nosql/common/order'),
 
 describe('order', function () {
 
-  var Item = function (doc) {
+  var Doc = function (doc) {
     this.get = function () {
       return doc;
     };
@@ -15,15 +15,15 @@ describe('order', function () {
   var items = null;
 
   beforeEach(function () {
-    items = [new Item({
+    items = [new Doc({
         thing: 'play',
         priority: 'high'
       }),
-      new Item({
+      new Doc({
         thing: 'sing',
         priority: 'medium'
       }),
-      new Item({
+      new Doc({
         thing: 'sing',
         priority: 'low'
       })

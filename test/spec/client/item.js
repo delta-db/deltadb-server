@@ -2,18 +2,18 @@
 
 var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Item = require('../../../scripts/client/item');
+  Doc = require('../../../scripts/client/item');
 
 describe('item', function () {
 
-  var FakeItem = function () {
+  var FakeDoc = function () {
     this.get = function () {
       return {};
     };
   };
 
   it('should record when remote change has seq', function () {
-    var item = new Item(new FakeItem()),
+    var item = new Doc(new FakeDoc()),
       updated = new Date();
 
     item._changes = [{
@@ -55,7 +55,7 @@ describe('item', function () {
       return task.policy(policy);
     }).then(function () {
       var doc = task.get();
-      doc[Item._policyName].should.eql(policy);
+      doc[Doc._policyName].should.eql(policy);
     });
 
   });

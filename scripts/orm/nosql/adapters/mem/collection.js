@@ -19,7 +19,7 @@ var Collection = function (provider, name, db) {
 inherits(Collection, AbstractCollection);
 
 Collection.prototype.doc = function (obj) {
-  var item = new this._provider.ItemWrapper(new this._provider.Item(obj, this));
+  var item = new this._provider.DocWrapper(new this._provider.Doc(obj, this));
   return item;
 };
 
@@ -42,7 +42,7 @@ Collection.prototype.find = function (query) {
   });
 };
 
-Collection.prototype._getItem = function (id) {
+Collection.prototype._getDoc = function (id) {
   var item = this._items[id];
   return item;
 };

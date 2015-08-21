@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('../utils'),
-  Item = require('../client/item'),
+  Doc = require('../client/item'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
   UserRoles = require('../partitioner/sql/user/user-roles'),
@@ -23,9 +23,9 @@ Manager.prototype.queueCreateUser = function (docUUID, user, changedByUUID) {
   docUUID = Users.toDocUUID(user.uuid);
   changedByUUID = utils.notDefined(changedByUUID) ? user.uuid : changedByUUID;
   var changes = [{
-    col: Item._userName,
+    col: Doc._userName,
     id: docUUID,
-    name: Item._userName,
+    name: Doc._userName,
     val: JSON.stringify(user),
     up: (new Date()).toISOString(),
     uid: changedByUUID
@@ -55,7 +55,7 @@ Manager.prototype.queueAddRole = function (userUUID, roleName, changedByUUID) {
   // roleName can be retrieve for the user modifications.
   var changes = [{
     col: col,
-    name: Item._roleName,
+    name: Doc._roleName,
     val: JSON.stringify({
       action: UserRoles.ACTION_ADD,
       userUUID: userUUID,
@@ -76,7 +76,7 @@ Manager.prototype.queueRemoveRole = function (userUUID, roleName, changedByUUID)
   // roleName can be retrieve for the user modifications.
   var changes = [{
     col: col,
-    name: Item._roleName,
+    name: Doc._roleName,
     val: JSON.stringify({
       action: UserRoles.ACTION_REMOVE,
       userUUID: userUUID,
@@ -92,7 +92,7 @@ Manager.prototype.queueSetPolicy = function (policy, col, id, userUUID) {
   var changes = [{
     col: col,
     id: id ? id : utils.uuid(),
-    name: Item._policyName,
+    name: Doc._policyName,
     val: JSON.stringify(policy),
     up: (new Date()).toISOString(),
     uid: userUUID

@@ -3,10 +3,10 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  ItemWrapper = require('../orm/nosql/wrapper/item');
+  DocWrapper = require('../orm/nosql/wrapper/item');
 
-var Item = function (item) {
-  ItemWrapper.apply(this, arguments); // apply parent constructor
+var Doc = function (item) {
+  DocWrapper.apply(this, arguments); // apply parent constructor
   this._changes = [];
   this._latest = {}; // TODO: best name as pending to be written to server?
   this._destroyedAt = null; // needed to exclude from cursor before del recorded
@@ -15,18 +15,18 @@ var Item = function (item) {
   this._changeDoc(item.get());
 };
 
-inherits(Item, ItemWrapper);
+inherits(Doc, DocWrapper);
 
-Item._policyName = '$policy';
+Doc._policyName = '$policy';
 
-Item._userName = '$user';
+Doc._userName = '$user';
 
-Item._roleName = '$role';
+Doc._roleName = '$role';
 
-Item._roleUserName = '$ruser';
+Doc._roleUserName = '$ruser';
 
 // TODO: split up
-Item.prototype._change = function (name, value, updated, recorded, untracked) {
+Doc.prototype._change = function (name, value, updated, recorded, untracked) {
 
   if (!updated) {
     updated = new Date();
@@ -83,19 +83,19 @@ Item.prototype._change = function (name, value, updated, recorded, untracked) {
 
 };
 
-Item.prototype._emitEvents = function (evnts, name) {
+Doc.prototype._emitEvents = function (evnts, name) {
   var self = this;
   evnts.forEach(function (evnt) {
     self._emit(evnt.evnt, name, evnt.val);
   });
 };
 
-Item.prototype._eventLayer = function (evnt) {
+Doc.prototype._eventLayer = function (evnt) {
   var parts = evnt.split(':');
   return parts[0];
 };
 
-Item.prototype._emit = function (evnt, name, value) {
+Doc.prototype._emit = function (evnt, name, value) {
   if (this._eventLayer(evnt) === 'doc') {
     this.emit(evnt, this);
     this._collection._emit(evnt, this);
@@ -110,14 +110,14 @@ Item.prototype._emit = function (evnt, name, value) {
   }
 };
 
-Item.prototype._emitDocCreate = function () {
+Doc.prototype._emitDocCreate = function () {
   // Always emit the id as the creating attr
   this._emit('doc:create', this._idName, this.id());
 };
 
 // TODO: better "changes" structure needed so that recording can happen faster? Use Dictionary to
 // index by docUUID and attrName?
-Item.prototype._record = function (name, value, updated, seq, recorded) {
+Doc.prototype._record = function (name, value, updated, seq, recorded) {
   var self = this,
     found = false;
 
@@ -151,18 +151,18 @@ Item.prototype._record = function (name, value, updated, seq, recorded) {
   });
 };
 
-Item.prototype._changeDoc = function (doc) {
+Doc.prototype._changeDoc = function (doc) {
   var self = this;
   utils.each(doc, function (value, name) {
     self._change(name, value);
   });
 };
 
-Item.prototype._destroying = function (value) {
+Doc.prototype._destroying = function (value) {
   return value ? false : true;
 };
 
-Item.prototype._events = function (name, value, updated) {
+Doc.prototype._events = function (name, value, updated) {
   var evnts = [];
 
   if (name) { // attr change?
@@ -200,7 +200,7 @@ Item.prototype._events = function (name, value, updated) {
   return evnts;
 };
 
-Item.prototype._set = function (name, value, updated, recorded, untracked) {
+Doc.prototype._set = function (name, value, updated, recorded, untracked) {
 
   if (name !== this._idName) { // TODO: do we really not to "track" id changes??
     this._change(name, value, updated, recorded, untracked);
@@ -213,14 +213,14 @@ Item.prototype._set = function (name, value, updated, recorded, untracked) {
   return this._item._set.apply(this, arguments);
 };
 
-Item.prototype.unset = function (name, updated, recorded, untracked) {
+Doc.prototype.unset = function (name, updated, recorded, untracked) {
   if (name !== this._idName) {
     this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
   }
   return this._item.unset.apply(this, arguments);
 };
 
-Item.prototype.destroy = function (destroyedAt, untracked) {
+Doc.prototype.destroy = function (destroyedAt, untracked) {
   // Doesn't actually remove data as we need to preserve tombstone so that we can ignore any
   // outdated changes received for destroyed data
   this._destroyedAt = destroyedAt ? destroyedAt : new Date();
@@ -228,7 +228,7 @@ Item.prototype.destroy = function (destroyedAt, untracked) {
   return this.save();
 };
 
-Item.prototype._saveChange = function (change) {
+Doc.prototype._saveChange = function (change) {
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
   var val = change.val ? JSON.parse(change.val) : null; // val is JSON
@@ -264,7 +264,7 @@ Item.prototype._saveChange = function (change) {
   return self._record(change.name, val, updated, change.seq, recorded);
 };
 
-Item.prototype._setChange = function (change) {
+Doc.prototype._setChange = function (change) {
   // TODO: Is this ever needed?
   // if (!this.id()) { // no id?
   // this.id(change.id);
@@ -272,11 +272,11 @@ Item.prototype._setChange = function (change) {
   return this._saveChange(change);
 };
 
-Item.prototype._include = function () {
+Doc.prototype._include = function () {
   return this._destroyedAt === null;
 };
 
-Item.prototype._setAndSave = function (doc) {
+Doc.prototype._setAndSave = function (doc) {
   var self = this;
   return self.set(doc).then(function () {
     return self.save();
@@ -285,23 +285,23 @@ Item.prototype._setAndSave = function (doc) {
   });
 };
 
-Item.prototype.policy = function (policy) {
+Doc.prototype.policy = function (policy) {
   var doc = {};
-  doc[Item._policyName] = policy;
+  doc[Doc._policyName] = policy;
   return this._setAndSave(doc);
 };
 
 // Shouldn't be called directly as the docUUID needs to be set properly
-Item.prototype._createUser = function (userUUID, username, password, status) {
+Doc.prototype._createUser = function (userUUID, username, password, status) {
   var self = this,
     doc = {};
   return clientUtils.genUser(userUUID, username, password, status).then(function (user) {
-    doc[Item._userName] = user;
+    doc[Doc._userName] = user;
     return self._setAndSave(doc);
   });
 };
 
-Item.prototype._addRole = function (userUUID, roleName) {
+Doc.prototype._addRole = function (userUUID, roleName) {
   var data = {
     action: clientUtils.ACTION_ADD,
     userUUID: userUUID,
@@ -310,7 +310,7 @@ Item.prototype._addRole = function (userUUID, roleName) {
   return this._setAndSave(data);
 };
 
-Item.prototype._removeRole = function (userUUID, roleName) {
+Doc.prototype._removeRole = function (userUUID, roleName) {
   var data = {
     action: clientUtils.ACTION_REMOVE,
     userUUID: userUUID,
@@ -319,4 +319,4 @@ Item.prototype._removeRole = function (userUUID, roleName) {
   return this._setAndSave(data);
 };
 
-module.exports = Item;
+module.exports = Doc;

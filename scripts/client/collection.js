@@ -16,7 +16,7 @@ var Collection = function () {
 inherits(Collection, CollectionWrapper);
 
 Collection.prototype._setChange = function (change) {
-  var item = this._getItem(change.id),
+  var item = this._getDoc(change.id),
     promise = null;
   if (!item) {
     item = this.doc();

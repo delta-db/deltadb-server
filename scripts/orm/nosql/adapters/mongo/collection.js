@@ -3,7 +3,7 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractCollection = require('../../collection'),
-  Item = require('./item'),
+  Doc = require('./item'),
   Cursor = require('./cursor'),
   where = require('./where');
 
@@ -14,7 +14,7 @@ var Collection = function (collection) {
 inherits(Collection, AbstractCollection);
 
 Collection.prototype.doc = function (obj) {
-  return new Item(obj, this);
+  return new Doc(obj, this);
 };
 
 Collection.prototype.get = function (id) {

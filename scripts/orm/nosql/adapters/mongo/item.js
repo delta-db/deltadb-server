@@ -2,16 +2,16 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  AbstractItem = require('../../item');
+  AbstractDoc = require('../../item');
 
-var Item = function (doc, collection) {
-  AbstractItem.apply(this, arguments); // apply parent constructor
+var Doc = function (doc, collection) {
+  AbstractDoc.apply(this, arguments); // apply parent constructor
   this._collection = collection;
 };
 
-inherits(Item, AbstractItem);
+inherits(Doc, AbstractDoc);
 
-Item.prototype._insert = function () {
+Doc.prototype._insert = function () {
   // var insert = Promise.promisify(this._collection._collection.insert); // not working
   // return insert(this._doc);
   var self = this;
@@ -27,7 +27,7 @@ Item.prototype._insert = function () {
   });
 };
 
-Item.prototype._update = function () {
+Doc.prototype._update = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
 
@@ -49,7 +49,7 @@ Item.prototype._update = function () {
   });
 };
 
-Item.prototype._save = function () {
+Doc.prototype._save = function () {
   var self = this,
     promise = self.id() ? self._update() : self._insert();
   return promise.then(function () {
@@ -57,7 +57,7 @@ Item.prototype._save = function () {
   });
 };
 
-Item.prototype._destroy = function () {
+Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     self._collection._collection.destroy({
@@ -72,4 +72,4 @@ Item.prototype._destroy = function () {
   });
 };
 
-module.exports = Item;
+module.exports = Doc;

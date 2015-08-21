@@ -6,7 +6,7 @@ var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Item = require('../../../scripts/client/item'),
+  Doc = require('../../../scripts/client/item'),
   clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
@@ -1456,7 +1456,7 @@ describe('client', function () {
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._policyName].should.eql(policy);
+        obj[Doc._policyName].should.eql(policy);
         doc.should.eql(savedDoc);
       });
     });
@@ -1470,13 +1470,13 @@ describe('client', function () {
 
     return db.createUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Item._userName);
+      return db.col(Doc._userName);
     }).then(function (col) {
       return col.all();
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._userName].uuid.should.eql('user-uuid');
+        obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
       });
     });
@@ -1489,13 +1489,13 @@ describe('client', function () {
 
     return db.updateUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Item._userName);
+      return db.col(Doc._userName);
     }).then(function (col) {
       return col.all();
     }).then(function (docs) {
       return docs.each(function (doc) {
         var obj = doc.get();
-        obj[Item._userName].uuid.should.eql('user-uuid');
+        obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
       });
     });
