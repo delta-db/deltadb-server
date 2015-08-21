@@ -13,10 +13,10 @@ inherits(Doc, AbstractDoc);
 
 Doc.prototype._insert = function () {
   // var insert = Promise.promisify(this._collection._collection.insert); // not working
-  // return insert(this._doc);
+  // return insert(this._data);
   var self = this;
   return new Promise(function (resolve, reject) {
-    self._collection._collection.insert(self._doc, function (err, docs) {
+    self._collection._collection.insert(self._data, function (err, docs) {
       if (err) {
         reject(err);
       } else {

@@ -166,7 +166,7 @@ Doc.prototype._events = function (name, value, updated) {
   var evnts = [];
 
   if (name) { // attr change?
-    if (utils.notDefined(this._doc[name])) { // attr doesn't exist?
+    if (utils.notDefined(this._data[name])) { // attr doesn't exist?
       evnts.push({
         evnt: 'attr:create',
         val: value

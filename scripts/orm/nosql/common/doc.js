@@ -4,8 +4,8 @@ var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
 
-var Doc = function (doc) {
-  this._doc = typeof doc === 'undefined' ? {} : doc;
+var Doc = function (data) {
+  this._data = typeof data === 'undefined' ? {} : data;
   this._dirty = {};
 };
 
@@ -29,17 +29,17 @@ Doc.prototype.get = function (name, dirty) {
     name = null;
   }
   if (name) {
-    return self._doc[name];
+    return self._data[name];
   } else if (dirty) {
     var doc = {};
-    utils.each(self._doc, function (value, name) {
+    utils.each(self._data, function (value, name) {
       if (self.dirty(name)) {
         doc[name] = value;
       }
     });
     return doc;
   } else {
-    return self._doc;
+    return self._data;
   }
 };
 
@@ -67,10 +67,10 @@ Doc.prototype.clean = function (name) {
 };
 
 Doc.prototype._set = function (name, value, clean) {
-  if (!clean && (typeof this._doc[name] === 'undefined' || value !== this._doc[name])) {
+  if (!clean && (typeof this._data[name] === 'undefined' || value !== this._data[name])) {
     this.taint(name);
   }
-  this._doc[name] = value;
+  this._data[name] = value;
 };
 
 Doc.prototype.set = function (doc) {
@@ -82,7 +82,7 @@ Doc.prototype.set = function (doc) {
 };
 
 Doc.prototype.unset = function (name) {
-  delete this._doc[name];
+  delete this._data[name];
   return this.save();
 };
 

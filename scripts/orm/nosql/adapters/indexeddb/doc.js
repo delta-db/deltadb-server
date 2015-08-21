@@ -37,11 +37,11 @@ Doc.prototype._put = function (doc) {
 Doc.prototype._insert = function () {
   this.id(utils.uuid());
   // TODO: should we clear the id if there is an error?
-  return this._put(this._doc);
+  return this._put(this._data);
 };
 
 Doc.prototype._update = function () {
-  return this._put(this._doc);
+  return this._put(this._data);
 };
 
 Doc.prototype._save = function () {
@@ -57,7 +57,7 @@ Doc.prototype._merge = function () {
   var self = this;
   return self._collection.get(self.id()).then(function (doc) {
     var updates = self.get(self.dirty());
-    updates = utils.merge(doc._doc, updates);
+    updates = utils.merge(doc._data, updates);
     return self._put(updates);
   });
 };
