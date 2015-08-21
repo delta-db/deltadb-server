@@ -10,7 +10,7 @@ var NILL = '$$null$$'; // so that we can hash null keys
 var Dictionary = function () {
   this._items = new Items();
 };
-  
+
 Dictionary.prototype._firstKey = function (items) {
   for (var i in items) {
     return i;
