@@ -27,15 +27,15 @@ describe('client', function () {
 
   var latestShouldEql = function (expected) {
     // TODO: ensure up in the last couple seconds
-    utils.each(tasks._items, function (item) {
-      var exp = expected[item.id()];
+    utils.each(tasks._docs, function (doc) {
+      var exp = expected[doc.id()];
       (typeof exp !== 'undefined').should.eql(true);
       utils.each(exp, function (attr) {
         if (typeof attr.seq === 'undefined') {
           attr.seq = 0;
         }
       });
-      item._latest.should.eql(exp);
+      doc._latest.should.eql(exp);
     });
   };
 
@@ -831,7 +831,7 @@ describe('client', function () {
           up: changes[1].up
         }]);
 
-      // check latest - item still exists as not yet recorded by quorum
+      // check latest - doc still exists as not yet recorded by quorum
       var latest = {};
       latest[changes[0].id] = {
         priority: {
@@ -1137,7 +1137,7 @@ describe('client', function () {
           sent: changes[0].sent
         }]);
 
-      // check latest - item not destroyed as the local change is the latest
+      // check latest - doc not destroyed as the local change is the latest
       var latest = {};
       latest['1'] = {
         priority: {

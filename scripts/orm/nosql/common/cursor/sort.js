@@ -13,9 +13,9 @@ inherits(SortCursor, Cursor);
 
 SortCursor.prototype.each = function (callback) {
   var self = this;
-  return self._cursor.array().then(function (items) {
-    items.sort(self._compare);
-    var cursor = new ArrayCursor(items);
+  return self._cursor.array().then(function (docs) {
+    docs.sort(self._compare);
+    var cursor = new ArrayCursor(docs);
     return cursor.each(callback);
   });
 };

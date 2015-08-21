@@ -64,7 +64,7 @@ describe('events', function () {
 
   var createLocal = function () {
     task._set('priority', 'low', now); // use _set so we can force a timestamp
-    return task.save(); // item not registered with collection until save()
+    return task.save(); // doc not registered with collection until save()
   };
 
   var attrShouldCreateLocal = function (emitter) {

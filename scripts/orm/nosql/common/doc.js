@@ -73,9 +73,9 @@ Doc.prototype._set = function (name, value, clean) {
   this._data[name] = value;
 };
 
-Doc.prototype.set = function (doc) {
+Doc.prototype.set = function (data) {
   var self = this;
-  utils.each(doc, function (value, name) {
+  utils.each(data, function (value, name) {
     self._set(name, value);
   });
   return self.save();
@@ -91,8 +91,8 @@ Doc.prototype._include = function () { // Include in cursor?
 };
 
 Doc.prototype._register = function () {
-  var item = this._collection._getDoc(this.id());
-  if (!item) { // doesn't exist? Don't re-register
+  var doc = this._collection._getDoc(this.id());
+  if (!doc) { // doesn't exist? Don't re-register
     return this._collection._register(this);
   }
 };
@@ -102,17 +102,17 @@ Doc.prototype._unregister = function () {
 };
 
 Doc.prototype.save = function () {
-  // We don't register the item (consider it created) until after it is saved. This way items can be
+  // We don't register the doc (consider it created) until after it is saved. This way docs can be
   // instantiated but not committed to memory
   var self = this;
-  return self._item._save.apply(this, arguments).then(function () {
+  return self._doc._save.apply(this, arguments).then(function () {
     return self._register();
   });
 };
 
 Doc.prototype.destroy = function () {
   var self = this;
-  return self._item._destroy.apply(this, arguments).then(function () {
+  return self._doc._destroy.apply(this, arguments).then(function () {
     return self._unregister();
   });
 };

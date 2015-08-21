@@ -15,12 +15,12 @@ inherits(FilterCursor, Cursor);
 FilterCursor.prototype.each = function (callback) {
   var self = this;
   if (self._filter) {
-    return self._cursor.each(function (item) {
-      // if (self._filter(item.get())) { // TODO: remove or needed?
-      //   callback(item);
+    return self._cursor.each(function (doc) {
+      // if (self._filter(doc.get())) { // TODO: remove or needed?
+      //   callback(doc);
       // }
-      self._filter(item.get());
-      callback(item);
+      self._filter(doc.get());
+      callback(doc);
     });
   } else {
     return self._cursor.each(callback);

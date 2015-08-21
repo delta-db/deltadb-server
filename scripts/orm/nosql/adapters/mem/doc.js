@@ -44,7 +44,7 @@ Doc.prototype._save = function () {
 // };
 
 Doc.prototype._destroy = function () {
-  // TODO: move _unregister to item-common like register
+  // TODO: move _unregister to doc-common like register
   this._collection._unregister(this);
   return Promise.resolve();
 };

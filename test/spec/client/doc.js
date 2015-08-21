@@ -4,7 +4,7 @@ var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc');
 
-describe('item', function () {
+describe('doc', function () {
 
   var FakeDoc = function () {
     this.get = function () {
@@ -13,17 +13,17 @@ describe('item', function () {
   };
 
   it('should record when remote change has seq', function () {
-    var item = new Doc(new FakeDoc()),
+    var doc = new Doc(new FakeDoc()),
       updated = new Date();
 
-    item._changes = [{
+    doc._changes = [{
       name: 'priority',
       val: 'high',
       up: updated,
       seq: 1
     }];
 
-    item._record('priority', 'high', updated);
+    doc._record('priority', 'high', updated);
   });
 
   it('should set policy', function () {
@@ -40,7 +40,7 @@ describe('item', function () {
     };
 
     // TODO: is there a better way to fake the underlying dependices so that we don't have to
-    // connect(), col(), etc... just to get an item?
+    // connect(), col(), etc... just to get an doc?
 
     db = client.db({
       db: 'mydb'

@@ -41,8 +41,8 @@ var toMongoOrder = function (order) {
   if (!Array.isArray(order[0])) { // e.g. ['age', 'asc']
     order = [order];
   }
-  order.forEach(function (item) {
-    mongoOrder[item[0]] = item[1] === 'desc' ? -1 : 1;
+  order.forEach(function (doc) {
+    mongoOrder[doc[0]] = doc[1] === 'desc' ? -1 : 1;
   });
   return mongoOrder;
 };

@@ -2,12 +2,12 @@
 
 var Doc = require('../../../../../scripts/orm/nosql/common/doc');
 
-describe('item', function () {
+describe('doc', function () {
 
   it('should edge test', function () {
-    var item = new Doc();
-    item._set('priority', 'high', true);
-    item.dirty();
+    var doc = new Doc();
+    doc._set('priority', 'high', true);
+    doc.dirty();
   });
 
 });
