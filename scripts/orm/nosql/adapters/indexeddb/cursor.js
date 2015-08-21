@@ -3,7 +3,7 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractCursor = require('../../cursor'),
-  Doc = require('./item');
+  Doc = require('./doc');
 
 var Cursor = function (cursor, callbackWrapper, collection) {
   this._cursor = cursor;

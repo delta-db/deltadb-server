@@ -6,8 +6,8 @@ var inherits = require('inherits'),
   DBWrapper = require('../../wrapper/db'),
   Collection = require('./collection'),
   CollectionWrapper = require('../../wrapper/collection'),
-  Doc = require('./item'),
-  DocWrapper = require('../../wrapper/item');
+  Doc = require('./doc'),
+  DocWrapper = require('../../wrapper/doc');
 
 var Adapter = function () {
   this._provider = {

@@ -6,7 +6,7 @@ var utils = require('../../utils'),
   ColRoles = require('./col/col-roles'),
   UserRoles = require('./user/user-roles'),
   DocRecs = require('./doc/doc-recs'),
-  Doc = require('../../client/item'),
+  Doc = require('../../client/doc'),
   Users = require('./user/users');
 
 var Policy = function (sql, roles, colRoles, userRoles) {

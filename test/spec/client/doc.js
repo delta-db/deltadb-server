@@ -2,7 +2,7 @@
 
 var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Doc = require('../../../scripts/client/item');
+  Doc = require('../../../scripts/client/doc');
 
 describe('item', function () {
 

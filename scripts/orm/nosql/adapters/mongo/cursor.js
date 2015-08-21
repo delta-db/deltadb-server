@@ -2,7 +2,7 @@
 
 var inherits = require('inherits'),
   AbstractCursor = require('../../cursor'),
-  Doc = require('./item');
+  Doc = require('./doc');
 
 var Cursor = function (cursor, collection) {
   this._cursor = cursor;

@@ -3,7 +3,7 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  DocWrapper = require('../orm/nosql/wrapper/item');
+  DocWrapper = require('../orm/nosql/wrapper/doc');
 
 var Doc = function (item) {
   DocWrapper.apply(this, arguments); // apply parent constructor

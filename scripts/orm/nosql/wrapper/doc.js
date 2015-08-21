@@ -4,7 +4,7 @@
 
 var inherits = require('inherits'),
   utils = require('../../../utils'),
-  AbstractDoc = require('../common/item');
+  AbstractDoc = require('../common/doc');
 
 var Doc = function (item) {
   utils.wrapMissing(this, item);

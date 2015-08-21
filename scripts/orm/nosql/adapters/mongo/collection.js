@@ -3,7 +3,7 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractCollection = require('../../collection'),
-  Doc = require('./item'),
+  Doc = require('./doc'),
   Cursor = require('./cursor'),
   where = require('./where');
 

@@ -1,6 +1,6 @@
 'use strict';
 
-var Doc = require('../../../../../scripts/orm/nosql/common/item');
+var Doc = require('../../../../../scripts/orm/nosql/common/doc');
 
 describe('item', function () {
 

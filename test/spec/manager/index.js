@@ -5,7 +5,7 @@
 var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
-  Doc = require('../../../scripts/client/item'),
+  Doc = require('../../../scripts/client/doc'),
   partUtils = require('../../../scripts/utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
   SQL = require('../../../scripts/orm/sql/adapters/postgres'); // needs to be dynamic

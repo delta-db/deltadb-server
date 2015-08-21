@@ -6,7 +6,7 @@ describe('common', function () {
   require('./adapter');
   require('./collection');
   require('./db');
-  require('./item');
+  require('./doc');
   require('./order');
   require('./where');
 

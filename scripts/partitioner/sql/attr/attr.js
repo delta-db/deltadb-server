@@ -7,7 +7,7 @@ var Promise = require('bluebird'),
   AttrParams = require('./attr-params'),
   UserRoles = require('../user/user-roles');
 
-var Doc = require('../../../client/item');
+var Doc = require('../../../client/doc');
 
 var Attr = function (sql, partitionName, policy, partitions, users, docs, params, roles,
   partitioner) {

@@ -6,7 +6,7 @@ var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  Doc = require('../../../scripts/client/item'),
+  Doc = require('../../../scripts/client/doc'),
   clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {

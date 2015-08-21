@@ -9,7 +9,7 @@ var Promise = require('bluebird'),
   SortCursor = require('../../sort-cursor'),
   where = require('../../where'),
   order = require('../../order'),
-  Doc = require('./item'),
+  Doc = require('./doc'),
   Cursor = require('./cursor');
 
 var Collection = function (db, storeName) {

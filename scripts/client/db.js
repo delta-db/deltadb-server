@@ -8,7 +8,7 @@ var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
   DBWrapper = require('../orm/nosql/wrapper/db'),
-  Doc = require('./item'),
+  Doc = require('./doc'),
   clientUtils = require('./utils');
 
 var DB = function () {

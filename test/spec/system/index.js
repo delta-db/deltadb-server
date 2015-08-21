@@ -9,7 +9,7 @@ var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
   System = require('../../../scripts/system'),
-  Doc = require('../../../scripts/client/item');
+  Doc = require('../../../scripts/client/doc');
 
 describe('system', function () {
 

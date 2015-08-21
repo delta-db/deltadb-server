@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('../utils'),
-  Doc = require('../client/item'),
+  Doc = require('../client/doc'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
   UserRoles = require('../partitioner/sql/user/user-roles'),

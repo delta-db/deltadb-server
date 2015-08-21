@@ -10,7 +10,7 @@ var partDir = '../../../../scripts/partitioner/sql',
   DocRecs = require(partDir + '/doc/doc-recs'),
   Cols = require(partDir + '/col/cols'),
   Manager = require(partDir + '/../../manager'),
-  Doc = require(partDir + '/../../client/item');
+  Doc = require(partDir + '/../../client/doc');
 
 describe('policy', function () {
 
