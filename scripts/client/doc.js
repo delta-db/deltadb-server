@@ -3,19 +3,19 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  DocWrapper = require('../orm/nosql/wrapper/doc');
+  CommonDoc = require('../orm/nosql/common/doc');
 
-var Doc = function (doc) {
-  DocWrapper.apply(this, arguments); // apply parent constructor
+var Doc = function (data) {
+  CommonDoc.apply(this, arguments); // apply parent constructor
   this._changes = [];
   this._latest = {}; // TODO: best name as pending to be written to server?
   this._destroyedAt = null; // needed to exclude from cursor before del recorded
   this._updatedAt = null;
   this._recordedAt = null; // used to determine whether doc has been recorded
-  this._changeDoc(doc.get());
+  this._changeDoc(data);
 };
 
-inherits(Doc, DocWrapper);
+inherits(Doc, CommonDoc);
 
 Doc._policyName = '$policy';
 
@@ -210,14 +210,14 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
     this._updatedAt = updated;
   }
 
-  return this._doc._set.apply(this, arguments);
+  return CommonDoc.prototype._set.apply(this, arguments);
 };
 
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
   if (name !== this._idName) {
     this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
   }
-  return this._doc.unset.apply(this, arguments);
+  return CommonDoc.prototype.unset.apply(this, arguments);
 };
 
 Doc.prototype.destroy = function (destroyedAt, untracked) {

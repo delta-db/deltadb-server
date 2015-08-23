@@ -1,25 +1,18 @@
 'use strict';
 
+// TODO: should events be moved to nosql/common layer?
+
 var inherits = require('inherits'),
-  AdapterWrapper = require('../orm/nosql/wrapper/adapter'),
-  ClientDB = require('./db'),
-  ClientCollection = require('./collection'),
-  ClientDoc = require('./doc'),
+  CommonAdapter = require('../orm/nosql/common/adapter'),
+  DB = require('./db'),
   utils = require('../utils');
 
 var Adapter = function (store) {
-  AdapterWrapper.apply(this, arguments); // apply parent constructor
-  this._provider = {
-    DBWrapper: ClientDB,
-    DB: store._provider.DB,
-    CollectionWrapper: ClientCollection,
-    Collection: store._provider.Collection,
-    DocWrapper: ClientDoc,
-    Doc: store._provider.Doc
-  };
+  CommonAdapter.apply(this, arguments); // apply parent constructor
+  this._store = store;
 };
 
-inherits(Adapter, AdapterWrapper);
+inherits(Adapter, CommonAdapter);
 
 Adapter.prototype._emit = function () { // event, arg1, ... argN
   this.emit.apply(this, utils.toArgsArray(arguments));
@@ -27,6 +20,14 @@ Adapter.prototype._emit = function () { // event, arg1, ... argN
 
 Adapter.prototype.uuid = function () {
   return utils.uuid();
+};
+
+// opts: db
+Adapter.prototype.db = function (opts) {
+  var dbStore = this._store.db(opts);
+  var db = new DB(opts.db, this, dbStore);
+  this.emit('db:create', db);
+  return db;
 };
 
 module.exports = Adapter;

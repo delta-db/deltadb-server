@@ -6,14 +6,8 @@ var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
 
 describe('doc', function () {
 
-  var FakeDoc = function () {
-    this.get = function () {
-      return {};
-    };
-  };
-
   it('should record when remote change has seq', function () {
-    var doc = new Doc(new FakeDoc()),
+    var doc = new Doc(),
       updated = new Date();
 
     doc._changes = [{

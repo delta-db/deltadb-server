@@ -1,7 +1,7 @@
 Now
 ---
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define(). Make sure save version of DB so that later versions can patch to latest
-- should col.doc() return a promise? If so then also modify API docs. If not then how to justify that db.col() returns a promise? Shouldn't they be consistent?
+- use FireFox & Chrome to test indexeddb adapter. Convert all adapters to make db.col() not return a promise and update API docs
 - express (or better) server - use web socket
 - Roadmap
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng

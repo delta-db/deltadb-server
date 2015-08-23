@@ -9,7 +9,7 @@ describe('delta-db', function () {
     db.on('db:create', function () {
       // db created
     });
-    db._dbName.should.eql('mydb');
+    db._name.should.eql('mydb');
   });
 
   it('should uuid', function () {
