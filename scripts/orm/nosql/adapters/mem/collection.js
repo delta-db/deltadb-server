@@ -2,25 +2,24 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  AbstractCollection = require('../../common/collection'),
+  CommonCollection = require('../../common/collection'),
   FilterCursor = require('../../common/cursor/filter'),
   SortCursor = require('../../common/cursor/sort'),
   where = require('../../common/where'),
   order = require('../../common/order'),
-  Cursor = require('./cursor');
+  Cursor = require('./cursor'),
+  Doc = require('./doc');
 
-var Collection = function (provider, name, db) {
-  this._provider = provider;
+var Collection = function (name, db) {
   this._name = name;
   this._db = db;
   this._docs = {};
 };
 
-inherits(Collection, AbstractCollection);
+inherits(Collection, CommonCollection);
 
-Collection.prototype.doc = function (obj) {
-  var doc = new this._provider.DocWrapper(new this._provider.Doc(obj, this));
-  return doc;
+Collection.prototype.doc = function (data) {
+  return new Doc(data, this);
 };
 
 Collection.prototype.get = function (id) {
@@ -40,11 +39,6 @@ Collection.prototype.find = function (query) {
       resolve(filterCursor);
     }
   });
-};
-
-Collection.prototype._getDoc = function (id) {
-  var doc = this._docs[id];
-  return doc;
 };
 
 Collection.prototype._register = function (doc) {

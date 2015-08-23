@@ -4,7 +4,10 @@ var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
 
-var DB = function () {};
+var DB = function (name, adapter) {
+  this._name = name;
+  this._adapter = adapter;
+};
 
 inherits(DB, EventEmitter);
 

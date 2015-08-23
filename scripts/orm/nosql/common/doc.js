@@ -2,10 +2,12 @@
 
 var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
-  inherits = require('inherits');
+  inherits = require('inherits'),
+  Promise = require('bluebird');
 
-var Doc = function (data) {
+var Doc = function (data, collection) {
   this._data = typeof data === 'undefined' ? {} : data;
+  this._collection = collection;
   this._dirty = {};
 };
 
@@ -91,10 +93,12 @@ Doc.prototype._include = function () { // Include in cursor?
 };
 
 Doc.prototype._register = function () {
-  var doc = this._collection._getDoc(this.id());
-  if (!doc) { // doesn't exist? Don't re-register
-    return this._collection._register(this);
-  }
+  var self = this;
+  return this._collection.get(this.id()).then(function (doc) {
+    if (!doc) { // doesn't exist? Don't re-register
+      return self._collection._register(self);
+    }
+  });
 };
 
 Doc.prototype._unregister = function () {
@@ -105,16 +109,43 @@ Doc.prototype.save = function () {
   // We don't register the doc (consider it created) until after it is saved. This way docs can be
   // instantiated but not committed to memory
   var self = this;
-  return self._doc._save.apply(this, arguments).then(function () {
+  return self._save.apply(self, arguments).then(function () {
     return self._register();
+  });
+};
+
+Doc.prototype._insert = function () {
+  // if (!this.id()) { // TODO: is id ever null?
+  this.id(utils.uuid());
+  //  this._collection._register(this);
+  // }
+  // TODO: should we clear the id if there is an error?
+  return Promise.resolve();
+};
+
+Doc.prototype._update = function () {
+  return Promise.resolve();
+};
+
+Doc.prototype._save = function () {
+  var self = this,
+    promise = self.id() ? self._update() : self._insert();
+  return promise.then(function () {
+    self.clean();
   });
 };
 
 Doc.prototype.destroy = function () {
   var self = this;
-  return self._doc._destroy.apply(this, arguments).then(function () {
+  return self._destroy.apply(self, arguments).then(function () {
     return self._unregister();
   });
+};
+
+Doc.prototype._destroy = function () {
+  // TODO: move _unregister to doc-common like register
+  this._collection._unregister(this);
+  return Promise.resolve();
 };
 
 module.exports = Doc;

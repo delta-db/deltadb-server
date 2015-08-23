@@ -7,33 +7,36 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
-  DBWrapper = require('../orm/nosql/wrapper/db'),
+  CommonDB = require('../orm/nosql/common/db'),
   Doc = require('./doc'),
+  Collection = require('./collection'),
   clientUtils = require('./utils');
 
-var DB = function () {
-  DBWrapper.apply(this, arguments); // apply parent constructor
+var DB = function (name, adapter, store) {
+  CommonDB.apply(this, arguments); // apply parent constructor
+  this._store = store;
   this._collections = {};
   this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
   this._recorded = false;
 };
 
-inherits(DB, DBWrapper);
+inherits(DB, CommonDB);
 
+// TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype.col = function (name) {
   var self = this;
   return new Promise(function (resolve) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
-      self._db._db = self; // allow the wrapping DB to be pased down to the wrapping doc
-      var col = self._db.col(name).then(function (collection) {
+      var promise = self._store.col(name).then(function (colStore) {
+        var collection = new Collection(name, self, colStore);
         self._collections[name] = collection;
         self._emitColCreate(collection);
         return collection;
       });
-      resolve(col);
+      resolve(promise);
     }
   });
 };
@@ -100,14 +103,14 @@ DB.prototype._setChanges = function (changes) {
 };
 
 // TODO: rename to _sync as shouldn't be called by user
-DB.prototype.sync = function (db, quorum) {
+DB.prototype.sync = function (part, quorum) {
   var self = this,
     since = null;
   return self._localChanges(self._retryAfter).then(function (changes) {
-    return db.queue(changes, quorum);
+    return part.queue(changes, quorum);
   }).then(function () {
     since = new Date();
-    return db.changes(self._since);
+    return part.changes(self._since);
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {

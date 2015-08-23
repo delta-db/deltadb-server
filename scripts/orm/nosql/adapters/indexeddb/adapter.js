@@ -11,8 +11,9 @@ inherits(Adapter, AbstractAdapter);
 
 // opts: db
 Adapter.prototype.connect = function (opts) {
+  var self = this;
   return new Promise(function (resolve) {
-    resolve(new DB(opts.db));
+    resolve(new DB(opts.db, self));
   });
 };
 

@@ -76,28 +76,6 @@ Utils.prototype.merge = function (obj1, obj2) {
   return merged;
 };
 
-Utils.prototype.wrapFunction = function (constr, child, fn) {
-  constr.prototype[fn] = function () {
-    return this[child][fn].apply(this, arguments);
-  };
-};
-
-Utils.prototype.wrapFunctions = function (constr, child) {
-  for (var fn in constr.prototype) {
-    if (typeof constr.prototype[fn] === 'function') {
-      this.wrapFunction(constr, child, fn);
-    }
-  }
-};
-
-Utils.prototype.wrapMissing = function (thisArg, obj) {
-  for (var k in obj) {
-    if (!thisArg[k]) { // missing?
-      thisArg[k] = obj[k];
-    }
-  }
-};
-
 Utils.prototype.hash = function (password, salt) {
   var self = this;
   return new Promise(function (resolve, reject) {
