@@ -13,7 +13,6 @@ var Promise = require('bluebird'),
 
 var DB = function (dbName) {
   this._dbName = dbName;
-  this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
 };
 
 inherits(DB, AbstractDB);

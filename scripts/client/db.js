@@ -2,7 +2,9 @@
 
 // TODO: later db should be passed in a constructor so that it doesn't have to be passed to sync??
 
-// TODO: create destroy() that sends { col: '', name: null, val: null }
+// TODO: destroy() that sends { col: '', name: null, val: null } or something like add user role
+
+// TODO: move events to nosql/common layer?
 
 var inherits = require('inherits'),
   Promise = require('bluebird'),
@@ -19,10 +21,37 @@ var DB = function (name, adapter, store) {
   this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
   this._recorded = false;
+
+  this._propsReady = this._initProps();
+
+  // TODO: call "load" to create collections from data stored in IndexedDB
+  // this.load();
 };
 
 inherits(DB, CommonDB);
 
+DB.PROPS_COL_NAME = '$props';
+
+DB.PROPS_DOC_ID = 'props';
+
+DB.prototype._initProps = function () {
+  var self = this;
+  return self._store.col(DB.PROPS_COL_NAME).then(function (col) {
+    self._propCol = col;
+    self._propCol.get(DB.PROPS_DOC_ID).then(function (doc) {
+      if (doc) { // found?
+        self._props = doc;
+      } else {
+        var props = {};
+        props[self._store._idName] = DB.PROPS_DOC_ID;
+        self._props = self._propCol.doc(props);
+        return self._props.set({ since: null });
+      }
+    });
+  });
+};
+
+// TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype.col = function (name) {
   var self = this;
@@ -105,16 +134,20 @@ DB.prototype._setChanges = function (changes) {
 // TODO: rename to _sync as shouldn't be called by user
 DB.prototype.sync = function (part, quorum) {
   var self = this,
-    since = null;
+    newSince = null;
   return self._localChanges(self._retryAfter).then(function (changes) {
     return part.queue(changes, quorum);
   }).then(function () {
-    since = new Date();
-    return part.changes(self._since);
+    newSince = new Date();
+    return self._propsReady; // ensure props have been loaded/created first
+  }).then(function () {
+    return self._props.get();
+  }).then(function (props) {
+    return part.changes(props.since);
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {
-    self._since = since;
+    return self._props.set({ since: newSince });
   });
 };
 

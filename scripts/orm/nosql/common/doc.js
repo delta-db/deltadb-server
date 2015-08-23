@@ -13,7 +13,7 @@ var Doc = function (data, collection) {
 
 inherits(Doc, EventEmitter);
 
-Doc.prototype._idName = '$id';
+Doc.prototype._idName = '$id'; // Move to DB layer?
 
 Doc.prototype.id = function (id) {
   if (typeof id === 'undefined') {
