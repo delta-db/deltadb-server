@@ -1,6 +1,7 @@
 Now
 ---
 - client code needs to persist latest, changes, since, etc... Probably need more functions to be promises like collection.define(). Make sure save version of DB so that later versions can patch to latest
+- build construct of reloading client orm from store
 - use FireFox & Chrome to test indexeddb adapter. Convert all adapters to make db.col() not return a promise and update API docs
 - express (or better) server - use web socket
 - Roadmap

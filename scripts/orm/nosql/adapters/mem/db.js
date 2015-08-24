@@ -5,11 +5,10 @@ var Promise = require('bluebird'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection');
 
-var DB = function (dbName, adapter) {
-  this._dbName = dbName;
+var DB = function ( /* name, adapter */ ) {
+  CommonDB.apply(this, arguments); // apply parent constructor
   this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
-  this._db = this; // allow a wrapping DB to be pased down to the wrapping doc
-  this._adapter = adapter;
+  this._db = this; // allow a wrapping DB to be pased down to the wrapping doc. TODO: remove??
   this._collections = {};
 };
 
@@ -21,7 +20,7 @@ DB.prototype.col = function (name) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
-      var collection = new Collection(name, self._db);
+      var collection = new Collection(name, self._db); // TODO: remove self._db? And from Coll?
       self._collections[name] = collection;
       resolve(collection);
     }

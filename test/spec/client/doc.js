@@ -6,11 +6,20 @@ var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
 
 describe('doc', function () {
 
+  var FakeCollection = function () {
+    this._store = {
+      doc: function () {
+        return {};
+      }
+    };
+  };
+
   it('should record when remote change has seq', function () {
-    var doc = new Doc(),
+
+    var doc = new Doc(null, new FakeCollection()),
       updated = new Date();
 
-    doc._changes = [{
+    doc._dat.changes = [{
       name: 'priority',
       val: 'high',
       up: updated,
@@ -52,6 +61,16 @@ describe('doc', function () {
       doc[Doc._policyName].should.eql(policy);
     });
 
+  });
+
+  it('should not format change', function () {
+    // Exclude from changes when already sent
+    var doc = new Doc(null, new FakeCollection());
+    var change = {
+      sent: new Date()
+    };
+    var now = (new Date()).getTime() - 1;
+    doc._formatChange(0, null, null, change, now);
   });
 
 });

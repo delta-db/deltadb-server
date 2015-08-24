@@ -11,8 +11,8 @@ var Promise = require('bluebird'),
   AbstractDB = require('../../db'),
   Collection = require('./collection');
 
-var DB = function (dbName) {
-  this._dbName = dbName;
+var DB = function (name) {
+  this._name = name;
 };
 
 inherits(DB, AbstractDB);
@@ -22,9 +22,9 @@ DB.prototype._open = function (name, version) {
   return new Promise(function (resolve, reject) {
     var request = null;
     if (version) {
-      request = indexedDB.open(self._dbName, version);
+      request = indexedDB.open(self._name, version);
     } else {
-      request = indexedDB.open(self._dbName);
+      request = indexedDB.open(self._name);
     }
 
     request.onupgradeneeded = function () {

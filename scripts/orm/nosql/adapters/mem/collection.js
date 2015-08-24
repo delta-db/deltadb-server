@@ -26,11 +26,10 @@ Collection.prototype.get = function (id) {
   return Promise.resolve(this._docs[id]);
 };
 
-Collection.prototype.find = function (query) {
-  var self = this;
+// TODO: move to common
+Collection.prototype._find = function (query, cursor) {
   return new Promise(function (resolve) {
-    var cursor = new Cursor(self._docs, self),
-      filter = query && query.where ? where.filter(query.where) : null,
+    var filter = query && query.where ? where.filter(query.where) : null,
       filterCursor = new FilterCursor(cursor, filter);
     if (query && query.order) {
       var sort = order.sort(query.order);
@@ -39,6 +38,10 @@ Collection.prototype.find = function (query) {
       resolve(filterCursor);
     }
   });
+};
+
+Collection.prototype.find = function (query) {
+  return this._find(query, new Cursor(this._docs, this));
 };
 
 Collection.prototype._register = function (doc) {

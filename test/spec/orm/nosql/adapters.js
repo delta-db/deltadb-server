@@ -113,9 +113,10 @@ describe('adapters', function () {
   });
 
   it('should reload collection', function () {
-    var users = null, db = orm.db({
-      db: 'mydb'
-    });
+    var users = null,
+      db = orm.db({
+        db: 'mydb'
+      });
     return db.col('users').then(function (_users) {
       users = _users;
       var user = users.doc({

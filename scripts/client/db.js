@@ -9,13 +9,13 @@
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
-  CommonDB = require('../orm/nosql/common/db'),
+  MemDB = require('../orm/nosql/adapters/mem/db'),
   Doc = require('./doc'),
   Collection = require('./collection'),
   clientUtils = require('./utils');
 
 var DB = function (name, adapter, store) {
-  CommonDB.apply(this, arguments); // apply parent constructor
+  MemDB.apply(this, arguments); // apply parent constructor
   this._store = store;
   this._collections = {};
   this._since = null; // TODO: persist w/ some local store for globals
@@ -28,7 +28,7 @@ var DB = function (name, adapter, store) {
   // this.load();
 };
 
-inherits(DB, CommonDB);
+inherits(DB, MemDB);
 
 DB.PROPS_COL_NAME = '$props';
 
@@ -45,7 +45,9 @@ DB.prototype._initProps = function () {
         var props = {};
         props[self._store._idName] = DB.PROPS_DOC_ID;
         self._props = self._propCol.doc(props);
-        return self._props.set({ since: null });
+        return self._props.set({
+          since: null
+        });
       }
     });
   });
@@ -75,38 +77,20 @@ DB.prototype._emitColCreate = function (col) {
   this._adapter._emit('col:create', col); // also bubble up to adapter layer
 };
 
-// TODO: defer to collection or doc to retrieve from correct layer
 DB.prototype._localChanges = function (retryAfter, returnSent) {
-  var self = this,
-    now = (new Date()).getTime();
-  retryAfter = typeof retryAfter === 'undefined' ? 0 : retryAfter;
-  return new Promise(function (resolve) {
-    var changes = [];
-    utils.each(self._collections, function (collection) {
-      utils.each(collection._docs, function (doc) {
-        utils.each(doc._changes, function (change) {
-          // Use >= to ensure we get all changes when retryAfter=0
-          if (!change.sent || now >= change.sent.getTime() + retryAfter) { // never sent or retry?
-            var chng = utils.clone(change); // clone so that we don't modify original data
-            if (!returnSent) {
-              delete chng.sent; // server doesn't need sent
-            }
-            chng.col = collection._name;
-            chng.id = doc.id();
-            chng.up = change.up.toISOString();
-            if (chng.val) { // don't set val if falsy
-              chng.val = JSON.stringify(chng.val);
-            }
-            // if (!change.seq) {
-            //   delete chng.seq; // same some bandwidth and clear the seq if 0
-            // }
-            changes.push(chng);
-            change.sent = new Date();
-          }
-        });
-      });
+  var promises = [],
+    changes = [];
+
+  // TODO: create and use db.all() to iterate through collections
+  utils.each(this._collections, function (collection) {
+    var promise = collection._localChanges(retryAfter, returnSent).then(function (_changes) {
+      changes = changes.concat(_changes);
     });
-    resolve(changes);
+    promises.push(promise);
+  });
+
+  return Promise.all(promises).then(function () {
+    return changes;
   });
 };
 
@@ -147,7 +131,9 @@ DB.prototype.sync = function (part, quorum) {
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {
-    return self._props.set({ since: newSince });
+    return self._props.set({
+      since: newSince
+    });
   });
 };
 
