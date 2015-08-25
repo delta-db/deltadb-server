@@ -3,7 +3,8 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDB = require('../../common/db'),
-  Collection = require('./collection');
+  Collection = require('./collection'),
+  utils = require('../../../../utils');
 
 var DB = function ( /* name, adapter */ ) {
   CommonDB.apply(this, arguments); // apply parent constructor
@@ -24,6 +25,11 @@ DB.prototype.col = function (name) {
       resolve(collection);
     }
   });
+};
+
+// TODO: should this return a promise like col.all()??
+DB.prototype.all = function (callback) {
+  utils.each(this._collections, callback);
 };
 
 DB.prototype.close = function () {

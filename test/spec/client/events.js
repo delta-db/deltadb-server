@@ -12,13 +12,16 @@ var utils = require('../../../scripts/utils'),
 
 describe('events', function () {
 
-  var store = new MemAdapter();
-  var client = new Client(store);
-  var db = null,
+  var store = null,
+    client = null,
+    db = null,
     tasks = null,
     task = null;
 
   beforeEach(function () {
+    store = new MemAdapter();
+    client = new Client(store);
+
     db = client.db({
       db: 'mydb'
     });

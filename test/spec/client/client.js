@@ -11,12 +11,18 @@ var utils = require('../../../scripts/utils'),
 
 describe('client', function () {
 
-  var store = new MemAdapter();
-  var client = new Client(store);
-  var db = null,
+  var store = null,
+    client = null,
+    db = null,
     tasks = null;
 
   beforeEach(function () {
+    // TODO: For now, we have to instantiate a new store each time so that data isn't reloaded
+    // between tests. In the future we want an event that is emitted when the loading of the store
+    // has completed and we can then use this event in an afterEach().
+    store = new MemAdapter();
+    client = new Client(store);
+
     db = client.db({
       db: 'mydb'
     });

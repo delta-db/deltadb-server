@@ -11,12 +11,30 @@ var inherits = require('inherits'),
 var Collection = function (name, db, store) {
   MemCollection.apply(this, arguments); // apply parent constructor
   this._store = store;
+  this._initStore();
 };
 
 inherits(Collection, MemCollection);
 
+Collection.prototype._doc = function (data, docStore) {
+  if (!docStore) {
+    docStore = Doc._createDocStore(data, this._store);
+  }
+  return new Doc(data, this, docStore);
+};
+
 Collection.prototype.doc = function (data) {
-  return new Doc(data, this);
+  return this._doc(data);
+};
+
+Collection.prototype._initStore = function () {
+  var self = this;
+  self._store.all().then(function (docs) {
+    docs.each(function (docStore) {
+      var doc = self._doc(null, docStore);
+      self._register(doc); // register doc as already in store
+    });
+  });
 };
 
 Collection.prototype._setChange = function (change) {

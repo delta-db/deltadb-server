@@ -6,7 +6,7 @@ var utils = require('../../../utils'),
   Promise = require('bluebird');
 
 var Doc = function (data, collection) {
-  this._data = typeof data === 'undefined' ? {} : data;
+  this._data = data ? data : {};
   this._collection = collection;
   this._dirty = {};
 };

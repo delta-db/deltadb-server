@@ -16,16 +16,16 @@ var inherits = require('inherits'),
 
 var DB = function (name, adapter, store) {
   MemDB.apply(this, arguments); // apply parent constructor
+  
   this._store = store;
+  this._initStore();
+
   this._collections = {};
   this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
   this._recorded = false;
 
   this._propsReady = this._initProps();
-
-  // TODO: call "load" to create collections from data stored in IndexedDB
-  // this.load();
 };
 
 inherits(DB, MemDB);
@@ -33,6 +33,16 @@ inherits(DB, MemDB);
 DB.PROPS_COL_NAME = '$props';
 
 DB.PROPS_DOC_ID = 'props';
+
+DB.prototype._initStore = function () {
+  var self = this;
+  self._store.all(function (colStore) {
+    if (colStore._name !== DB.PROPS_COL_NAME) {
+      // PROPS_COL_NAME handled by _initProps
+      self._col(colStore._name, colStore);
+    }
+  });
+};
 
 DB.prototype._initProps = function () {
   var self = this;
@@ -55,21 +65,32 @@ DB.prototype._initProps = function () {
 
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
-DB.prototype.col = function (name) {
+DB.prototype._col = function (name, colStore) {
   var self = this;
   return new Promise(function (resolve) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
-      var promise = self._store.col(name).then(function (colStore) {
+      var promise = null;
+      if (colStore) {
+        promise = Promise.resolve(colStore);
+      } else {
+        promise = self._store.col(name);
+      }
+
+      var ret = promise.then(function (colStore) {
         var collection = new Collection(name, self, colStore);
         self._collections[name] = collection;
         self._emitColCreate(collection);
         return collection;
       });
-      resolve(promise);
+      resolve(ret);
     }
   });
+};
+
+DB.prototype.col = function (name) {
+  return this._col(name);
 };
 
 DB.prototype._emitColCreate = function (col) {

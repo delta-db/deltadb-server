@@ -6,35 +6,39 @@ var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
 
 describe('doc', function () {
 
-  var FakeCollection = function () {
-    this._store = {
-      doc: function () {
-        return {};
-      }
-    };
-  };
+  var store = null,
+    client = null,
+    db = null,
+    tasks = null,
+    task = null;
+
+  beforeEach(function () {
+    store = new MemAdapter();
+    client = new Client(store);
+
+    db = client.db({
+      db: 'mydb'
+    });
+    return db.col('tasks').then(function (collection) {
+      tasks = collection;
+      task = tasks.doc();
+    });
+  });
 
   it('should record when remote change has seq', function () {
+    var updated = new Date();
 
-    var doc = new Doc(null, new FakeCollection()),
-      updated = new Date();
-
-    doc._dat.changes = [{
+    task._dat.changes = [{
       name: 'priority',
       val: 'high',
       up: updated,
       seq: 1
     }];
 
-    doc._record('priority', 'high', updated);
+    task._record('priority', 'high', updated);
   });
 
   it('should set policy', function () {
-    var store = new MemAdapter();
-    var client = new Client(store);
-    var db = null,
-      tasks = null,
-      task;
 
     var policy = {
       col: {
@@ -42,21 +46,7 @@ describe('doc', function () {
       }
     };
 
-    // TODO: is there a better way to fake the underlying dependices so that we don't have to
-    // connect(), col(), etc... just to get an doc?
-
-    db = client.db({
-      db: 'mydb'
-    });
-
-    return db.col('tasks').then(function (collection) {
-      tasks = collection;
-    }).then(function () {
-      return tasks.doc();
-    }).then(function (doc) {
-      task = doc;
-      return task.policy(policy);
-    }).then(function () {
+    return task.policy(policy).then(function () {
       var doc = task.get();
       doc[Doc._policyName].should.eql(policy);
     });
@@ -65,12 +55,11 @@ describe('doc', function () {
 
   it('should not format change', function () {
     // Exclude from changes when already sent
-    var doc = new Doc(null, new FakeCollection());
     var change = {
       sent: new Date()
     };
     var now = (new Date()).getTime() - 1;
-    doc._formatChange(0, null, null, change, now);
+    task._formatChange(0, null, null, change, now);
   });
 
 });

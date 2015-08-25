@@ -5,12 +5,11 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data) {
+var Doc = function (data, collection, store) {
   MemDoc.apply(this, arguments); // apply parent constructor
 
+  this._store = store;
   this._initStore(data);
-
-  this._changeDoc(data);
 };
 
 inherits(Doc, MemDoc);
@@ -27,20 +26,30 @@ Doc.prototype._pointToData = function () {
   this._data = this._dat.data; // point to wrapped location
 };
 
-Doc.prototype._initStore = function (data) {
+Doc._createDocStore = function (data, colStore) {
   // To reduce reads from the store, we will assume that this._dat is always up-to-date and
   // therefore changes can just be committed to the store for persistence
-  this._dat = {
-    data: typeof data === 'undefined' ? {} : data,
+  var dat = {
+    data: data ? data : {},
     changes: [],
     latest: {}, // TODO: best name as pending to be written to server?
     destroyedAt: null, // needed to exclude from cursor before del recorded
     updatedAt: null,
     recordedAt: null // used to determine whether doc has been recorded
   };
-  this._store = this._collection._store.doc(this._dat);
+
+  return colStore.doc(dat);
+};
+
+Doc.prototype._initStore = function (data) {
+  this._dat = this._store.get();
+  this.id(this._store.id());
 
   this._pointToData();
+
+  if (data) { // data not being retrieved from store?
+    this._changeDoc(data);
+  }
 };
 
 Doc.prototype._saveStore = function () {

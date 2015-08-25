@@ -109,8 +109,10 @@ Utils.prototype.sleep = function () {
   //   1. (new Date()).getTime()
   //   2. timeout(1)
   //   3. (new Date()).getTime()
-  // It is not clear as to what causes this but the solution is to sleep for 2 ms
-  return this.timeout(2);
+  // It is not clear as to what causes this but the solution is to sleep for 3 ms. This function is
+  // also used to delay between DB writes to create predictable patterns. In this case it may be
+  // that the DB adapter processes queries out of sequence.
+  return this.timeout(3);
 };
 
 Utils.prototype._toDate = function (val) {
