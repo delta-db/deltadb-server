@@ -62,4 +62,14 @@ describe('doc', function () {
     task._formatChange(0, null, null, change, now);
   });
 
+  it('should get existing doc', function () {
+    // Set task so that id is generated for future lookup
+    return task.set({
+      thing: 'sing'
+    }).then(function () {
+      var doc = tasks.doc(task.get());
+      doc.should.eql(task);
+    });
+  });
+
 });

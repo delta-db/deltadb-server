@@ -748,9 +748,9 @@ describe('events', function () {
 
   // ------------------------
 
-  var store2 = new MemAdapter();
-  var client2 = new Client(store2);
-  var db2 = null;
+  var store2 = null,
+    client2 = null,
+    db2 = null;
 
   var dbCreateLocal = function () {
     db2 = client2.db({
@@ -760,6 +760,8 @@ describe('events', function () {
   };
 
   var dbShouldCreateLocal = function () {
+    store2 = new MemAdapter();
+    client2 = new Client(store2);
     return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
       args) {
       args[0].should.eql(db2);

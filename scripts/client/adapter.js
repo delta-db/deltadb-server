@@ -23,9 +23,17 @@ inherits(Adapter, MemAdapter);
 
 Adapter.prototype._initStore = function () {
   var self = this;
-  return self._store._load().then(function () {
+  self._loaded = self._store._load().then(function () {
+    var promises = [];
     self._store.all(function (dbStore) {
-      self._db({ db: dbStore._name }, dbStore);
+      var db = self.db({
+        db: dbStore._name
+      });
+      db._import(dbStore);
+      promises.push(db._loaded);
+    });
+    return Promise.all(promises).then(function () {
+      self._emit('load');
     });
   });
 };
@@ -38,18 +46,21 @@ Adapter.prototype.uuid = function () {
   return utils.uuid();
 };
 
+// TODO: refactor to db(name) and also modify common
 // opts: db
-Adapter.prototype._db = function (opts, dbStore) {
-  if (!dbStore) {
-    dbStore = this._store.db(opts);
-  }
-  var db = new DB(opts.db, this, dbStore);
-  this.emit('db:create', db);
-  return db;
-};
-
 Adapter.prototype.db = function (opts) {
-  return this._db(opts);
+  var db = this._dbs[opts.db];
+  if (db) { // exists?
+    return db;
+  } else {
+    db = new DB(opts.db, this);
+    this._dbs[opts.db] = db;
+    this.emit('db:create', db);
+
+    db._import(this._store.db(opts));
+
+    return db;
+  }
 };
 
 module.exports = Adapter;

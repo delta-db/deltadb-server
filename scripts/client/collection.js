@@ -8,31 +8,52 @@ var inherits = require('inherits'),
   Doc = require('./doc'),
   Cursor = require('../orm/nosql/adapters/mem/cursor');
 
-var Collection = function (name, db, store) {
+var Collection = function ( /* name, db */ ) {
   MemCollection.apply(this, arguments); // apply parent constructor
-  this._store = store;
-  this._initStore();
 };
 
 inherits(Collection, MemCollection);
 
-Collection.prototype._doc = function (data, docStore) {
-  if (!docStore) {
-    docStore = Doc._createDocStore(data, this._store);
+Collection.prototype._import = function (store) {
+  this._store = store;
+  this._initStore();
+};
+
+Collection.prototype._doc = function (data, genDocStore) {
+  var id = data ? data[this._db._idName] : null;
+  if (id && this._docs[id]) { // has id and exists?
+    return this._docs[id];
+  } else {
+    var doc = new Doc(data, this);
+
+    // In most cases we don't know the id when creating the doc and rely on save() to call
+    // register() later this._docs[id] = doc;
+
+    if (genDocStore) {
+      doc._import(Doc._createDocStore(data, this._store));
+    }
+
+    // We need the store to be setup before changing the data
+    if (genDocStore && data) {
+      doc._changeDoc(data);
+    }
+
+    return doc;
   }
-  return new Doc(data, this, docStore);
 };
 
 Collection.prototype.doc = function (data) {
-  return this._doc(data);
+  return this._doc(data, true);
 };
 
 Collection.prototype._initStore = function () {
   var self = this;
-  self._store.all().then(function (docs) {
-    docs.each(function (docStore) {
-      var doc = self._doc(null, docStore);
-      self._register(doc); // register doc as already in store
+  self._loaded = self._store.all().then(function (docs) {
+    return docs.each(function (docStore) {
+      var doc = self._doc();
+      doc._import(docStore);
+    }).then(function () {
+      self.emit('load');
     });
   });
 };

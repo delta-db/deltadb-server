@@ -115,10 +115,8 @@ Doc.prototype.save = function () {
 };
 
 Doc.prototype._insert = function () {
-  // if (!this.id()) { // TODO: is id ever null?
   this.id(utils.uuid());
-  //  this._collection._register(this);
-  // }
+
   // TODO: should we clear the id if there is an error?
   return Promise.resolve();
 };

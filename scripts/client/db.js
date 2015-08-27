@@ -14,18 +14,13 @@ var inherits = require('inherits'),
   Collection = require('./collection'),
   clientUtils = require('./utils');
 
-var DB = function (name, adapter, store) {
+var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
-  
-  this._store = store;
-  this._initStore();
 
   this._collections = {};
   this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
   this._recorded = false;
-
-  this._propsReady = this._initProps();
 };
 
 inherits(DB, MemDB);
@@ -34,19 +29,47 @@ DB.PROPS_COL_NAME = '$props';
 
 DB.PROPS_DOC_ID = 'props';
 
+DB.prototype._import = function (store) {
+  this._store = store;
+  this._initStore();
+};
+
 DB.prototype._initStore = function () {
-  var self = this;
+  var self = this,
+    promises = [],
+    loadingProps = false;
   self._store.all(function (colStore) {
-    if (colStore._name !== DB.PROPS_COL_NAME) {
-      // PROPS_COL_NAME handled by _initProps
-      self._col(colStore._name, colStore);
+    if (colStore._name === DB.PROPS_COL_NAME) {
+      loadingProps = true;
+      promises.push(self._initProps(colStore));
+    } else {
+      var promise = self._col(colStore._name).then(function (col) {
+        col._import(colStore);
+        return col._loaded;
+      });
+      promises.push(promise);
     }
+  });
+  self._loaded = Promise.all(promises).then(function () {
+    if (!loadingProps) { // no props? nothing in store
+      return self._initProps();
+    }
+  }).then(function () {
+    self.emit('load');
   });
 };
 
-DB.prototype._initProps = function () {
-  var self = this;
-  return self._store.col(DB.PROPS_COL_NAME).then(function (col) {
+DB.prototype._initProps = function (colStore) {
+  var self = this,
+    promise = null;
+
+  if (colStore) { // reloading?
+    promise = Promise.resolve(colStore);
+  } else {
+    promise = self._store.col(DB.PROPS_COL_NAME);
+  }
+
+  return promise.then(function (col) {
     self._propCol = col;
     self._propCol.get(DB.PROPS_DOC_ID).then(function (doc) {
       if (doc) { // found?
@@ -65,32 +88,58 @@ DB.prototype._initProps = function () {
 
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
-DB.prototype._col = function (name, colStore) {
+DB.prototype._col = function (name, genColStore) {
   var self = this;
   return new Promise(function (resolve) {
     if (self._collections[name]) {
       resolve(self._collections[name]);
     } else {
+
+      var collection = new Collection(name, self);
+      self._collections[name] = collection;
+      self._emitColCreate(collection);
+
       var promise = null;
-      if (colStore) {
-        promise = Promise.resolve(colStore);
+      if (genColStore) {
+        promise = self._store.col(name).then(function (colStore) {
+          collection._import(colStore);
+          return collection;
+        });
       } else {
-        promise = self._store.col(name);
+        promise = Promise.resolve(collection);
       }
 
-      var ret = promise.then(function (colStore) {
-        var collection = new Collection(name, self, colStore);
-        self._collections[name] = collection;
-        self._emitColCreate(collection);
-        return collection;
-      });
-      resolve(ret);
+      resolve(promise);
     }
   });
 };
 
+// DB.prototype._col = function (name, colStore) {
+//   var self = this;
+//   return new Promise(function (resolve) {
+//     if (self._collections[name]) {
+//       resolve(self._collections[name]);
+//     } else {
+//       var promise = null;
+//       if (colStore) {
+//         promise = Promise.resolve(colStore);
+//       } else {
+//         promise = self._store.col(name);
+//       }
+
+//       var ret = promise.then(function (colStore) {
+//         var collection = new Collection(name, self, colStore);
+//         self._collections[name] = collection;
+//         self._emitColCreate(collection);
+//         return collection;
+//       });
+//       resolve(ret);
+//     }
+//   });
+// };
+
 DB.prototype.col = function (name) {
-  return this._col(name);
+  return this._col(name, true);
 };
 
 DB.prototype._emitColCreate = function (col) {
@@ -144,7 +193,7 @@ DB.prototype.sync = function (part, quorum) {
     return part.queue(changes, quorum);
   }).then(function () {
     newSince = new Date();
-    return self._propsReady; // ensure props have been loaded/created first
+    return self._loaded; // ensure props have been loaded/created first
   }).then(function () {
     return self._props.get();
   }).then(function (props) {

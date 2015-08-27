@@ -5,11 +5,8 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data, collection, store) {
+var Doc = function ( /* data, collection */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
-
-  this._store = store;
-  this._initStore(data);
 };
 
 inherits(Doc, MemDoc);
@@ -21,6 +18,11 @@ Doc._userName = '$user';
 Doc._roleName = '$role';
 
 Doc._roleUserName = '$ruser';
+
+Doc.prototype._import = function (store) {
+  this._store = store;
+  this._initStore();
+};
 
 Doc.prototype._pointToData = function () {
   this._data = this._dat.data; // point to wrapped location
@@ -41,14 +43,28 @@ Doc._createDocStore = function (data, colStore) {
   return colStore.doc(dat);
 };
 
-Doc.prototype._initStore = function (data) {
+Doc.prototype._initStore = function () {
+  // TODO: use timestamps of existing data to determine whether data from store should replace
+  // existing data as the store might load after the data has already been set
+
   this._dat = this._store.get();
-  this.id(this._store.id());
 
   this._pointToData();
 
-  if (data) { // data not being retrieved from store?
-    this._changeDoc(data);
+  if (this._store.id()) { // reloading from store and already have id?
+
+    this.id(this._store.id());
+
+    // register as doc id was just set
+    var self = this;
+    self._register().then(function () {
+      self.emit('load');
+    });
+
+  } else {
+
+    this.emit('load');
+
   }
 };
 
