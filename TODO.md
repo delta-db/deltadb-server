@@ -1,7 +1,5 @@
 Now
 ---
-- client code needs to persist latest, changes, since, etc...
-	!!!- Make sure save version of DB so that later versions can patch to latest
 - use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
 	- test reload of data w/ indexedb
 	- Convert all adapters to make db.col() not return a promise and update API docs

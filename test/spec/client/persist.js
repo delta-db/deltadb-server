@@ -2,7 +2,8 @@
 
 var utils = require('../../../scripts/utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter');
+  Client = require('../../../scripts/client/adapter'),
+  DB = require('../../../scripts/client/db');
 
 describe('client', function () {
 
@@ -77,7 +78,8 @@ describe('client', function () {
     return propsReady.then(function () {
       // Populate since
       return db._props.set({
-        since: nowStr
+        since: nowStr,
+        version: DB.VERSION
       });
     }).then(function () {
       return task.save();
@@ -95,7 +97,8 @@ describe('client', function () {
       var props = db2._props.get();
       props.should.eql({
         $id: 'props',
-        since: nowStr
+        since: nowStr,
+        version: DB.VERSION
       });
     }).then(function () {
       return db2.col('tasks');

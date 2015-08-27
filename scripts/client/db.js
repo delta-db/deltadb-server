@@ -18,7 +18,6 @@ var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._collections = {};
-  this._since = null; // TODO: persist w/ some local store for globals
   this._retryAfterSecs = 180000;
   this._recorded = false;
 };
@@ -28,6 +27,9 @@ inherits(DB, MemDB);
 DB.PROPS_COL_NAME = '$props';
 
 DB.PROPS_DOC_ID = 'props';
+
+// Use a version # to allow for patching of the store between versions when the schema changes
+DB.VERSION = 1;
 
 DB.prototype._import = function (store) {
   this._store = store;
@@ -79,7 +81,8 @@ DB.prototype._initProps = function (colStore) {
         props[self._store._idName] = DB.PROPS_DOC_ID;
         self._props = self._propCol.doc(props);
         return self._props.set({
-          since: null
+          since: null,
+          version: DB.VERSION
         });
       }
     });
