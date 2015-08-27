@@ -3,19 +3,13 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  CommonDoc = require('../orm/nosql/common/doc');
+  MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data) {
-  CommonDoc.apply(this, arguments); // apply parent constructor
-  this._changes = [];
-  this._latest = {}; // TODO: best name as pending to be written to server?
-  this._destroyedAt = null; // needed to exclude from cursor before del recorded
-  this._updatedAt = null;
-  this._recordedAt = null; // used to determine whether doc has been recorded
-  this._changeDoc(data);
+var Doc = function ( /* data, collection */ ) {
+  MemDoc.apply(this, arguments); // apply parent constructor
 };
 
-inherits(Doc, CommonDoc);
+inherits(Doc, MemDoc);
 
 Doc._policyName = '$policy';
 
@@ -24,6 +18,74 @@ Doc._userName = '$user';
 Doc._roleName = '$role';
 
 Doc._roleUserName = '$ruser';
+
+Doc.prototype._import = function (store) {
+  this._store = store;
+  this._initStore();
+};
+
+Doc.prototype._pointToData = function () {
+  this._data = this._dat.data; // point to wrapped location
+};
+
+Doc._createDocStore = function (data, colStore) {
+  // To reduce reads from the store, we will assume that this._dat is always up-to-date and
+  // therefore changes can just be committed to the store for persistence
+  var dat = {
+    data: data ? data : {},
+    changes: [],
+    latest: {}, // TODO: best name as pending to be written to server?
+    destroyedAt: null, // needed to exclude from cursor before del recorded
+    updatedAt: null,
+    recordedAt: null // used to determine whether doc has been recorded
+  };
+
+  return colStore.doc(dat);
+};
+
+Doc.prototype._initStore = function () {
+  // TODO: use timestamps of existing data to determine whether data from store should replace
+  // existing data as the store might load after the data has already been set
+
+  this._dat = this._store.get();
+
+  this._pointToData();
+
+  if (this._store.id()) { // reloading from store and already have id?
+
+    this.id(this._store.id());
+
+    // register as doc id was just set
+    var self = this;
+    self._register().then(function () {
+      self.emit('load');
+    });
+
+  } else {
+
+    this.emit('load');
+
+  }
+};
+
+Doc.prototype._saveStore = function () {
+  // If there is no id, set one so that the id is not set by the store
+  var id = this.id();
+  if (!id) {
+    id = utils.uuid();
+    this.id(id);
+  }
+  this._store.id(id); // use id from data
+
+  return this._store.set(this._dat);
+};
+
+Doc.prototype.save = function () {
+  var self = this;
+  return self._saveStore().then(function () {
+    return MemDoc.prototype.save.apply(self, arguments);
+  });
+};
 
 // TODO: split up
 Doc.prototype._change = function (name, value, updated, recorded, untracked) {
@@ -37,8 +99,9 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
   var evnts = this._events(name, value, updated);
 
   // To account for back-to-back writes, increment the seq number if updated is the same
-  var seq = this._latest[name] &&
-    this._latest[name].up.getTime() === updated.getTime() ? this._latest[name].seq + 1 : 0;
+  var seq = this._dat.latest[name] &&
+    this._dat.latest[name].up.getTime() === updated.getTime() ? this._dat.latest[name].seq + 1 :
+    0;
 
   var change = {
     up: updated
@@ -57,23 +120,24 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
   }
 
   if (!untracked) { // tracking?
-    this._changes.push(change);
+    this._dat.changes.push(change);
   }
 
   if (name) { // update?
-    this._latest[name] = {
+    this._dat.latest[name] = {
       val: value,
       up: updated,
       seq: seq
     };
 
     if (recorded) {
-      this._latest[name].re = recorded;
-      this._recordedAt = recorded;
+      this._dat.latest[name].re = recorded;
+      this._dat.recordedAt = recorded;
     }
 
-    if (this._destroyedAt && updated.getTime() > this._destroyedAt.getTime()) { // update after del?
-      this._destroyedAt = null;
+    // update after del?
+    if (this._dat.destroyedAt && updated.getTime() > this._dat.destroyedAt.getTime()) {
+      this._dat.destroyedAt = null;
     }
   }
 
@@ -122,11 +186,11 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
     found = false;
 
   // Use >= as doc deletion takes precedence
-  if (!name && (!self._updatedAt || updated.getTime() >= self._updatedAt.getTime())) {
-    this._destroyedAt = updated;
+  if (!name && (!self._dat.updatedAt || updated.getTime() >= self._dat.updatedAt.getTime())) {
+    this._dat.destroyedAt = updated;
   }
 
-  utils.each(self._changes, function (change, i) {
+  utils.each(self._dat.changes, function (change, i) {
     var val = change.val ? change.val : null;
 
     var changeSeq = utils.notDefined(change.seq) ? 0 : change.seq;
@@ -137,16 +201,16 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
 
       found = true;
 
-      if (name && self._latest[name]) {
+      if (name && self._dat.latest[name]) {
 
         self._emit('attr:record', name, value);
         self._emit('doc:record', name, value);
 
-        self._latest[name].re = recorded;
-        self._recordedAt = recorded;
+        self._dat.latest[name].re = recorded;
+        self._dat.recordedAt = recorded;
       }
 
-      delete self._changes[i]; // the change was recorded with a quorum of servers so destroy it
+      delete self._dat.changes[i]; // the change was recorded with a quorum of servers so destroy it
     }
   });
 };
@@ -166,17 +230,17 @@ Doc.prototype._events = function (name, value, updated) {
   var evnts = [];
 
   if (name) { // attr change?
-    if (utils.notDefined(this._data[name])) { // attr doesn't exist?
+    if (utils.notDefined(this._dat.data[name])) { // attr doesn't exist?
       evnts.push({
         evnt: 'attr:create',
         val: value
       });
-    } else if (!this._latest[name] ||
-      updated.getTime() > this._latest[name].up.getTime()) { // change most recent?
+    } else if (!this._dat.latest[name] ||
+      updated.getTime() > this._dat.latest[name].up.getTime()) { // change most recent?
       if (this._destroying(value)) { // destroying?
         evnts.push({
           evnt: 'attr:destroy',
-          val: this._latest[name].val
+          val: this._dat.latest[name].val
         });
       } else { // updating
         evnts.push({
@@ -190,7 +254,7 @@ Doc.prototype._events = function (name, value, updated) {
       val: value
     });
   } else { // destroying doc?
-    if (!this._updatedAt || updated.getTime() > this._updatedAt.getTime()) { // most recent?
+    if (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime()) { // most recent?
       evnts.push({
         evnt: 'doc:destroy',
         val: value
@@ -206,25 +270,26 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
     this._change(name, value, updated, recorded, untracked);
   }
 
-  if (updated && (!this._updatedAt || updated.getTime() > this._updatedAt.getTime())) {
-    this._updatedAt = updated;
+  if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
+    this._dat.updatedAt = updated;
   }
 
-  return CommonDoc.prototype._set.apply(this, arguments);
+  return MemDoc.prototype._set.apply(this, arguments);
 };
 
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
   if (name !== this._idName) {
     this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
   }
-  return CommonDoc.prototype.unset.apply(this, arguments);
+
+  return MemDoc.prototype.unset.apply(this, arguments);
 };
 
 Doc.prototype.destroy = function (destroyedAt, untracked) {
   // Doesn't actually remove data as we need to preserve tombstone so that we can ignore any
   // outdated changes received for destroyed data
-  this._destroyedAt = destroyedAt ? destroyedAt : new Date();
-  this._change(null, null, this._destroyedAt, null, untracked);
+  this._dat.destroyedAt = destroyedAt ? destroyedAt : new Date();
+  this._change(null, null, this._dat.destroyedAt, null, untracked);
   return this.save();
 };
 
@@ -232,7 +297,7 @@ Doc.prototype._saveChange = function (change) {
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
   var val = change.val ? JSON.parse(change.val) : null; // val is JSON
-  var latest = this._latest[change.name];
+  var latest = this._dat.latest[change.name];
   var self = this;
 
   this._markedAt = null;
@@ -255,7 +320,8 @@ Doc.prototype._saveChange = function (change) {
         self._record(change.name, val, updated, change.seq, recorded);
       });
     }
-  } else if (!this._updatedAt || updated.getTime() > this._updatedAt.getTime()) { // destroying doc?
+  } else if (!this._dat.updatedAt ||
+    updated.getTime() > this._dat.updatedAt.getTime()) { // destroying doc?
     return self.destroy(updated, true).then(function () {
       self._record(change.name, val, updated, change.seq, recorded);
     }); // don't track as coming from server
@@ -273,7 +339,7 @@ Doc.prototype._setChange = function (change) {
 };
 
 Doc.prototype._include = function () {
-  return this._destroyedAt === null;
+  return this._dat.destroyedAt === null;
 };
 
 Doc.prototype._setAndSave = function (doc) {
@@ -317,6 +383,38 @@ Doc.prototype._removeRole = function (userUUID, roleName) {
     roleName: roleName
   };
   return this._setAndSave(data);
+};
+
+Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change, now) {
+  // Use >= to ensure we get all changes when retryAfter=0
+  if (!change.sent || now >= change.sent.getTime() + retryAfter) { // never sent or retry?
+    var chng = utils.clone(change); // clone so that we don't modify original data
+    if (!returnSent) {
+      delete chng.sent; // server doesn't need sent
+    }
+    chng.col = this._collection._name;
+    chng.id = this.id();
+    chng.up = change.up.toISOString();
+    if (chng.val) { // don't set val if falsy
+      chng.val = JSON.stringify(chng.val);
+    }
+    // if (!change.seq) {
+    //   delete chng.seq; // same some bandwidth and clear the seq if 0
+    // }
+    changes.push(chng);
+    change.sent = new Date();
+  }
+};
+
+Doc.prototype._localChanges = function (retryAfter, returnSent) {
+  var self = this,
+    changes = [],
+    now = (new Date()).getTime();
+  retryAfter = typeof retryAfter === 'undefined' ? 0 : retryAfter;
+  utils.each(this._dat.changes, function (change) {
+    self._formatChange(retryAfter, returnSent, changes, change, now);
+  });
+  return changes;
 };
 
 module.exports = Doc;

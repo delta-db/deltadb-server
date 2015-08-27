@@ -1,12 +1,15 @@
 'use strict';
 
 var EventEmitter = require('events').EventEmitter,
-  inherits = require('inherits');
+  inherits = require('inherits'),
+  utils = require('../../../utils');
 // DB = require('./db');
 
 var Adapter = function () {};
 
 inherits(Adapter, EventEmitter);
+
+Adapter.prototype._load = utils.resolveFactory();
 
 // // opts: db
 // Adapter.prototype.db = function (opts) {

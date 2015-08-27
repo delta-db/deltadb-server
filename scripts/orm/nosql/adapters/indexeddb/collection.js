@@ -94,7 +94,7 @@ Collection.prototype.destroy = function () {
   var self = this;
   return self._db.close().then(function () {
     return new Promise(function (resolve, reject) {
-      var request = indexedDB.open(self._db._dbName, self._db._db.version + 1);
+      var request = indexedDB.open(self._db._name, self._db._db.version + 1);
       request.onupgradeneeded = function () {
         var db = request.result;
         db.deleteObjStore(self._storeName); // TODO: is this really synchronous?

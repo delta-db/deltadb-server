@@ -6,14 +6,14 @@ var utils = require('../../../utils'),
   Promise = require('bluebird');
 
 var Doc = function (data, collection) {
-  this._data = typeof data === 'undefined' ? {} : data;
+  this._data = data ? data : {};
   this._collection = collection;
   this._dirty = {};
 };
 
 inherits(Doc, EventEmitter);
 
-Doc.prototype._idName = '$id';
+Doc.prototype._idName = '$id'; // Move to DB layer?
 
 Doc.prototype.id = function (id) {
   if (typeof id === 'undefined') {
@@ -115,10 +115,8 @@ Doc.prototype.save = function () {
 };
 
 Doc.prototype._insert = function () {
-  // if (!this.id()) { // TODO: is id ever null?
   this.id(utils.uuid());
-  //  this._collection._register(this);
-  // }
+
   // TODO: should we clear the id if there is an error?
   return Promise.resolve();
 };

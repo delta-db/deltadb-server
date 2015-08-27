@@ -9,9 +9,9 @@ var utils = require('../utils'),
 
 describe('e2e', function () {
 
-  var store = new MemAdapter();
-  var client = new Client(store);
-  var a = null,
+  var store = null,
+    client = null,
+    a = null,
     aTasks = null,
     b = null,
     bTasks = null;
@@ -19,6 +19,9 @@ describe('e2e', function () {
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   beforeEach(function () {
+    store = new MemAdapter();
+    client = new Client(store);
+
     a = client.db({
       db: 'mydb'
     });

@@ -112,4 +112,23 @@ describe('adapters', function () {
     });
   });
 
+  it('should reload collection', function () {
+    var users = null,
+      db = orm.db({
+        db: 'mydb'
+      });
+    return db.col('users').then(function (_users) {
+      users = _users;
+      var user = users.doc({
+        name: 'Jack',
+        age: 24
+      });
+      return user.save();
+    }).then(function () {
+      return db.col('users');
+    }).then(function (users2) {
+      users2.should.eql(users);
+    });
+  });
+
 });

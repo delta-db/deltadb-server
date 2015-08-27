@@ -137,6 +137,14 @@ Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
   });
 };
 
+Utils.prototype.once = function (emitter, evnt) {
+  return new Promise(function (resolve) {
+    emitter.once(evnt, function () {
+      resolve(arguments);
+    });
+  });
+};
+
 Utils.prototype.sort = function (items, attrs) {
   items.sort(function (a, b) {
     var ret = 0;

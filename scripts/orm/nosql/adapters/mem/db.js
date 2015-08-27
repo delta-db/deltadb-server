@@ -3,20 +3,33 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDB = require('../../common/db'),
-  Collection = require('./collection');
+  Collection = require('./collection'),
+  utils = require('../../../../utils');
 
-var DB = function (dbName, adapter) {
-  this._dbName = dbName;
+var DB = function ( /* name, adapter */ ) {
+  CommonDB.apply(this, arguments); // apply parent constructor
   this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
-  this._db = this; // allow a wrapping DB to be pased down to the wrapping doc
-  this._adapter = adapter;
+  this._collections = {};
 };
 
 inherits(DB, CommonDB);
 
 DB.prototype.col = function (name) {
-  // TODO: need to store collections in array and do a lookup here before creating?
-  return Promise.resolve(new Collection(name, this._db));
+  var self = this;
+  return new Promise(function (resolve) {
+    if (self._collections[name]) {
+      resolve(self._collections[name]);
+    } else {
+      var collection = new Collection(name, self);
+      self._collections[name] = collection;
+      resolve(collection);
+    }
+  });
+};
+
+// TODO: should this return a promise like col.all()??
+DB.prototype.all = function (callback) {
+  utils.each(this._collections, callback);
 };
 
 DB.prototype.close = function () {

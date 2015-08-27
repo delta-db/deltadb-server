@@ -2,17 +2,29 @@
 
 var inherits = require('inherits'),
   CommonAdapter = require('../../common/adapter'),
-  DB = require('./db');
+  DB = require('./db'),
+  utils = require('../../../../utils');
 
-var Adapter = function () {};
+var Adapter = function () {
+  this._dbs = {};
+};
 
 inherits(Adapter, CommonAdapter);
 
 // opts: db
 Adapter.prototype.db = function (opts) {
-  var db = new DB(opts.db, this);
-  this.emit('db:create', db); // TODO: shouldn't this be moved to common?
-  return db;
+  if (this._dbs[opts.db]) { // exists?
+    return this._dbs[opts.db];
+  } else {
+    var db = new DB(opts.db, this);
+    this._dbs[opts.db] = db;
+    return db;
+  }
+};
+
+// TODO: should this return a promise like col.all()??
+Adapter.prototype.all = function (callback) {
+  utils.each(this._dbs, callback);
 };
 
 module.exports = Adapter;

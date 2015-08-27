@@ -11,12 +11,18 @@ var utils = require('../../../scripts/utils'),
 
 describe('client', function () {
 
-  var store = new MemAdapter();
-  var client = new Client(store);
-  var db = null,
+  var store = null,
+    client = null,
+    db = null,
     tasks = null;
 
   beforeEach(function () {
+    // TODO: For now, we have to instantiate a new store each time so that data isn't reloaded
+    // between tests. In the future we want an event that is emitted when the loading of the store
+    // has completed and we can then use this event in an afterEach().
+    store = new MemAdapter();
+    client = new Client(store);
+
     db = client.db({
       db: 'mydb'
     });
@@ -27,15 +33,17 @@ describe('client', function () {
 
   var latestShouldEql = function (expected) {
     // TODO: ensure up in the last couple seconds
-    utils.each(tasks._docs, function (doc) {
-      var exp = expected[doc.id()];
-      (typeof exp !== 'undefined').should.eql(true);
-      utils.each(exp, function (attr) {
-        if (typeof attr.seq === 'undefined') {
-          attr.seq = 0;
-        }
+    return tasks.all().then(function (docs) {
+      docs.each(function (doc) {
+        var exp = expected[doc.id()];
+        (typeof exp !== 'undefined').should.eql(true);
+        utils.each(exp, function (attr) {
+          if (typeof attr.seq === 'undefined') {
+            attr.seq = 0;
+          }
+        });
+        doc._dat.latest.should.eql(exp);
       });
-      doc._latest.should.eql(exp);
     });
   };
 
@@ -171,7 +179,7 @@ describe('client', function () {
           seq: changes[2].seq
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -224,7 +232,7 @@ describe('client', function () {
           seq: 1
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.sleep(); // ensure different timestamp for upcoming change
     }).then(function () {
@@ -273,7 +281,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -312,7 +320,7 @@ describe('client', function () {
           seq: 1
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -348,7 +356,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -389,13 +397,14 @@ describe('client', function () {
           up: new Date(changes[1].up)
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       task1._set('priority', 'low');
       return task1.save();
     }).then(function () {
       return db._localChanges();
     }).then(function (changes) {
+
       // check local changes
       // TODO: ensure up in the last couple seconds
       // priority=low, seq could be 1 if updates on same timestamp
@@ -434,7 +443,7 @@ describe('client', function () {
           seq: changes[2].seq
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       var task2 = tasks.doc({
         thing: 'sing a song',
@@ -506,7 +515,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -555,7 +564,7 @@ describe('client', function () {
           re: re
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -681,7 +690,7 @@ describe('client', function () {
           re: re
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',
@@ -738,7 +747,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:30:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, []);
     });
@@ -798,7 +807,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:30:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',
@@ -840,7 +849,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -881,7 +890,7 @@ describe('client', function () {
           seq: changes[1].seq
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -917,7 +926,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       // Simulate recording of changes
       server.remoteChanges = [{
@@ -945,7 +954,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:30:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -990,7 +999,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       // Simulate recording of changes
       server.remoteChanges = [{
@@ -1023,7 +1032,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:30:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -1070,7 +1079,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       // Simulate recording of changes
       server.remoteChanges = [{
@@ -1104,7 +1113,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:30:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     });
   });
 
@@ -1146,7 +1155,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',
@@ -1192,7 +1201,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',
@@ -1250,7 +1259,7 @@ describe('client', function () {
           re: new Date('2014-01-01T05:00:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, []);
     });
@@ -1305,7 +1314,7 @@ describe('client', function () {
           seq: 0
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1'
@@ -1362,7 +1371,7 @@ describe('client', function () {
           re: new Date('2014-01-01T06:00:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',
@@ -1421,7 +1430,7 @@ describe('client', function () {
           re: new Date('2014-01-01T06:00:00.000Z')
         }
       };
-      latestShouldEql(latest);
+      return latestShouldEql(latest);
     }).then(function () {
       return testUtils.allShouldEql(tasks, [{
         $id: '1',

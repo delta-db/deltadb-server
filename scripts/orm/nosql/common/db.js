@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: create all() that returns iterator for all collections
+
 var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');

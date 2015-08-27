@@ -1,45 +1,75 @@
 'use strict';
 
-// TODO: docs/changes need to be in store (i.e. separate instance of orm) so that they can be
-// persistent
-
 var inherits = require('inherits'),
   Promise = require('bluebird'),
-  CommonCollection = require('../orm/nosql/common/collection'),
+  MemCollection = require('../orm/nosql/adapters/mem/collection'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
   Doc = require('./doc'),
-  Cursor = require('../orm/nosql/adapters/mem/cursor'), // TODO: remove and use store instead!!
-  FilterCursor = require('../orm/nosql/common/cursor/filter'); // TODO: remove and use store instead
-// SortCursor = require('../orm/nosql/common/cursor/sort'), // TODO: remove and use store instead
-// where = require('../orm/nosql/common/where'); // TODO: remove and use store instead!!
-// order = require('../orm/nosql/common/order'); // TODO: remove and use store instead!!
+  Cursor = require('../orm/nosql/adapters/mem/cursor');
 
-var Collection = function (name, db, store) {
-  CommonCollection.apply(this, arguments); // apply parent constructor
-  this._store = store;
-  this._docs = {}; // TODO: remove and use store instead!!
+var Collection = function ( /* name, db */ ) {
+  MemCollection.apply(this, arguments); // apply parent constructor
 };
 
-inherits(Collection, CommonCollection);
+inherits(Collection, MemCollection);
+
+Collection.prototype._import = function (store) {
+  this._store = store;
+  this._initStore();
+};
+
+Collection.prototype._doc = function (data, genDocStore) {
+  var id = data ? data[this._db._idName] : null;
+  if (id && this._docs[id]) { // has id and exists?
+    return this._docs[id];
+  } else {
+    var doc = new Doc(data, this);
+
+    // In most cases we don't know the id when creating the doc and rely on save() to call
+    // register() later this._docs[id] = doc;
+
+    if (genDocStore) {
+      doc._import(Doc._createDocStore(data, this._store));
+    }
+
+    // We need the store to be setup before changing the data
+    if (genDocStore && data) {
+      doc._changeDoc(data);
+    }
+
+    return doc;
+  }
+};
 
 Collection.prototype.doc = function (data) {
-  return new Doc(data, this);
+  return this._doc(data, true);
+};
+
+Collection.prototype._initStore = function () {
+  var self = this;
+  self._loaded = self._store.all().then(function (docs) {
+    return docs.each(function (docStore) {
+      var doc = self._doc();
+      doc._import(docStore);
+    }).then(function () {
+      self.emit('load');
+    });
+  });
 };
 
 Collection.prototype._setChange = function (change) {
-  var doc = this._getDoc(change.id),
-    promise = null;
-  if (!doc) {
-    doc = this.doc();
-    doc.id(change.id);
-    promise = this._register(doc);
-  } else {
-    promise = Promise.resolve();
-  }
-  // TODO: in future, if sequence of changes for same doc then set for all changes and then issue a
-  // single save?
-  return promise.then(function () {
+  var self = this,
+    doc = null;
+  return self.get(change.id).then(function (_doc) {
+    doc = _doc;
+    if (!doc) {
+      doc = self.doc();
+      doc.id(change.id);
+    }
+  }).then(function () {
+    // TODO: in future, if sequence of changes for same doc then set for all changes and then issue
+    // a single save?
     return doc._setChange(change);
   });
 };
@@ -64,33 +94,15 @@ Collection.prototype._emitColDestroy = function () {
   this._emit('col:destroy', this);
 };
 
-// TODO: use store instead of mem
 Collection.prototype._register = function (doc) {
-  this._docs[doc.id()] = doc;
   doc._emitDocCreate();
-  return Promise.resolve();
+  return MemCollection.prototype._register.apply(this, arguments);
 };
 
-// TODO: use store instead of mem
-// Collection.prototype._unregister = function (doc) {
-//   delete this._docs[doc.id()];
-//   return Promise.resolve();
-// };
-
-// Collection.prototype._register = function (doc) {
-//   return this._collection._register.apply(this, arguments).then(function () {
-// console.log('_register-1');
-//     doc._emitDocCreate();
-//   });
-// };
-
 Collection.prototype.destroy = function () {
-  this._emitColDestroy(); // TODO: move to layer above
+  // Don't actually destroy the col as we need to keep tombstones
+  this._emitColDestroy(); // TODO: move to common
   return Promise.resolve();
-  // var self = this;
-  // return self._collection.destroy.apply(this, arguments).then(function () {
-  //   self._emitColDestroy();
-  // });
 };
 
 Collection.prototype.policy = function (policy) {
@@ -115,32 +127,19 @@ Collection.prototype._removeRole = function (userUUID, roleName) {
   return doc._removeRole(userUUID, roleName);
 };
 
-// TODO: use store instead of mem
-Collection.prototype.find = function ( /* query */ ) {
-  var self = this;
-  return new Promise(function (resolve) {
-    var cursor = new Cursor(self._docs, self),
-      //  filter = query && query.where ? where.filter(query.where) : null,
-      filter = null,
-      filterCursor = new FilterCursor(cursor, filter);
-    // if (query && query.order) {
-    //   var sort = order.sort(query.order);
-    //   resolve(new SortCursor(filterCursor, sort));
-    // } else {
-    resolve(filterCursor);
-    // }
+Collection.prototype.find = function (query, destroyed) {
+  return this._find(query, new Cursor(this._docs, this, destroyed));
+};
+
+Collection.prototype._localChanges = function (retryAfter, returnSent) {
+  return this.find(null, true).then(function (docs) {
+    var changes = [];
+    return docs.each(function (doc) {
+      changes = changes.concat(doc._localChanges(retryAfter, returnSent));
+    }).then(function () {
+      return changes;
+    });
   });
-};
-
-// TODO: use store instead of mem
-Collection.prototype.get = function (id) {
-  return Promise.resolve(this._docs[id]);
-};
-
-// TODO: use store instead of mem
-Collection.prototype._getDoc = function (id) {
-  var doc = this._docs[id];
-  return doc;
 };
 
 module.exports = Collection;

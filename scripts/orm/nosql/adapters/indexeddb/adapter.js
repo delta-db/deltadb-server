@@ -9,6 +9,7 @@ var Adapter = function () {};
 
 inherits(Adapter, AbstractAdapter);
 
+// TODO: remove
 // opts: db
 Adapter.prototype.connect = function (opts) {
   var self = this;
