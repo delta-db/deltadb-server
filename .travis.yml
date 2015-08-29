@@ -20,9 +20,9 @@ before_script:
 
 env:
   matrix:
-  # - COMMAND=test
-  # - COMMAND=test-firefox # Restore when test client in firefox
-  # - COMMAND=test-phantomjs # Restore when https://code.google.com/p/selenium/issues/detail?id=8088 fixed
+  - COMMAND=test-firefox
+  - COMMAND=test-phantomjs
+  # - COMMAND=test-chrome # Uncomment when get chrome testing working in travis
   - COMMAND=coverage
   - COMMAND=assert-beautified
 

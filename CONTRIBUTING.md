@@ -79,3 +79,14 @@ Running Basic Performance Test
 ---
 
     npm run performance
+
+
+Running Tests in Chrome and Firefox
+---
+
+Currently, this cannot be done in the VM as this project has not been configured to run Chrome and Firefox via Selenium headlessly. You can however use
+
+    $ npm run test-firefox
+    $ npm run test-chrome
+
+to test outside the VM, assuming you have Firefox and Chrome installed.

@@ -1,17 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 
-var path = require('path');
-var spawn = require('child_process').spawn;
-
 var wd = require('wd');
-var sauceConnectLauncher = require('sauce-connect-launcher');
+// var sauceConnectLauncher = require('sauce-connect-launcher'); // uncomment later for sauce labs
+var selenium = require('selenium-standalone');
 var querystring = require("querystring");
-var request = require('request').defaults({json: true});
 
 var devserver = require('./dev-server.js');
-
-var SELENIUM_HUB = 'http://localhost:4444/wd/hub/status';
 
 var testTimeout = 30 * 60 * 1000;
 
@@ -41,18 +36,13 @@ if (client.runner === 'saucelabs') {
 if (process.env.GREP) {
   qs.grep = process.env.GREP;
 }
-if (process.env.ADAPTERS) {
-  qs.adapters = process.env.ADAPTERS;
-}
-if (process.env.ES5_SHIM || process.env.ES5_SHIMS) {
-  qs.es5shim = true;
-}
 testUrl += '?';
 testUrl += querystring.stringify(qs);
 
 if (process.env.TRAVIS &&
     client.browser !== 'firefox' &&
     client.browser !== 'phantomjs' &&
+    client.browser !== 'chrome' &&
     process.env.TRAVIS_SECURE_ENV_VARS === 'false') {
   console.error('Not running test, cannot connect to saucelabs');
   process.exit(1);
@@ -85,31 +75,18 @@ function testComplete(result) {
 }
 
 function startSelenium(callback) {
-
   // Start selenium
-  require('selenium-server/lib/runner/app');
-
-  var retries = 0;
-  var started = function () {
-
-    if (++retries > 30) {
-      console.error('Unable to connect to selenium');
+  var opts = {version: '2.45.0'};
+  selenium.install(opts, function(err) {
+    if (err) {
+      console.error('Failed to install selenium');
       process.exit(1);
-      return;
     }
-
-    request(SELENIUM_HUB, function (err, resp) {
-      if (resp && resp.statusCode === 200) {
-        sauceClient = wd.promiseChainRemote();
-        callback();
-      } else {
-        setTimeout(started, 1000);
-      }
+    selenium.start(opts, function(err, server) {
+      sauceClient = wd.promiseChainRemote();
+      callback();
     });
-  };
-
-  started();
-
+  });
 }
 
 function startSauceConnect(callback) {
