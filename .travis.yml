@@ -22,7 +22,7 @@ env:
   matrix:
   - COMMAND=test-firefox
   - COMMAND=test-phantomjs
-  - COMMAND=test-chrome
+  # - COMMAND=test-chrome # Uncomment when get chrome testing working in travis
   - COMMAND=coverage
   - COMMAND=assert-beautified
 
