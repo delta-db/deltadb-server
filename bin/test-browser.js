@@ -42,6 +42,7 @@ testUrl += querystring.stringify(qs);
 if (process.env.TRAVIS &&
     client.browser !== 'firefox' &&
     client.browser !== 'phantomjs' &&
+    client.browser !== 'chrome' &&
     process.env.TRAVIS_SECURE_ENV_VARS === 'false') {
   console.error('Not running test, cannot connect to saucelabs');
   process.exit(1);
