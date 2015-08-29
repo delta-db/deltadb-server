@@ -78,6 +78,7 @@ Future?
 - relations and foreign keys
 - model functions (https://github.com/dresende/node-orm2)
 - can trigger restore with updating attr?
+- Figure out a way to use Selenium with Chrome and Firfox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
 
 Misc
 ---
