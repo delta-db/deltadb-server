@@ -8,7 +8,6 @@ var Promise = require('bluebird'),
 
 var DB = function ( /* name, adapter */ ) {
   CommonDB.apply(this, arguments); // apply parent constructor
-  this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
   this._collections = {};
 };
 

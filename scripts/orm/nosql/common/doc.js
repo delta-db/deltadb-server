@@ -13,6 +13,7 @@ var Doc = function (data, collection) {
 
 inherits(Doc, EventEmitter);
 
+Doc._idName = '$id';
 Doc.prototype._idName = '$id'; // Move to DB layer?
 
 Doc.prototype.id = function (id) {
@@ -115,9 +116,9 @@ Doc.prototype.save = function () {
 };
 
 Doc.prototype._insert = function () {
-  this.id(utils.uuid());
-
-  // TODO: should we clear the id if there is an error?
+  if (!this.id()) { // id missing? Then generate
+    this.id(utils.uuid());
+  }
   return Promise.resolve();
 };
 

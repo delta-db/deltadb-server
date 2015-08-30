@@ -4,7 +4,7 @@
 
 var uuid = require('node-uuid'),
   Promise = require('bluebird'),
-  bcrypt = require('bcrypt');
+  bcrypt = require('bcryptjs');
 
 var Utils = function () {
   this._bcrypt = bcrypt; // only for unit testing

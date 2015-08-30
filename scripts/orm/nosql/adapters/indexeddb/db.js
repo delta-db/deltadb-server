@@ -6,46 +6,36 @@
 // THIS!!)
 // TODO: because of indexing complexity need one store per DB?
 
+// TODO: need to use something like the following?
+// window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB ||
+//   window.msIndexedDB;
+
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  AbstractDB = require('../../db'),
-  Collection = require('./collection');
+  CommonDB = require('../../common/db'),
+  Collection = require('./collection'),
+  utils = require('../../../../utils');
 
-var DB = function (name) {
-  this._name = name;
+var DB = function () {
+  CommonDB.apply(this, arguments); // apply parent constructor
+  this._collections = {};
 };
 
-inherits(DB, AbstractDB);
+inherits(DB, CommonDB);
 
-DB.prototype._open = function (name, version) {
+DB.prototype._initStore = function (name) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var request = null;
-    if (version) {
-      request = indexedDB.open(self._name, version);
-    } else {
-      request = indexedDB.open(self._name);
-    }
+    var request = indexedDB.open(self._name);
 
     request.onupgradeneeded = function () {
-      // TODO: what about errors?? is there a db.onerror?
-      var db = request.result;
-      db.createObjStore(name, {
-        keyPath: self._idName
-      });
+      // Do nothing as we are just looking up the version and will change the schema later
     };
 
     request.onsuccess = function () {
       self._db = request.result;
-      // TODO: does the following work for all browsers? It works in Chrome and FF
-      if (self._db.objStoreNames.length === 0) { // does the store need to be recreated?
-        self.close().then(function () {
-          // TODO: better promise design as could be error from close
-          resolve(false);
-        });
-      } else {
-        resolve(new Collection(self, name));
-      }
+      self._version = parseInt(self._db.version);
+      resolve();
     };
 
     request.onerror = function () {
@@ -54,18 +44,56 @@ DB.prototype._open = function (name, version) {
   });
 };
 
-DB.prototype.col = function (name) {
-  // First attempt to open the database, but if the store doesn't exist, which can happen if the
-  // store was just destroyed, we need to close the database, reopen it with a version change and
-  // then add the store. (The same process would be needed if we wanted to changed the indexes).
+DB.prototype._openAndCreateObjectStore = function (name) {
   var self = this;
-  return self._open(name).then(function (collection) {
-    if (collection === false) {
-      return self._open(name, self._db.version + 1);
-    } else {
-      return collection;
-    }
+  return new Promise(function (resolve, reject) {
+    self._db.close(); // Close any existing connection
+
+    self._version++; // Increment the version that we can add the object store
+
+    var request = indexedDB.open(self._name, self._version);
+
+    request.onupgradeneeded = function () {
+      var db = request.result;
+      if (!db.objectStoreNames.contains(name)) { // doesn't exist? 
+        db.createObjectStore(name, {
+          keyPath: self._idName
+        });
+      }
+    };
+
+    request.onsuccess = function () {
+      self._db = request.result;
+      resolve(new Collection(self, name));
+    };
+
+    request.onerror = function () {
+      reject(request.error);
+    };
   });
+};
+
+DB.prototype._storeReady = function () {
+  // We need to increment the version to fire an 'onupgradeneeded' event to create a new collection. 
+  if (this._version) { // already loaded
+    return Promise.resolve();
+  } else {
+    return this._initStore(); // Get the latest version stored in the DB
+  }
+};
+
+DB.prototype.col = function (name) {
+  var self = this;
+  if (self._collections[name]) { // exists?
+    return Promise.resolve(self._collections[name]);
+  } else {
+    return self._storeReady().then(function () {
+      return self._openAndCreateObjectStore(name);
+    }).then(function (col) {
+      self._collections[name] = col;
+      return col;
+    });
+  }
 };
 
 DB.prototype.close = function () {
@@ -74,6 +102,47 @@ DB.prototype.close = function () {
     // TODO: is close really synchronous???
     self._db.close();
     resolve();
+  });
+};
+
+// TODO: unregister from adapter
+DB.prototype.destroy = function () {
+  var self = this;
+  return new Promise(function (resolve, reject) {
+    var req = indexedDB.deleteDatabase(self._name);
+
+    req.onsuccess = function () {
+      resolve();
+    };
+
+    req.onerror = function () {
+      reject("Couldn't destroy database: " + req.err);
+    };
+    
+    req.onblocked = function () {
+      reject("Couldn't destroy database as blocked: " + req.err);
+    };
+  });
+};
+
+DB.prototype.all = function (callback) {
+  var self = this;
+  return self._open().then(function () {
+console.log('objectStoreNames=', self._db.objectStoreNames);
+//    if (self._db.objectStoreNames)
+  });
+};
+
+DB.prototype._load = function () {
+  var self = this, promises = [];
+  return self._storeReady().then(function () {
+    utils.each(self._db.objectStoreNames, function (name) {
+      var promise = self.col(name).then(function (col) {
+        col._load();
+      });
+      promises.push(promise);
+    });
+    return Promise.all(promises);
   });
 };
 

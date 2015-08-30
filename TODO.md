@@ -3,6 +3,7 @@ Now
 - use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
 	- test reload of data w/ indexedb
 	- Convert all adapters to make db.col() not return a promise and update API docs
+- faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
 - use lie instead of bluebird
 - Roadmap

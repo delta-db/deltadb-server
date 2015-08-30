@@ -2,22 +2,22 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  utils = require('../../utils'),
-  AbstractDoc = require('../../doc');
+  utils = require('../../../../utils'),
+  CommonDoc = require('../../common/doc');
 
 var Doc = function (doc, collection) {
-  AbstractDoc.apply(this, arguments); // apply parent constructor
+  CommonDoc.apply(this, arguments); // apply parent constructor
   this._collection = collection;
   this._idName = collection._db._idName;
 };
 
-inherits(Doc, AbstractDoc);
+inherits(Doc, CommonDoc);
 
 Doc.prototype._put = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objStore(self._collection._storeName);
+      store = tx.objectStore(self._collection._storeName);
 
     var request = store.put(doc);
 
@@ -35,8 +35,9 @@ Doc.prototype._put = function (doc) {
 };
 
 Doc.prototype._insert = function () {
-  this.id(utils.uuid());
-  // TODO: should we clear the id if there is an error?
+  if (!this.id()) { // id missing? Then generate
+    this.id(utils.uuid());
+  }
   return this._put(this._data);
 };
 
@@ -62,8 +63,6 @@ Doc.prototype._merge = function () {
   });
 };
 
-// TODO: need to implement "merge" vs "save" in mongo adapter
-
 Doc.prototype.merge = function () {
   var self = this,
     promise = self.id() ? self._merge() : self._insert();
@@ -76,7 +75,7 @@ Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objStore(self._collection._storeName);
+      store = tx.objectStore(self._collection._storeName);
 
     var request = store.delete(self.id());
 

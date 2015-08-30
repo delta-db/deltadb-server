@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: need to implement "merge" vs "save" in mongo adapter
+
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractDoc = require('../../doc');

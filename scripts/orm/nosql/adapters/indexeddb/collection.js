@@ -4,11 +4,11 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  AbstractCollection = require('../../collection'),
-  FilterCursor = require('../../filter-cursor'),
-  SortCursor = require('../../sort-cursor'),
-  where = require('../../where'),
-  order = require('../../order'),
+  CommonCollection = require('../../common/collection'),
+  FilterCursor = require('../../common/cursor/filter'), // TODO: rename to filter-cursor
+  SortCursor = require('../../common/cursor/sort'), // TODO: rename to sort-cursor
+  where = require('../../common/where'),
+  order = require('../../common/order'),
   Doc = require('./doc'),
   Cursor = require('./cursor');
 
@@ -17,7 +17,7 @@ var Collection = function (db, storeName) {
   this._storeName = storeName;
 };
 
-inherits(Collection, AbstractCollection);
+inherits(Collection, CommonCollection);
 
 Collection.prototype.doc = function (obj) {
   return new Doc(obj, this);
@@ -27,11 +27,11 @@ Collection.prototype.get = function (id) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._db._db.transaction(self._storeName, 'readwrite'),
-      store = tx.objStore(self._storeName),
+      store = tx.objectStore(self._storeName),
       request = store.get(id);
 
     request.onsuccess = function () {
-      resolve(new Doc(request.result, self));
+      resolve(request.result ? new Doc(request.result, self) : null);
     };
 
     request.onerror = function () {
@@ -63,7 +63,7 @@ Collection.prototype.find = function (query) {
     }
 
     var tx = self._db._db.transaction(self._storeName, 'readonly'),
-      store = tx.objStore(self._storeName),
+      store = tx.objectStore(self._storeName),
       request = store.openCursor(),
       callbackWrapper = null;
 
@@ -103,6 +103,16 @@ Collection.prototype.destroy = function () {
       request.onerror = function () {
         reject(request.error);
       };
+    });
+  });
+};
+
+Collection.prototype._load = function () {
+console.log('_load');
+  var self = this;
+  return self.all().then(function (docs) {
+    docs.each(function (doc) {
+console.log('doc=', doc, doc.get());
     });
   });
 };
