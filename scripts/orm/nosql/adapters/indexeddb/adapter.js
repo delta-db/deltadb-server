@@ -3,41 +3,40 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonAdapter = require('../../common/adapter'),
-  DB = require('./db'),
-  Properties = require('./properties');
+  DB = require('./db');
+  // Properties = require('./properties'); // TODO: remove??
 
 var Adapter = function () {
   this._dbs = {};
-  this._props = new Properties(this);
+  // this._props = new Properties(this); // TODO: remove??
 };
 
 inherits(Adapter, CommonAdapter);
 
-Adapter.prototype.load = function () {
-  var self = this;
-  this._props.dbs(function (db) {
-    console.log('dbName=', db);
-  });
-//  return this._props.load().then(function () {
-// TODO: need to properly load down types
-//    this.db({ db: dbName });
-//  });
-};
+// TODO: remove?
+// Adapter.prototype.load = function () {
+//   var self = this;
+//   this._props.dbs(function (db) {
+//     console.log('dbName=', db);
+//   });
+// };
 
-Adapter.prototype.all = function (callback) {
-  var self = this;
-  self._props.dbs(function (dbName) {
-    callback(self.db({ db: dbName }));
-  });
-};
+// TODO: remove?
+// Adapter.prototype.all = function (callback) {
+//   var self = this;
+//   self._props.dbs(function (dbName) {
+//     callback(self.db({ db: dbName }));
+//   });
+// };
 
-Adapter.prototype.destroy = function () {
-  var promises = [];
-  self.all(function (db) {
-    promises.push(db.close().destroy());
-  });
-  return Promise.all(promises);
-};
+// TODO: remove?
+// Adapter.prototype.destroy = function () {
+//   var promises = [];
+//   self.all(function (db) {
+//     promises.push(db.close().destroy());
+//   });
+//   return Promise.all(promises);
+// };
 
 // opts: db
 Adapter.prototype.db = function (opts) {

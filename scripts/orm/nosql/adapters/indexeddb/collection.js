@@ -12,9 +12,9 @@ var Promise = require('bluebird'),
   Doc = require('./doc'),
   Cursor = require('./cursor');
 
-var Collection = function (db, storeName) {
+var Collection = function (db, name) {
   this._db = db;
-  this._storeName = storeName;
+  this._name = name;
 };
 
 inherits(Collection, CommonCollection);
@@ -26,8 +26,8 @@ Collection.prototype.doc = function (obj) {
 Collection.prototype.get = function (id) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._db._db.transaction(self._storeName, 'readwrite'),
-      store = tx.objectStore(self._storeName),
+    var tx = self._db._db.transaction(self._name, 'readwrite'),
+      store = tx.objectStore(self._name),
       request = store.get(id);
 
     request.onsuccess = function () {
@@ -62,8 +62,8 @@ Collection.prototype.find = function (query) {
       }
     }
 
-    var tx = self._db._db.transaction(self._storeName, 'readonly'),
-      store = tx.objectStore(self._storeName),
+    var tx = self._db._db.transaction(self._name, 'readonly'),
+      store = tx.objectStore(self._name),
       request = store.openCursor(),
       callbackWrapper = null;
 
@@ -77,7 +77,58 @@ Collection.prototype.find = function (query) {
           var sort = order.sort(query.order);
           resolve(new SortCursor(filterCursor, sort));
         } else {
+console.log('before each');
+filterCursor.each(function (item) {
+console.log('item=', item);
+});
+console.log('after each');
           resolve(filterCursor);
+        }
+      } else if (callbackWrapper.callback) {
+        callbackWrapper.callback(request.result);
+      }
+    };
+
+    request.onerror = function () {
+      reject(request.error);
+    };
+  });
+};
+
+// TODO: have to refactor find and all to use callback directly? Appears so!!
+// OR, do it the pouchdb way and buffer all docs into mem? Isn't that a waste though??
+Collection.prototype.tmpFind = function (query, callback) {
+  var self = this;
+  return new Promise(function (resolve, reject) {
+
+    if (query) {
+      if (typeof query.offset !== 'undefined') {
+        throw new Error('offset not implemented');
+      } else if (typeof query.limit !== 'undefined') {
+        throw new Error('limit not implemented');
+      }
+    }
+
+    var tx = self._db._db.transaction(self._name, 'readonly'),
+      store = tx.objectStore(self._name),
+      request = store.openCursor(),
+      callbackWrapper = null;
+
+    request.onsuccess = function () {
+      if (callbackWrapper === null) {
+        callbackWrapper = {};
+        var cursor = new Cursor(request.result, callbackWrapper, self),
+          filter = query && query.where ? where.filter(query.where) : null,
+          filterCursor = new FilterCursor(cursor, filter);
+        if (query && query.order) {
+          var sort = order.sort(query.order);
+// TODO: update for new find
+          resolve(new SortCursor(filterCursor, sort));
+        } else {
+          filterCursor.each(callback);
+          // Appears that you cannot do resolve(filterCursor); and then use filterCursor.each later
+          // as then the txn is not active, so we have to pass the callback into this fn directly!
+          resolve();
         }
       } else if (callbackWrapper.callback) {
         callbackWrapper.callback(request.result);
@@ -97,7 +148,7 @@ Collection.prototype.destroy = function () {
       var request = indexedDB.open(self._db._name, self._db._db.version + 1);
       request.onupgradeneeded = function () {
         var db = request.result;
-        db.deleteObjStore(self._storeName); // TODO: is this really synchronous?
+        db.deleteObjStore(self._name); // TODO: is this really synchronous?
         resolve();
       };
       request.onerror = function () {
@@ -107,14 +158,14 @@ Collection.prototype.destroy = function () {
   });
 };
 
-Collection.prototype._load = function () {
-console.log('_load');
-  var self = this;
-  return self.all().then(function (docs) {
-    docs.each(function (doc) {
-console.log('doc=', doc, doc.get());
-    });
-  });
-};
+// Collection.prototype._load = function () {
+// console.log('_load');
+//   var self = this;
+//   return self.all().then(function (docs) {
+//     docs.each(function (doc) {
+// console.log('doc=', doc, doc.get());
+//     });
+//   });
+// };
 
 module.exports = Collection;

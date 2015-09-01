@@ -1,6 +1,7 @@
 'use strict';
 
-var IDB = require('../../scripts/orm/nosql/adapters/indexeddb');
+var IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
+  Doc = require('../../scripts/orm/nosql/common/doc');
 
 describe('browser-tmp', function () {
 
@@ -12,12 +13,9 @@ describe('browser-tmp', function () {
   });
 
   afterEach(function () {
-//    return idb.destroy();
-    
-    // TODO: uncomment?
-    // return db.close().then(function () {
-    //  db.destroy();
-    // });
+    return db.close().then(function () {
+      return db.destroy();
+    });
   });
 
   it('should create doc', function () {
@@ -33,9 +31,9 @@ describe('browser-tmp', function () {
       var tasks = null;
       return db.col('tasks').then(function (_tasks) {
         tasks = _tasks;
-        return tasks.doc({ thing: 'write' }).save();
+        return tasks.doc({ $id: '1', thing: 'write' }).save();
       }).then(function () {
-        return tasks.doc({ thing: 'sing' }).save();
+        return tasks.doc({ $id: '2', thing: 'sing' }).save();
       });      
     }
 
@@ -43,20 +41,63 @@ describe('browser-tmp', function () {
       var colors = null;
       return db.col('colors').then(function (_colors) {
         colors = _colors;
-        return colors.doc({ name: 'red' }).save();
+        return colors.doc({ $id: '3', name: 'red' }).save();
       }).then(function () {
-        return colors.doc({ name: 'green' }).save();
+        return colors.doc({ $id: '4', name: 'green' }).save();
       });  
+    };
+
+    var cols = {};
+
+    var all = function () {
+      var promises = [];
+      db.all(function (col) {
+        var docs = {};
+        cols[col._name] = docs;
+        var promise = col.tmpFind(null, function (doc) {
+          docs[doc.id()] = doc.get();
+        });
+        promises.push(promise);
+      });
+      return Promise.all(promises);
+    };
+
+    // TODO: move to helper fn?
+    var assert = function () {
+      var expCols = {
+        tasks: {
+          '1': {
+            $id: '1',
+            thing: 'write'
+          },
+          '2': {
+            $id: '2',
+            thing: 'sing'
+          }
+        },
+        colors: {
+          '3': {
+            $id: '3',
+            name: 'red'
+          },
+          '4': {
+            $id: '4',
+            name: 'green'
+          }
+        }
+      };
+      cols.should.eql(expCols);
     };
 
     var restore = function () {
       return db.close().then(function () {
         idb = new IDB(); // Simulate a fresh instance during an initial load
-        return idb.load();
+        db = idb.db({ db: 'mydb' });
+        return db._load();
       }).then(function () {
-// idb.all(function (_db) {
-// console.log('_db._name=', _db._name)
-// });
+        return all();
+      }).then(function () {
+        assert();
       });
     };
 

@@ -16,8 +16,8 @@ inherits(Doc, CommonDoc);
 Doc.prototype._put = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objectStore(self._collection._storeName);
+    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
+      store = tx.objectStore(self._collection._name);
 
     var request = store.put(doc);
 
@@ -74,8 +74,8 @@ Doc.prototype.merge = function () {
 Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objectStore(self._collection._storeName);
+    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
+      store = tx.objectStore(self._collection._name);
 
     var request = store.delete(self.id());
 
