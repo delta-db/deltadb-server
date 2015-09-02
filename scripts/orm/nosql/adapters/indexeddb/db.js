@@ -1,20 +1,18 @@
 'use strict';
 
-/* global indexedDB */
-
 // NOTE: we only use the index on the primary key -- in future support indexes (NEED MORE NOTES ON
 // THIS!!)
 // TODO: because of indexing complexity need one store per DB?
-
-// TODO: need to use something like the following?
-// window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB ||
-//   window.msIndexedDB;
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
   utils = require('../../../../utils');
+
+// TODO: disable when not testing in phantomjs!
+// Use a shim as phantomjs doesn't support indexedDB
+require('indexeddbshim'); // Automatically sets window.shimIndexedDB
 
 var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor
@@ -24,10 +22,15 @@ var DB = function () {
 
 inherits(DB, CommonDB);
 
+DB.indexedDB = function () {
+  return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB ||
+    window.shimIndexedDB;
+};
+
 DB.prototype._initStore = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var request = indexedDB.open(self._name);
+    var request = DB.indexedDB().open(self._name);
 
     request.onupgradeneeded = function () {
       // Do nothing as we are just looking up the version and will change the schema later
@@ -60,7 +63,7 @@ DB.prototype._openAndCreateObjectStore = function (name) {
 
     self._version++; // Increment the version that we can add the object store
 
-    var request = indexedDB.open(self._name, self._version);
+    var request = DB.indexedDB().open(self._name, self._version);
 
     request.onupgradeneeded = function () {
       var db = request.result;
@@ -83,7 +86,8 @@ DB.prototype._openAndCreateObjectStore = function (name) {
 };
 
 DB.prototype._storeReady = function () {
-  // We need to increment the version to fire an 'onupgradeneeded' event to create a new collection. 
+  // We need to increment the version to fire an 'onupgradeneeded' event so that we can create a new
+  // collection.
   if (!this._storePromise) { // not initialized?
     this._storePromise = this._initStore(); // Get the latest version stored in the DB
   }
@@ -158,7 +162,7 @@ DB.prototype.close = function () {
   var self = this;
   return new Promise(function (resolve) {
     if (self._db) { // db already opened?
-      self._db.close();
+      self._db.close(); // Close is synchronous
     }
     resolve();
   });
@@ -168,7 +172,7 @@ DB.prototype.close = function () {
 DB.prototype.destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var req = indexedDB.deleteDatabase(self._name);
+    var req = DB.indexedDB().deleteDatabase(self._name);
 
     req.onsuccess = function () {
       resolve();
@@ -193,8 +197,11 @@ DB.prototype.all = function (callback) {
 DB.prototype._load = function () {
   var self = this, promises = [];
   return self._storeReady().then(function () {
-    utils.each(self._db.objectStoreNames, function (name) {
-      promises.push(self.col(name));
+    utils.each(self._db.objectStoreNames, function (name, i) {
+      // indexeddbshim creates a 'length' attr that should be ignored
+      if (i !== 'length') {
+        promises.push(self.col(name));
+      }
     });
     return Promise.all(promises);
   });

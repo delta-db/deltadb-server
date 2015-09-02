@@ -2,8 +2,8 @@
 
 // 'use strict';
 
-// // IndexedDB doesn't have a cross-browser construct for retrieving a list of all the DBs, therefore
-// // we create a '$props' DB that will store this info.
+// // IndexedDB doesn't have a cross-browser construct for retrieving a list of all the DBs,
+// // therefore we create a '$props' DB that will store this info.
 
 // var Doc = require('../../common/doc');
 

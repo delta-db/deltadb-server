@@ -1,7 +1,6 @@
 'use strict';
 
-var Promise = require('bluebird'),
-  inherits = require('inherits'),
+var inherits = require('inherits'),
   CommonAdapter = require('../../common/adapter'),
   DB = require('./db');
   // Properties = require('./properties'); // TODO: remove??

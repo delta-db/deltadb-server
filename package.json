@@ -57,6 +57,7 @@
     "es5-shim": "^4.0.5",
     "events": "^1.0.2",
     "http-server": "^0.8.0",
+    "indexeddbshim": "^2.2.1",
     "inherits": "^2.0.1",
     "istanbul": "^0.3.15",
     "js-beautify": "^1.5.5",

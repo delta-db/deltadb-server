@@ -1,7 +1,5 @@
 'use strict';
 
-/* global indexedDB */
-
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonCollection = require('../../common/collection'),
@@ -10,6 +8,7 @@ var Promise = require('bluebird'),
   where = require('../../common/where'),
   order = require('../../common/order'),
   Doc = require('./doc'),
+  DB = require('./db'),
   Cursor = require('./cursor');
 
 var Collection = function (db, name) {
@@ -145,7 +144,7 @@ Collection.prototype.destroy = function () {
   var self = this;
   return self._db.close().then(function () {
     return new Promise(function (resolve, reject) {
-      var request = indexedDB.open(self._db._name, self._db._db.version + 1);
+      var request = DB.indexedDB().open(self._db._name, self._db._db.version + 1);
       request.onupgradeneeded = function () {
         var db = request.result;
         db.deleteObjStore(self._name); // TODO: is this really synchronous?

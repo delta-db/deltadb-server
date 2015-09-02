@@ -1,7 +1,7 @@
 'use strict';
 
 var IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
-  Doc = require('../../scripts/orm/nosql/common/doc');
+  Promise = require('bluebird');
 
 describe('browser-tmp', function () {
 
@@ -35,7 +35,7 @@ describe('browser-tmp', function () {
       }).then(function () {
         return tasks.doc({ $id: '2', thing: 'sing' }).save();
       });      
-    }
+    };
 
     var createColors = function () {
       var colors = null;
