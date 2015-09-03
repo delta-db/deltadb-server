@@ -103,7 +103,7 @@ describe('browser-tmp', function () {
           },
           '4': {
             $id: '4',
-            name: 'green1'
+            name: 'green'
           }
         }
       };

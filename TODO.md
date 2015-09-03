@@ -2,8 +2,6 @@ Now
 ---
 - new phantomjs tests:
 	- is there a way to report error if not 100% coverage?
-	- make sure it works with travisci
-	- make sure failure is detected by travisci
 - use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
 	- Convert all adapters to make db.col() not return a promise and update API docs
 - faster to use bcrypt instead of bcryptjs for server side only?
