@@ -3,7 +3,7 @@
 var inherits = require('inherits'),
   CommonAdapter = require('../../common/adapter'),
   DB = require('./db');
-  // Properties = require('./properties'); // TODO: remove??
+// Properties = require('./properties'); // TODO: remove??
 
 var Adapter = function () {
   this._dbs = {};

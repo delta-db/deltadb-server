@@ -76,11 +76,11 @@ Collection.prototype.find = function (query) {
           var sort = order.sort(query.order);
           resolve(new SortCursor(filterCursor, sort));
         } else {
-console.log('before each');
-filterCursor.each(function (item) {
-console.log('item=', item);
-});
-console.log('after each');
+          console.log('before each');
+          filterCursor.each(function (item) {
+            console.log('item=', item);
+          });
+          console.log('after each');
           resolve(filterCursor);
         }
       } else if (callbackWrapper.callback) {
@@ -121,7 +121,7 @@ Collection.prototype.tmpFind = function (query, callback) {
           filterCursor = new FilterCursor(cursor, filter);
         if (query && query.order) {
           var sort = order.sort(query.order);
-// TODO: update for new find
+          // TODO: update for new find
           resolve(new SortCursor(filterCursor, sort));
         } else {
           filterCursor.each(callback);

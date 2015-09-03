@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  afterEnd: function(runner) {
+  afterEnd: function (runner) {
     var fs = require('fs');
-    var coverage = runner.page.evaluate(function() {
+    var coverage = runner.page.evaluate(function () {
       return window.__coverage__;
     });
 

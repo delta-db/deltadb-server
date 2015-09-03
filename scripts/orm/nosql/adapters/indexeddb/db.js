@@ -112,7 +112,7 @@ DB.prototype._processPendingObjectStores = function () {
 
     self._processingPendingObjectStores = true;
     var chain = Promise.resolve();
-    
+
     while (self._pendingObjectStores.length > 0) { // more items?
       var os = self._pendingObjectStores.shift();
       chain = chain.then(self._openAndCreateObjectStoreFactory(os));
@@ -127,7 +127,10 @@ DB.prototype._processPendingObjectStores = function () {
 // off a function to process the queue. In the future, this code could be optimized by enhancing
 // _openAndCreateObjectStore() to create all the queued stores at once.
 DB.prototype._queueAndCreateObjectStore = function (name, callback) {
-  this._pendingObjectStores.push({ name: name, callback: callback });
+  this._pendingObjectStores.push({
+    name: name,
+    callback: callback
+  });
   this._processPendingObjectStores();
 };
 
@@ -181,7 +184,7 @@ DB.prototype.destroy = function () {
     req.onerror = function () {
       reject("Couldn't destroy database: " + req.err);
     };
-    
+
     req.onblocked = function () {
       reject("Couldn't destroy database as blocked: " + req.err);
     };
@@ -195,7 +198,8 @@ DB.prototype.all = function (callback) {
 // Keeping this explicit instead of being called implicitly by all() so that a calling process can
 // trigger the loading and determine when it has completed
 DB.prototype._load = function () {
-  var self = this, promises = [];
+  var self = this,
+    promises = [];
   return self._storeReady().then(function () {
     utils.each(self._db.objectStoreNames, function (name, i) {
       // indexeddbshim creates a 'length' attr that should be ignored
