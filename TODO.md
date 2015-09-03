@@ -1,7 +1,7 @@
 Now
 ---
-- get istanbul to work with browser tests: https://blog.engineyard.com/2015/measuring-clientside-javascript-test-coverage-with-istanbul
-	- is there a way to modify cli script so that mocha-phantomjs doesn't have to be installed globally?
+- new phantomjs tests:
+	- is there a way to report error if not 100% coverage?
 - use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
 	- Convert all adapters to make db.col() not return a promise and update API docs
 - faster to use bcrypt instead of bcryptjs for server side only?
@@ -81,6 +81,8 @@ Future?
 - model functions (https://github.com/dresende/node-orm2)
 - can trigger restore with updating attr?
 - Figure out a way to use Selenium with Chrome and Firfox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
+- indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
+
 
 Misc
 ---

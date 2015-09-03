@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   afterEnd: function(runner) {
     var fs = require('fs');

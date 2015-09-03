@@ -38,9 +38,11 @@
     "dev": "browserify test/test.js > test/test-bundle.js && npm run dev-server",
     "dev-server": "./bin/dev-server.js",
     "coverage": "npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100",
-    "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/remove.js -o test/test-bundle.js -d",
+    "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/remove.js -o test/new-test-bundle.js -d",
     "coverage-report": "istanbul report --root coverage lcov",
-    "tmp-server": "./bin/tmp-server.js"
+    "new-dev-server": "./bin/new-dev-server.js",
+    "new-test-browser": "./bin/new-test-browser.js",
+    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report"
   },
   "dependencies": {
     "bcrypt": "^0.8.1",
