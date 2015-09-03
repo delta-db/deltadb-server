@@ -1,6 +1,7 @@
 Now
 ---
 - get istanbul to work with browser tests: https://blog.engineyard.com/2015/measuring-clientside-javascript-test-coverage-with-istanbul
+	- is there a way to modify cli script so that mocha-phantomjs doesn't have to be installed globally?
 - use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
 	- Convert all adapters to make db.col() not return a promise and update API docs
 - faster to use bcrypt instead of bcryptjs for server side only?

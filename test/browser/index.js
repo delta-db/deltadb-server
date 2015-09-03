@@ -18,6 +18,28 @@ describe('browser-tmp', function () {
     });
   });
 
+  // The order of the attributes appears to be an issue of concern in browsers so we cannot just
+  // use .eql(). TODO: is there a better way, native to chai?
+  var eql = function (exp, act) {
+    var empty = true;
+    var isString = typeof exp === 'string';
+    if (!isString) { 
+      for (var i in exp) {
+        if (exp.hasOwnProperty(i)) {
+          empty = false;
+          if (typeof act[i] === 'undefined') {
+            act.should.eql(exp);
+          } else {
+            eql(exp[i], act[i]);
+          }
+        }
+      }
+    }
+    if (isString || empty) {
+      act.should.eql(exp);    
+    }
+  };
+
   it('should create doc', function () {
     return db.col('tasks').then(function (tasks) {
       var task = tasks.doc({ thing: 'sing' });
@@ -62,7 +84,6 @@ describe('browser-tmp', function () {
       return Promise.all(promises);
     };
 
-    // TODO: move to helper fn?
     var assert = function () {
       var expCols = {
         tasks: {
@@ -86,7 +107,7 @@ describe('browser-tmp', function () {
           }
         }
       };
-      cols.should.eql(expCols);
+      eql(expCols, cols);
     };
 
     var restore = function () {
