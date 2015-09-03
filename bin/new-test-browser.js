@@ -25,6 +25,10 @@ var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', [
   '--hooks', 'test/phantom-hooks.js'
 ]);
 
+child.stdout.on('data', function(data) {
+  console.log(data.toString()); // echo output, including what could be errors
+});
+
 child.on('close', function (code) {
   console.log('Mocha process exited with code ' + code);
   if (code > 0) {
