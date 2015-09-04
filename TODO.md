@@ -4,6 +4,9 @@ Now
 	- add indexeddb adapter to same tests for mem adapter
 	- need 100% coverage
 	- Convert all adapters to make db.col() not return a promise and update API docs
+	- refactor all() to all(callback)
+	- convert all .db({}) to .db(name)
+	- make sure node tests passing
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket

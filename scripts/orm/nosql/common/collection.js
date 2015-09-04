@@ -20,8 +20,8 @@ inherits(Collection, EventEmitter);
 
 // Collection.prototype.find = function ( /* query */ ) {};
 
-Collection.prototype.all = function () {
-  return this.find();
+Collection.prototype.all = function (callback) {
+  return this.find(null, callback);
 };
 
 // Collection.prototype.order = function ( /* criteria */ ) {};
