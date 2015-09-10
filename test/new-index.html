@@ -9,7 +9,16 @@
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/chai/chai.js"></script>
     <script>
-      mocha.ui('bdd'); 
+
+      function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+
+      mocha.ui('bdd');
+      mocha.grep(getParameterByName('query'));
       mocha.reporter('html');
       expect = chai.expect;
     </script>

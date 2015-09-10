@@ -10,9 +10,9 @@ Now
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
+- test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - use lie instead of bluebird
 - Roadmap
-- test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - Admin UI, e.g. "Delta Admin"
 - mysql adapter
 - Doc for example use cases:

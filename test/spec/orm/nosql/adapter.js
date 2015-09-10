@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../../new-utils');
+var utils = require('../../../new-utils'),
+  commonUtils = require('../../../common-utils');
 
 // TODO: split into separate tests
 
@@ -14,7 +15,8 @@ Adapter.prototype.test = function () {
 
   describe('adapter ' + adapter.constructor.name, function () {
 
-    var db = null, n = 1;
+    var db = null,
+      n = 1;
 
     beforeEach(function () {
       // For some unknown reason, it appears that the Chrome and Firefox will return an error if we
@@ -34,7 +36,9 @@ Adapter.prototype.test = function () {
 
     it('should work', function () {
 
-      var user1 = null, user2 = null, users = null;
+      var user1 = null,
+        user2 = null,
+        users = null;
 
       return db.col('users').then(function (_users) {
         users = _users;
@@ -97,14 +101,13 @@ Adapter.prototype.test = function () {
               name: 'Jack',
               age: 25
             }],
-            users,
-            {
+            users, {
               where: [
                 ['age', '<', 25], 'or', ['name', '=', 'Jack']
               ],
               order: ['age', 'asc']
-              // offset: 0, // TODO: uncomment when working with indexeddb
-              // limit: 2 // // TODO: uncomment when working with indexeddb
+                // offset: 0, // TODO: uncomment when working with indexeddb
+                // limit: 2 // // TODO: uncomment when working with indexeddb
             }
           );
         }).then(function () {
@@ -134,6 +137,26 @@ Adapter.prototype.test = function () {
         users2.should.eql(users);
       });
     });
+
+    it('should get missing doc', function () {
+      return db.col('users').then(function (users) {
+        return users.get('missing');
+      }).then(function (user) {
+        (user === null).should.eql(true);
+      });
+    });
+
+    it('should throw error when getting doc', function () {
+      // TODO: move to IndexedDB only tests?
+      return db.col('users').then(function (users) {
+        return commonUtils.shouldThrow(function () {
+          return users.get({
+            badkey: 123
+          });
+        });
+      });
+    });
+
   });
 
 };

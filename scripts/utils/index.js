@@ -2,8 +2,12 @@
 
 // TODO: move any code needed by the client to client/utils.js
 
+// TODO: split into utils for deltadb, deltadb-nosql-orm, deltadb-sql-orm, deltadb-server. Also need
+// a deltadb-common for things like common test utils?
+
 var uuid = require('node-uuid'),
   Promise = require('bluebird'),
+  // bcrypt = require('bcrypt'); // TODO: use for server as faster?
   bcrypt = require('bcryptjs');
 
 var Utils = function () {

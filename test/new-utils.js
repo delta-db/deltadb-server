@@ -7,7 +7,9 @@ var Utils = function () {};
 // The order of the attributes appears to be an issue of concern in browsers so we cannot just
 // use .eql(). TODO: is there a better way, native to chai?
 Utils.prototype.eql = function (exp, act) {
-  var self = this, empty = true, isString = typeof exp === 'string';
+  var self = this,
+    empty = true,
+    isString = typeof exp === 'string';
   if (!isString) {
     for (var i in exp) {
       if (exp.hasOwnProperty(i)) {

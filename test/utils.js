@@ -6,7 +6,8 @@ var Promise = require('bluebird'),
   ColRoles = require('../scripts/partitioner/sql/col/col-roles'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
   Users = require('../scripts/partitioner/sql/user/users'),
-  Roles = require('../scripts/partitioner/sql/roles');
+  Roles = require('../scripts/partitioner/sql/roles'),
+  commonUtils = require('./common-utils');
 
 var Utils = function () {};
 
@@ -318,24 +319,10 @@ Utils.prototype.never = function (msg) {
   throw new Error(utils.notDefined(msg) ? 'must never execute' : msg);
 };
 
-// If err.message is falsy then only ensures that both errors are of the same type
-Utils.prototype.shouldThrow = function (fun, err) {
-  var self = this;
-  return fun().then(function () {
-    self.never();
-  }).catch(function (_err) {
-    if (err.message) {
-      err.message.should.eql(_err.message);
-    }
-
-    err.name.should.eql(_err.name);
-  });
+Utils.prototype.shouldThrow = function () {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.apply.shouldThrow(this, arguments);
 };
-
-// // TODO: refactor test code to use this more
-// Utils.prototype.promiseErrorFactory = function (err) {
-//   return utils.promiseErrorFactory(err);
-// };
 
 // TODO: refactor test code to use this more
 Utils.prototype.promiseErrorFactory = function (err) {
