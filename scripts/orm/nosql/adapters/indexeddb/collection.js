@@ -8,7 +8,6 @@ var Promise = require('bluebird'),
   where = require('../../common/where'),
   order = require('../../common/order'),
   Doc = require('./doc'),
-  DB = require('./db'),
   Cursor = require('./cursor');
 
 var Collection = function (db, name) {
@@ -33,6 +32,9 @@ Collection.prototype.get = function (id) {
       resolve(request.result ? new Doc(request.result, self) : null);
     };
 
+    // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't trigger
+    // it.
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
@@ -76,7 +78,6 @@ Collection.prototype.find = function (query, callback) {
       // then the txn is not active, so we have to pass the callback into this fn directly!
 
       if (callbackWrapper === null) {
-        // TODO: is the callbackWrapper ever used??
         callbackWrapper = {};
         var cursor = new Cursor(request.result, callbackWrapper, self),
           filter = query && query.where ? where.filter(query.where) : null,
@@ -88,11 +89,13 @@ Collection.prototype.find = function (query, callback) {
         } else {
           resolve(filterCursor.each(callback));
         }
-      } else if (callbackWrapper.callback) {
+      } else {
         callbackWrapper.callback(request.result);
       }
     };
 
+    // TODO: how to generate this error in unit testing?
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
@@ -100,20 +103,7 @@ Collection.prototype.find = function (query, callback) {
 };
 
 Collection.prototype.destroy = function () {
-  var self = this;
-  return self._db.close().then(function () {
-    return new Promise(function (resolve, reject) {
-      var request = DB.indexedDB().open(self._db._name, self._db._db.version + 1);
-      request.onupgradeneeded = function () {
-        var db = request.result;
-        db.deleteObjStore(self._name); // TODO: is this really synchronous?
-        resolve();
-      };
-      request.onerror = function () {
-        reject(request.error);
-      };
-    });
-  });
+  return this._db._destroyCol(this._name);
 };
 
 // Collection.prototype._load = function () {

@@ -20,9 +20,9 @@ Adapter.prototype.test = function () {
 
     beforeEach(function () {
       // For some unknown reason, it appears that the Chrome and Firefox will return an error if we
-      // try to add to open a new DB with the same name as a DB that was just closed. Even if we
-      // wait for the onsuccess callback after executing indexedDB.deleteDatabase(). Therefore, we
-      // will make sure that DB name is unique per test.
+      // try to open a new DB with the same name as a DB that was just closed. Even if we wait for
+      // the onsuccess callback after executing indexedDB.deleteDatabase(). Therefore, we will make
+      // sure that DB name is unique per test.
       db = adapter.db({
         db: 'mydb' + (n++)
       });
@@ -146,15 +146,41 @@ Adapter.prototype.test = function () {
       });
     });
 
-    it('should throw error when getting doc', function () {
-      // TODO: move to IndexedDB only tests?
-      return db.col('users').then(function (users) {
-        return commonUtils.shouldThrow(function () {
-          return users.get({
-            badkey: 123
-          });
-        });
+    it('should retrieve existing db', function () {
+      var db2 = adapter.db({
+        db: 'mydb' + (n - 1)
       });
+      db2.should.eql(db);
+    });
+
+    // TODO: remove after add offset functionality to IDB
+    it('should throw error when finding with offset', function () {
+      return db.col('users').then(function (users) {
+        commonUtils.shouldThrow(function () {
+          return users.find({
+            offset: 0
+          }, function () {});
+        }, new Error());
+      });
+    });
+
+    // TODO: remove after add limit functionality to IDB
+    it('should throw error when finding with limit', function () {
+      return db.col('users').then(function (users) {
+        commonUtils.shouldThrow(function () {
+          return users.find({
+            limit: 1
+          }, function () {});
+        }, new Error());
+      });
+    });
+
+    it('should destroy collection', function () {
+      return db.col('users').then(function (users) {
+        return users.destroy();
+      });
+      // TODO: also test using same db after destroying col as in IDB need to close DB to destroy
+      // col
     });
 
   });

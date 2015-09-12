@@ -22,7 +22,9 @@ var DB = function () {
 
 inherits(DB, CommonDB);
 
-DB.indexedDB = function () {
+DB.prototype._indexedDB = function () {
+  // The next line is browser dependent so it cannot be fully executed in any one browser
+  /* istanbul ignore next */
   return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB ||
     window.shimIndexedDB;
 };
@@ -30,7 +32,7 @@ DB.indexedDB = function () {
 DB.prototype._initStore = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var request = DB.indexedDB().open(self._name);
+    var request = self._indexedDB().open(self._name);
 
     request.onupgradeneeded = function () {
       // Do nothing as we are just looking up the version and will change the schema later
@@ -63,7 +65,7 @@ DB.prototype._openAndCreateObjectStore = function (name) {
 
     self._version++; // Increment the version that we can add the object store
 
-    var request = DB.indexedDB().open(self._name, self._version);
+    var request = self._indexedDB().open(self._name, self._version);
 
     request.onupgradeneeded = function () {
       var db = request.result;
@@ -175,7 +177,7 @@ DB.prototype.close = function () {
 DB.prototype.destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var req = DB.indexedDB().deleteDatabase(self._name);
+    var req = self._indexedDB().deleteDatabase(self._name);
 
     req.onsuccess = function () {
       resolve();
@@ -188,6 +190,31 @@ DB.prototype.destroy = function () {
     req.onblocked = function () {
       reject("Couldn't destroy database as blocked: " + req.err);
     };
+  });
+};
+
+DB.prototype._destroyCol = function (colName) {
+  // Handle the destroying at the DB layer as we need to first close and then reopen the DB before
+  // destroying the col. Oh the joys of IDB!
+  var self = this;
+  return self.close().then(function () {
+    return new Promise(function (resolve, reject) {
+      self._version++; // Increment the version so that we can trigger an onupgradeneeded
+
+      var request = self._indexedDB().open(self._name, self._version);
+
+      request.onupgradeneeded = function () {
+        self._db = request.result;
+        self._db.deleteObjectStore(colName);
+        resolve();
+      };
+
+      // TODO: how to generate this error in unit testing?
+      /* istanbul ignore next */
+      request.onerror = function () {
+        reject(request.error);
+      };
+    });
   });
 };
 
