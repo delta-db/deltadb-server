@@ -29,24 +29,41 @@ DB.prototype._indexedDB = function () {
     window.shimIndexedDB;
 };
 
-DB.prototype._initStore = function () {
+// Package open as a promise so that we can consolidate code and provide a single place to test the
+// error case
+DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var request = self._indexedDB().open(self._name);
+    if (self._version) {
+      var request = self._indexedDB().open(self._name, self._version);
+    } else { // 1st time opening?
+      var request = self._indexedDB().open(self._name);      
+    }
 
     request.onupgradeneeded = function () {
-      // Do nothing as we are just looking up the version and will change the schema later
-    };
+      if (onUpgradeNeeded) {
+        onUpgradeNeeded(request, resolve);
+      }
+    }
 
     request.onsuccess = function () {
-      self._db = request.result;
-      self._version = parseInt(self._db.version);
-      resolve();
+      if (onSuccess) {
+        onSuccess(request, resolve);
+      }
     };
 
     request.onerror = function () {
       reject(request.error);
     };
+  });
+};
+
+DB.prototype._initStore = function () {
+  var self = this;
+  return self._open(null, function (request, resolve) {
+    self._db = request.result;
+    self._version = parseInt(self._db.version);
+    resolve();
   });
 };
 
@@ -60,30 +77,24 @@ DB.prototype._createObjectStoreIfMissing = function (name) {
 
 DB.prototype._openAndCreateObjectStore = function (name) {
   var self = this;
-  return new Promise(function (resolve, reject) {
-    self._db.close(); // Close any existing connection
 
+  var onUpgradeNeeded = function (request) {
+    var db = request.result;
+    if (!db.objectStoreNames.contains(name)) { // doesn't exist? 
+      db.createObjectStore(name, {
+        keyPath: self._idName
+      });
+    }
+  };
+
+  var onSuccess = function (request, resolve) {
+    self._db = request.result;
+    resolve(new Collection(self, name));
+  };
+
+  return self.close().then(function () { // Close any existing connection
     self._version++; // Increment the version that we can add the object store
-
-    var request = self._indexedDB().open(self._name, self._version);
-
-    request.onupgradeneeded = function () {
-      var db = request.result;
-      if (!db.objectStoreNames.contains(name)) { // doesn't exist? 
-        db.createObjectStore(name, {
-          keyPath: self._idName
-        });
-      }
-    };
-
-    request.onsuccess = function () {
-      self._db = request.result;
-      resolve(new Collection(self, name));
-    };
-
-    request.onerror = function () {
-      reject(request.error);
-    };
+    return self._open(onUpgradeNeeded, onSuccess);
   });
 };
 
@@ -197,24 +208,16 @@ DB.prototype._destroyCol = function (colName) {
   // Handle the destroying at the DB layer as we need to first close and then reopen the DB before
   // destroying the col. Oh the joys of IDB!
   var self = this;
-  return self.close().then(function () {
-    return new Promise(function (resolve, reject) {
-      self._version++; // Increment the version so that we can trigger an onupgradeneeded
 
-      var request = self._indexedDB().open(self._name, self._version);
+  var onUpgradeNeeded = function (request, resolve) {
+    self._db = request.result;
+    self._db.deleteObjectStore(colName);
+    resolve();
+  };
 
-      request.onupgradeneeded = function () {
-        self._db = request.result;
-        self._db.deleteObjectStore(colName);
-        resolve();
-      };
-
-      // TODO: how to generate this error in unit testing?
-      /* istanbul ignore next */
-      request.onerror = function () {
-        reject(request.error);
-      };
-    });
+  return self.close().then(function () { // Close any existing connection
+    self._version++; // Increment the version so that we can trigger an onupgradeneeded
+    return self._open(onUpgradeNeeded, null);
   });
 };
 

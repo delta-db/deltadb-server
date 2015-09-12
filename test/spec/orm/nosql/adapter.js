@@ -153,6 +153,17 @@ Adapter.prototype.test = function () {
       db2.should.eql(db);
     });
 
+    it('should destroy collection', function () {
+      return db.col('users').then(function (users) {
+        return users.destroy();
+      });
+      // TODO: also test using same db after destroying col as in IDB need to close DB to destroy
+      // col
+    });
+
+    ////////////////////////////////////////
+    // IDB Specific, TODO: move to separate file
+
     // TODO: remove after add offset functionality to IDB
     it('should throw error when finding with offset', function () {
       return db.col('users').then(function (users) {
@@ -173,14 +184,6 @@ Adapter.prototype.test = function () {
           }, function () {});
         }, new Error());
       });
-    });
-
-    it('should destroy collection', function () {
-      return db.col('users').then(function (users) {
-        return users.destroy();
-      });
-      // TODO: also test using same db after destroying col as in IDB need to close DB to destroy
-      // col
     });
 
   });
