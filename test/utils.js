@@ -315,8 +315,9 @@ Utils.prototype.userId = Users.ID_LAST_RESERVED + 1;
 
 Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
 
-Utils.prototype.never = function (msg) {
-  throw new Error(utils.notDefined(msg) ? 'must never execute' : msg);
+Utils.prototype.never = function () {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.apply.never(this, arguments);
 };
 
 Utils.prototype.shouldThrow = function () {

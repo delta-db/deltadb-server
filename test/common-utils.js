@@ -1,6 +1,12 @@
 'use strict';
 
+var utils = require('../scripts/utils');
+
 var Utils = function () {};
+
+Utils.prototype.never = function (msg) {
+  throw new Error(utils.notDefined(msg) ? 'must never execute' : msg);
+};
 
 // If err.message is falsy then only ensures that both errors are of the same type
 Utils.prototype.shouldThrow = function (fun, err) {

@@ -64,6 +64,13 @@ Utils.prototype.promiseError = function (err) {
   });
 };
 
+Utils.prototype.promiseErrorFactory = function (err) {
+  var self = this;
+  return function () {
+    return self.promiseError(err);
+  };
+};
+
 Utils.prototype.merge = function (obj1, obj2) {
   var merged = {},
     i;
@@ -174,6 +181,26 @@ Utils.prototype.sort = function (items, attrs) {
 
 Utils.prototype.toArgsArray = function (argsObj) {
   return Array.prototype.slice.call(argsObj);
+};
+
+Utils.prototype.promisify = function (fn, thisArg) {
+  var self = this;
+  return function () {
+    var argsArray = self.toArgsArray(arguments);
+    return new Promise(function (resolve, reject) {
+
+      // Define a callback and add it to the arguments
+      var callback = function (err, param) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(param);
+        }
+      };
+      argsArray.push(callback);
+      fn.apply(thisArg, argsArray);
+    });
+  };
 };
 
 module.exports = new Utils();

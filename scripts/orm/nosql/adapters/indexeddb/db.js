@@ -34,17 +34,18 @@ DB.prototype._indexedDB = function () {
 DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
   var self = this;
   return new Promise(function (resolve, reject) {
+    var request = null;
     if (self._version) {
-      var request = self._indexedDB().open(self._name, self._version);
+      request = self._indexedDB().open(self._name, self._version);
     } else { // 1st time opening?
-      var request = self._indexedDB().open(self._name);      
+      request = self._indexedDB().open(self._name);      
     }
 
     request.onupgradeneeded = function () {
       if (onUpgradeNeeded) {
         onUpgradeNeeded(request, resolve);
       }
-    }
+    };
 
     request.onsuccess = function () {
       if (onSuccess) {
@@ -52,6 +53,8 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
       }
     };
 
+    // TODO: how to test onerror as FF doesn't call onerror for VersionError?
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
@@ -80,11 +83,9 @@ DB.prototype._openAndCreateObjectStore = function (name) {
 
   var onUpgradeNeeded = function (request) {
     var db = request.result;
-    if (!db.objectStoreNames.contains(name)) { // doesn't exist? 
-      db.createObjectStore(name, {
-        keyPath: self._idName
-      });
-    }
+    db.createObjectStore(name, {
+      keyPath: self._idName
+    });
   };
 
   var onSuccess = function (request, resolve) {
@@ -121,17 +122,14 @@ DB.prototype._openAndCreateObjectStoreFactory = function (os) {
 
 DB.prototype._processPendingObjectStores = function () {
   var self = this;
-  if (!self._processingPendingObjectStores) {
 
-    self._processingPendingObjectStores = true;
-    var chain = Promise.resolve();
+  // Process pending object stores sequentially as the DB cannot be closed and opened
+  // simulatenously. TODO: create all the missing stores at once.
+  var chain = Promise.resolve();
 
-    while (self._pendingObjectStores.length > 0) { // more items?
-      var os = self._pendingObjectStores.shift();
-      chain = chain.then(self._openAndCreateObjectStoreFactory(os));
-    }
-
-    self._processingPendingObjectStores = false;
+  while (self._pendingObjectStores.length > 0) { // more items?
+    var os = self._pendingObjectStores.shift();
+    chain = chain.then(self._openAndCreateObjectStoreFactory(os));
   }
 };
 
@@ -148,17 +146,9 @@ DB.prototype._queueAndCreateObjectStore = function (name, callback) {
 };
 
 DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
-  var self = this;
-  return self._storeReady().then(function () {
-    return new Promise(function (resolve, reject) {
-      self._queueAndCreateObjectStore(name, function (err, col) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(col);
-        }
-      });
-    });
+  var queueAndCreateObjectStore = utils.promisify(this._queueAndCreateObjectStore, this);
+  return this._storeReady().then(function () {
+    return queueAndCreateObjectStore(name);
   });
 };
 

@@ -51,10 +51,7 @@ describe('utils', function () {
 
   it('should promise error', function () {
     var err = new Error('my error');
-    var promiseFactory = function () {
-      return utils.promiseError(err);
-    };
-    return commonTestUtils.shouldThrow(promiseFactory, err);
+    return commonTestUtils.shouldThrow(utils.promiseErrorFactory(err), err);
   });
 
   it('should merge', function () {
@@ -203,6 +200,32 @@ describe('utils', function () {
     }
 
     list(1, 2, 3).should.eql([1, 2, 3]);
+  });
+
+  it('should promisify', function () {
+    var Foo = function () { 
+      this.x = 7;
+
+      this.bar = function (y, callback) {
+        if (y === this.x) {
+          callback(null, y);
+        } else {
+          callback(new Error('not equal'));
+        }
+      };
+    };
+
+    var foo = new Foo();
+
+    var bar = utils.promisify(foo.bar, foo);
+
+    return bar(7).then(function (y) {
+      y.should.eql(7);
+    }).then(function () {
+      return commonTestUtils.shouldThrow(function () {
+        return bar(6);
+      }, new Error('not equal'));
+    });
   });
 
 });

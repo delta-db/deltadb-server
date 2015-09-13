@@ -1,7 +1,9 @@
 'use strict';
 
 var utils = require('../../../new-utils'),
-  commonUtils = require('../../../common-utils');
+  commonUtils = require('../../../common-utils'),
+  oldUtils = require('../../../../scripts/utils'),
+  Promise = require('bluebird');
 
 // TODO: split into separate tests
 
@@ -185,6 +187,31 @@ Adapter.prototype.test = function () {
         }, new Error());
       });
     });
+
+    it('should catch error when creating object store', function () {
+      return new Promise(function (resolve) {
+        var err = new Error('err');
+        db._createObjectStoreIfMissing = oldUtils.promiseErrorFactory(err); // stub
+
+        var os = {
+          callback: function (_err) {
+            _err.should.eql(err);
+            resolve();
+          }
+        };
+
+        db._openAndCreateObjectStoreFactory(os)();
+      });
+    });
+
+// // TODO: fix!
+//     it('should throw blocked error when destroying', function () {
+//       return db._open().then(function () {
+//         return commonUtils.shouldThrow(function () {
+//           return db.destroy();
+//         }, new Error());
+//       });
+//     });
 
   });
 
