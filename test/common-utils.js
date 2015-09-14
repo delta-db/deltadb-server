@@ -14,6 +14,10 @@ Utils.prototype.shouldThrow = function (fun, err) {
   return fun().then(function () {
     self.never();
   }).catch(function (_err) {
+    if (_err.message === 'must never execute') { // TODO: define & use NeverException instead
+      throw new Error("didn't throw err");
+    }
+
     if (err) {
       if (err.message) {
         err.message.should.eql(_err.message);

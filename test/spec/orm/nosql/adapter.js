@@ -204,15 +204,6 @@ Adapter.prototype.test = function () {
       });
     });
 
-// // TODO: fix!
-//     it('should throw blocked error when destroying', function () {
-//       return db._open().then(function () {
-//         return commonUtils.shouldThrow(function () {
-//           return db.destroy();
-//         }, new Error());
-//       });
-//     });
-
   });
 
 };

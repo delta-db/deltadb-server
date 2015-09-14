@@ -184,10 +184,14 @@ DB.prototype.destroy = function () {
       resolve();
     };
 
+    // TODO: how to trigger this for testing?
+    /* istanbul ignore next */
     req.onerror = function () {
       reject("Couldn't destroy database: " + req.err);
     };
 
+    // TODO: how to trigger this for testing?
+    /* istanbul ignore next */
     req.onblocked = function () {
       reject("Couldn't destroy database as blocked: " + req.err);
     };
