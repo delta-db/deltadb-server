@@ -84,16 +84,16 @@ Doc.prototype.set = function (data) {
   return self.save();
 };
 
-// TODO: remove
-// Doc.prototype.unset = function (name) {
-//   delete this._data[name];
-//   return this.save();
-// };
+// TODO: test in adapters!
+Doc.prototype.unset = function (name) {
+  delete this._data[name];
+  return this.save();
+};
 
-// TODO: remove
-// Doc.prototype._include = function () { // Include in cursor?
-//   return true;
-// };
+// TODO: test in adapters!
+Doc.prototype._include = function () { // Include in cursor?
+  return true;
+};
 
 Doc.prototype._register = function () {
   var self = this;
