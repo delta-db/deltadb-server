@@ -84,21 +84,23 @@ Doc.prototype.set = function (data) {
   return self.save();
 };
 
-Doc.prototype.unset = function (name) {
-  delete this._data[name];
-  return this.save();
-};
+// TODO: remove
+// Doc.prototype.unset = function (name) {
+//   delete this._data[name];
+//   return this.save();
+// };
 
-Doc.prototype._include = function () { // Include in cursor?
-  return true;
-};
+// TODO: remove
+// Doc.prototype._include = function () { // Include in cursor?
+//   return true;
+// };
 
 Doc.prototype._register = function () {
   var self = this;
-  return this._collection.get(this.id()).then(function (doc) {
-    if (!doc) { // doesn't exist? Don't re-register
-      return self._collection._register(self);
-    }
+  return this._collection.get(this.id()).then(function (/* doc */) {
+    // if (!doc) { // doesn't exist? Don't re-register // TODO: remove?
+    return self._collection._register(self);
+    // }
   });
 };
 
@@ -116,15 +118,13 @@ Doc.prototype.save = function () {
 };
 
 Doc.prototype._insert = function () {
-  if (!this.id()) { // id missing? Then generate
-    this.id(utils.uuid());
-  }
+  // if (!this.id()) { // id missing? Then generate // TODO: remove?
+  this.id(utils.uuid());
+  // }
   return Promise.resolve();
 };
 
-Doc.prototype._update = function () {
-  return Promise.resolve();
-};
+Doc.prototype._update = utils.resolveFactory();
 
 Doc.prototype._save = function () {
   var self = this,
@@ -141,10 +141,6 @@ Doc.prototype.destroy = function () {
   });
 };
 
-Doc.prototype._destroy = function () {
-  // TODO: move _unregister to doc-common like register
-  this._collection._unregister(this);
-  return Promise.resolve();
-};
+Doc.prototype._destroy = utils.resolveFactory();
 
 module.exports = Doc;

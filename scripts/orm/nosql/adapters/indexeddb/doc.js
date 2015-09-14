@@ -46,14 +46,6 @@ Doc.prototype._update = function () {
   return this._put(this._data);
 };
 
-Doc.prototype._save = function () {
-  var self = this,
-    promise = self.id() ? self._update() : self._insert();
-  return promise.then(function () {
-    self.clean();
-  });
-};
-
 Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
