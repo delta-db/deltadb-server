@@ -2,7 +2,6 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  utils = require('../../../../utils'),
   CommonDoc = require('../../common/doc');
 
 var Doc = function (doc, collection) {
@@ -25,6 +24,8 @@ Doc.prototype._put = function (doc) {
       resolve();
     };
 
+    // TODO: how to test?
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
@@ -35,10 +36,10 @@ Doc.prototype._put = function (doc) {
 };
 
 Doc.prototype._insert = function () {
-  if (!this.id()) { // id missing? Then generate
-    this.id(utils.uuid());
-  }
-  return this._put(this._data);
+  var self = this;
+  return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
+    return self._put(self._data);
+  });
 };
 
 Doc.prototype._update = function () {
@@ -48,24 +49,6 @@ Doc.prototype._update = function () {
 Doc.prototype._save = function () {
   var self = this,
     promise = self.id() ? self._update() : self._insert();
-  return promise.then(function () {
-    self.clean();
-  });
-};
-
-// IndexedDB doesn't support a partial update so we have to get the record, merge and then save
-Doc.prototype._merge = function () {
-  var self = this;
-  return self._collection.get(self.id()).then(function (doc) {
-    var updates = self.get(self.dirty());
-    updates = utils.merge(doc._data, updates);
-    return self._put(updates);
-  });
-};
-
-Doc.prototype.merge = function () {
-  var self = this,
-    promise = self.id() ? self._merge() : self._insert();
   return promise.then(function () {
     self.clean();
   });
@@ -83,6 +66,8 @@ Doc.prototype._destroy = function () {
       resolve();
     };
 
+    // TODO: to test as deleting a doc with an id that is missing doesn't execute noerror!
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
