@@ -8,6 +8,61 @@ Now
 	- convert all .db({}) to .db(name)
 	- make sure node tests passing
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
+- fix error:
+  3) deltadb partitioner sql changes offset should get changes by offset:
+
+      AssertionError: expected [ Array(6) ] to deeply equal [ Array(6) ]
+      + expected - actual
+
+       [
+         {
+           "col": "task"
+      -    "id": "5"
+      +    "id": "1"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.050Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "6"
+      +    "id": "2"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.101Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "7"
+      +    "id": "3"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.141Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "8"
+      +    "id": "4"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.182Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "9"
+      +    "id": "5"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.221Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+      
+      at Utils.eqls (test/utils.js:34:30)
+      at Utils.changesShouldEql (test/utils.js:350:8)
+      at test/spec/partitioner/sql/changes/offset.js:52:17
 - faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng
