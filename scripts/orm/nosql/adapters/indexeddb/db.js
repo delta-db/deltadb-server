@@ -38,7 +38,7 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     if (self._version) {
       request = self._indexedDB().open(self._name, self._version);
     } else { // 1st time opening?
-      request = self._indexedDB().open(self._name);      
+      request = self._indexedDB().open(self._name);
     }
 
     request.onupgradeneeded = function () {

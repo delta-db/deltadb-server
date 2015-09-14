@@ -317,12 +317,12 @@ Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
 
 Utils.prototype.never = function () {
   // TODO: change all callers to use commonUtils
-  return commonUtils.apply.never(this, arguments);
+  return commonUtils.never.apply(this, arguments);
 };
 
 Utils.prototype.shouldThrow = function () {
   // TODO: change all callers to use commonUtils
-  return commonUtils.apply.shouldThrow(this, arguments);
+  return commonUtils.shouldThrow.apply(this, arguments);
 };
 
 // TODO: refactor test code to use this more

@@ -97,7 +97,7 @@ Doc.prototype.set = function (data) {
 
 Doc.prototype._register = function () {
   var self = this;
-  return this._collection.get(this.id()).then(function (/* doc */) {
+  return this._collection.get(this.id()).then(function ( /* doc */ ) {
     // if (!doc) { // doesn't exist? Don't re-register // TODO: remove?
     return self._collection._register(self);
     // }

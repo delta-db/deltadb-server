@@ -203,7 +203,7 @@ describe('utils', function () {
   });
 
   it('should promisify', function () {
-    var Foo = function () { 
+    var Foo = function () {
       this.x = 7;
 
       this.bar = function (y, callback) {
