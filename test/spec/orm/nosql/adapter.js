@@ -160,6 +160,37 @@ Adapter.prototype.test = function () {
       // col
     });
 
+    it('should unset', function () {
+      var user = null;
+      return db.col('users').then(function (users) {
+        user = users.doc({
+          name: 'Jack',
+          age: 24
+        });
+        return user.save();
+      }).then(function () {
+        return user.unset('age');
+      }).then(function () {
+        user.get().should.eql({ $id: user.id(), name: 'Jack' });
+      });
+    });
+
+    it('should include', function () {
+      // TODO: this test is only for coverage, make it more meaningful
+      return db.col('users').then(function (users) {
+        var user = users.doc();
+        (user._include() !== null).should.eql(true);
+      });      
+    });
+
+    it('should register when missing', function () {
+      // TODO: this test is only for coverage, make it more meaningful
+      return db.col('users').then(function (users) {
+        var user = users.doc({ $id: 1 });
+        user._register();
+      });
+    });
+
   });
 
 };

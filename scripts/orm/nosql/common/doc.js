@@ -84,21 +84,19 @@ Doc.prototype.set = function (data) {
   return self.save();
 };
 
-// TODO: test in adapters!
 Doc.prototype.unset = function (name) {
   delete this._data[name];
   return this.save();
 };
 
-// TODO: test in adapters!
 Doc.prototype._include = function () { // Include in cursor?
   return true;
 };
 
 Doc.prototype._register = function () {
   var self = this;
-  return this._collection.get(this.id()).then(function (doc) {
-    if (!doc) { // doesn't exist? Don't re-register // TODO: test with adapters
+  return self._collection.get(self.id()).then(function (doc) {
+    if (!doc) { // missing? Then register
       return self._collection._register(self);
     }
   });

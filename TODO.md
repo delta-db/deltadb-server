@@ -2,6 +2,7 @@ Now
 ---
 - use FireFox & Chrome to test indexeddb adapter
   - need 100% coverage
+  - make sure travisci tests passing including for phantomjs, firefox and chrome
 	- Convert all adapters to make db.col() not return a promise and update API docs
 	- convert all .db({}) to .db(name)
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
@@ -118,6 +119,7 @@ NoSQL support
 
 Future?
 ---
+- test in all browsers using saucelabs
 - does ring of servers provide enough syncing speed, e.g. A->B->C->A or need a star, star of rings or star of stars? Or variation of star where two servers are in middle, e.g. A<->M1, B<->M1, C<->M1, A<->M2, B<->M2, C<->M2
 - https://github.com/axemclion/IndexedDBShim?
 - use deltadb to sync different types of DBs, e.g. Mongo with MySQL
@@ -137,7 +139,7 @@ Future?
 - relations and foreign keys
 - model functions (https://github.com/dresende/node-orm2)
 - can trigger restore with updating attr?
-- Figure out a way to use Selenium with Chrome and Firfox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
+- Figure out a way to use Selenium with Chrome and Firefox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
 - indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
 
 
