@@ -1,7 +1,6 @@
 Now
 ---
 - use FireFox & Chrome to test indexeddb adapter
-  - need 100% coverage
   - make sure travisci tests passing including for phantomjs, firefox and chrome
 	- Convert all adapters to make db.col() not return a promise and update API docs
 	- convert all .db({}) to .db(name)

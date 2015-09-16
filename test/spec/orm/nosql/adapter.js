@@ -171,7 +171,10 @@ Adapter.prototype.test = function () {
       }).then(function () {
         return user.unset('age');
       }).then(function () {
-        user.get().should.eql({ $id: user.id(), name: 'Jack' });
+        user.get().should.eql({
+          $id: user.id(),
+          name: 'Jack'
+        });
       });
     });
 
@@ -180,13 +183,15 @@ Adapter.prototype.test = function () {
       return db.col('users').then(function (users) {
         var user = users.doc();
         (user._include() !== null).should.eql(true);
-      });      
+      });
     });
 
     it('should register when missing', function () {
       // TODO: this test is only for coverage, make it more meaningful
       return db.col('users').then(function (users) {
-        var user = users.doc({ $id: 1 });
+        var user = users.doc({
+          $id: 1
+        });
         user._register();
       });
     });
