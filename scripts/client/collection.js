@@ -48,13 +48,11 @@ Collection.prototype.doc = function (data) {
 
 Collection.prototype._initStore = function () {
   var self = this;
-  self._loaded = self._store.all().then(function (docs) {
-    return docs.each(function (docStore) {
-      var doc = self._doc();
-      doc._import(docStore);
-    }).then(function () {
-      self.emit('load');
-    });
+  self._loaded = self._store.all(function (docStore) {
+    var doc = self._doc();
+    doc._import(docStore);
+  }).then(function () {
+    self.emit('load');
   });
 };
 
@@ -127,18 +125,16 @@ Collection.prototype._removeRole = function (userUUID, roleName) {
   return doc._removeRole(userUUID, roleName);
 };
 
-Collection.prototype.find = function (query, destroyed) {
-  return this._find(query, new Cursor(this._docs, this, destroyed));
+Collection.prototype.find = function (query, callback, destroyed) {
+  return this._find(query, callback, new Cursor(this._docs, this, destroyed));
 };
 
 Collection.prototype._localChanges = function (retryAfter, returnSent) {
-  return this.find(null, true).then(function (docs) {
-    var changes = [];
-    return docs.each(function (doc) {
-      changes = changes.concat(doc._localChanges(retryAfter, returnSent));
-    }).then(function () {
-      return changes;
-    });
+  var changes = [];
+  return this.find(null, function (doc) {
+    changes = changes.concat(doc._localChanges(retryAfter, returnSent));
+  }, true).then(function () {
+    return changes;
   });
 };
 

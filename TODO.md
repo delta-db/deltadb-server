@@ -1,12 +1,71 @@
 Now
 ---
-- use FireFox & Chrome to test indexeddb adapter - add indexeddb adapter to same tests for mem adapter
-	- test reload of data w/ indexedb
+- use FireFox & Chrome to test indexeddb adapter
+  - make sure travisci tests passing including for phantomjs, firefox and chrome
 	- Convert all adapters to make db.col() not return a promise and update API docs
+	- convert all .db({}) to .db(name)
+	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
+- fix error:
+  3) deltadb partitioner sql changes offset should get changes by offset:
+
+      AssertionError: expected [ Array(6) ] to deeply equal [ Array(6) ]
+      + expected - actual
+
+       [
+         {
+           "col": "task"
+      -    "id": "5"
+      +    "id": "1"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.050Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "6"
+      +    "id": "2"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.101Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "7"
+      +    "id": "3"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.141Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "8"
+      +    "id": "4"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.182Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+         }
+         {
+           "col": "task"
+      -    "id": "9"
+      +    "id": "5"
+           "name": "prority"
+           "re": "2015-09-14T01:15:43.221Z"
+           "up": "2015-09-14T01:15:42.871Z"
+           "val": "\"low\""
+      
+      at Utils.eqls (test/utils.js:34:30)
+      at Utils.changesShouldEql (test/utils.js:350:8)
+      at test/spec/partitioner/sql/changes/offset.js:52:17
+- faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
+- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
+- test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - use lie instead of bluebird
 - Roadmap
-- test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - Admin UI, e.g. "Delta Admin"
 - mysql adapter
 - Doc for example use cases:
@@ -59,6 +118,7 @@ NoSQL support
 
 Future?
 ---
+- test in all browsers using saucelabs
 - does ring of servers provide enough syncing speed, e.g. A->B->C->A or need a star, star of rings or star of stars? Or variation of star where two servers are in middle, e.g. A<->M1, B<->M1, C<->M1, A<->M2, B<->M2, C<->M2
 - https://github.com/axemclion/IndexedDBShim?
 - use deltadb to sync different types of DBs, e.g. Mongo with MySQL
@@ -78,7 +138,9 @@ Future?
 - relations and foreign keys
 - model functions (https://github.com/dresende/node-orm2)
 - can trigger restore with updating attr?
-- Figure out a way to use Selenium with Chrome and Firfox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
+- Figure out a way to use Selenium with Chrome and Firefox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
+- indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
+
 
 Misc
 ---

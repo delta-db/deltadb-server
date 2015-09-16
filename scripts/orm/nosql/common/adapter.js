@@ -3,7 +3,6 @@
 var EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   utils = require('../../../utils');
-// DB = require('./db');
 
 var Adapter = function () {};
 

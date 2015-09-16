@@ -4,7 +4,6 @@ var testUtils = require('../../../utils'),
   config = require('../../../../config'),
   chai = require('chai'),
   expect = chai.expect,
-  Promise = require('bluebird'),
   MissingError = require('../../../../scripts/orm/sql/common/missing-error');
 
 var testORM = function (name, Adapter) {
@@ -499,11 +498,7 @@ var testORM = function (name, Adapter) {
     });
 
     it('should throw non-sql errors when replacing', function () {
-      sql.insert = function () { // mock
-        return new Promise(function () {
-          throw new Error('non-sql error');
-        });
-      };
+      sql.insert = testUtils.promiseErrorFactory(new Error('non-sql error'));
 
       return testUtils.shouldThrow(function () {
         return sql.replace();

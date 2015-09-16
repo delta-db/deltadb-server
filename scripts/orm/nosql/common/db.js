@@ -9,6 +9,7 @@ var utils = require('../../../utils'),
 var DB = function (name, adapter) {
   this._name = name;
   this._adapter = adapter;
+  this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
 };
 
 inherits(DB, EventEmitter);

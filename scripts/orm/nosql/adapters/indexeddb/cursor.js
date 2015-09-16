@@ -2,7 +2,7 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  AbstractCursor = require('../../cursor'),
+  CommonCursor = require('../../common/cursor'),
   Doc = require('./doc');
 
 var Cursor = function (cursor, callbackWrapper, collection) {
@@ -11,7 +11,7 @@ var Cursor = function (cursor, callbackWrapper, collection) {
   this._collection = collection;
 };
 
-inherits(Cursor, AbstractCursor);
+inherits(Cursor, CommonCursor);
 
 Cursor.prototype.each = function (callback) {
   var self = this;

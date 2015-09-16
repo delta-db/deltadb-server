@@ -14,6 +14,7 @@ Main Principles
 ---
 
 * Written in JavaScript
+* Framework agnostic
 * Works the same whether the client is offline or online
 * NoSQL database that works in your browser and automatically syncs with the database cluster
 * Stores all data as a series of deltas, which allows for smooth collaborative experiences even in frequently offline scenarios.

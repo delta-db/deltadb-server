@@ -2,22 +2,21 @@
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
-  utils = require('../../utils'),
-  AbstractDoc = require('../../doc');
+  CommonDoc = require('../../common/doc');
 
 var Doc = function (doc, collection) {
-  AbstractDoc.apply(this, arguments); // apply parent constructor
+  CommonDoc.apply(this, arguments); // apply parent constructor
   this._collection = collection;
   this._idName = collection._db._idName;
 };
 
-inherits(Doc, AbstractDoc);
+inherits(Doc, CommonDoc);
 
 Doc.prototype._put = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objStore(self._collection._storeName);
+    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
+      store = tx.objectStore(self._collection._name);
 
     var request = store.put(doc);
 
@@ -25,6 +24,8 @@ Doc.prototype._put = function (doc) {
       resolve();
     };
 
+    // TODO: how to test?
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };
@@ -35,48 +36,21 @@ Doc.prototype._put = function (doc) {
 };
 
 Doc.prototype._insert = function () {
-  this.id(utils.uuid());
-  // TODO: should we clear the id if there is an error?
-  return this._put(this._data);
+  var self = this;
+  return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
+    return self._put(self._data);
+  });
 };
 
 Doc.prototype._update = function () {
   return this._put(this._data);
 };
 
-Doc.prototype._save = function () {
-  var self = this,
-    promise = self.id() ? self._update() : self._insert();
-  return promise.then(function () {
-    self.clean();
-  });
-};
-
-// IndexedDB doesn't support a partial update so we have to get the record, merge and then save
-Doc.prototype._merge = function () {
-  var self = this;
-  return self._collection.get(self.id()).then(function (doc) {
-    var updates = self.get(self.dirty());
-    updates = utils.merge(doc._data, updates);
-    return self._put(updates);
-  });
-};
-
-// TODO: need to implement "merge" vs "save" in mongo adapter
-
-Doc.prototype.merge = function () {
-  var self = this,
-    promise = self.id() ? self._merge() : self._insert();
-  return promise.then(function () {
-    self.clean();
-  });
-};
-
 Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._storeName, 'readwrite'),
-      store = tx.objStore(self._collection._storeName);
+    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
+      store = tx.objectStore(self._collection._name);
 
     var request = store.delete(self.id());
 
@@ -84,6 +58,8 @@ Doc.prototype._destroy = function () {
       resolve();
     };
 
+    // TODO: to test as deleting a doc with an id that is missing doesn't execute noerror!
+    /* istanbul ignore next */
     request.onerror = function () {
       reject(request.error);
     };

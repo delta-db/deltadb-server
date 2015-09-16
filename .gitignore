@@ -4,6 +4,7 @@ bower_components
 *~
 coverage
 test/test-bundle.js
+test/new-test-bundle.js
 config.js
 npm-debug.log
 beautify

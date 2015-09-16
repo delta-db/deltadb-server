@@ -21,10 +21,22 @@ var Adapter = function (store) {
 
 inherits(Adapter, MemAdapter);
 
+Adapter.prototype._createMissingStores = function () {
+  var self = this;
+  self.all(function (db) {
+    if (!db._store) { // store hasn't been reloaded?
+      db._import(self._store.db({
+        db: db._name
+      }));
+    }
+  });
+};
+
 Adapter.prototype._initStore = function () {
   var self = this;
   self._loaded = self._store._load().then(function () {
     var promises = [];
+
     self._store.all(function (dbStore) {
       var db = self.db({
         db: dbStore._name
@@ -32,7 +44,12 @@ Adapter.prototype._initStore = function () {
       db._import(dbStore);
       promises.push(db._loaded);
     });
+
     return Promise.all(promises).then(function () {
+      // Create missing stores after all the existing stores have been loaded so that we don't have
+      // a race condition where we are trying to create a store that is also being reloaded
+      self._createMissingStores();
+    }).then(function () {
       self._emit('load');
     });
   });
@@ -56,9 +73,6 @@ Adapter.prototype.db = function (opts) {
     db = new DB(opts.db, this);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);
-
-    db._import(this._store.db(opts));
-
     return db;
   }
 };

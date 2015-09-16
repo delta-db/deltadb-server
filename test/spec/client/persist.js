@@ -27,6 +27,8 @@ describe('client', function () {
     });
   });
 
+  // TODO: define afterEach and destroy underlying store
+
   it('it should restore from store', function () {
 
     var client2 = null,
@@ -105,11 +107,9 @@ describe('client', function () {
     }).then(function (collection) {
       tasks2 = collection;
     }).then(function () {
-      return tasks2.find(null, true); // include destroyed docs
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return tasks2.find(null, function (doc) {
         doc._dat.should.eql(dat);
-      });
+      }, true); // include destroyed docs
     });
   });
 

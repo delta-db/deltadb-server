@@ -13,6 +13,7 @@ var Doc = function (data, collection) {
 
 inherits(Doc, EventEmitter);
 
+Doc._idName = '$id';
 Doc.prototype._idName = '$id'; // Move to DB layer?
 
 Doc.prototype.id = function (id) {
@@ -94,8 +95,8 @@ Doc.prototype._include = function () { // Include in cursor?
 
 Doc.prototype._register = function () {
   var self = this;
-  return this._collection.get(this.id()).then(function (doc) {
-    if (!doc) { // doesn't exist? Don't re-register
+  return self._collection.get(self.id()).then(function (doc) {
+    if (!doc) { // missing? Then register
       return self._collection._register(self);
     }
   });
@@ -115,15 +116,13 @@ Doc.prototype.save = function () {
 };
 
 Doc.prototype._insert = function () {
+  // if (!this.id()) { // id missing? Then generate // TODO: remove?
   this.id(utils.uuid());
-
-  // TODO: should we clear the id if there is an error?
+  // }
   return Promise.resolve();
 };
 
-Doc.prototype._update = function () {
-  return Promise.resolve();
-};
+Doc.prototype._update = utils.resolveFactory();
 
 Doc.prototype._save = function () {
   var self = this,
@@ -140,10 +139,6 @@ Doc.prototype.destroy = function () {
   });
 };
 
-Doc.prototype._destroy = function () {
-  // TODO: move _unregister to doc-common like register
-  this._collection._unregister(this);
-  return Promise.resolve();
-};
+Doc.prototype._destroy = utils.resolveFactory();
 
 module.exports = Doc;

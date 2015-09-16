@@ -81,7 +81,15 @@ Running Basic Performance Test
     npm run performance
 
 
-Running Tests in Chrome and Firefox
+Running Tests in PhantomJS
+---
+
+    $ npm run new-test-phantomjs
+
+You can then view code coverage details by visiting coverage/lcov-report/index.html
+
+
+Running Tests in Chrome and Firefox Automatically
 ---
 
 Currently, this cannot be done in the VM as this project has not been configured to run Chrome and Firefox via Selenium headlessly. You can however use
@@ -90,3 +98,12 @@ Currently, this cannot be done in the VM as this project has not been configured
     $ npm run test-chrome
 
 to test outside the VM, assuming you have Firefox and Chrome installed.
+
+
+Running Tests In Any Browser Manually
+
+    $ npm run build-test-coverage
+    $ npm run new-dev-server
+    Point any browser to http://127.0.0.1:8001/test/new-index.html
+    You can also run a specific test, e.g. http://127.0.0.1:8001/test/new-index.html?grep=mytest
+

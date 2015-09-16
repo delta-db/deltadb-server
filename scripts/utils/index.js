@@ -2,9 +2,13 @@
 
 // TODO: move any code needed by the client to client/utils.js
 
+// TODO: split into utils for deltadb, deltadb-nosql-orm, deltadb-sql-orm, deltadb-server. Also need
+// a deltadb-common for things like common test utils?
+
 var uuid = require('node-uuid'),
   Promise = require('bluebird'),
-  bcrypt = require('bcrypt');
+  // bcrypt = require('bcrypt'); // TODO: use for server as faster?
+  bcrypt = require('bcryptjs');
 
 var Utils = function () {
   this._bcrypt = bcrypt; // only for unit testing
@@ -58,6 +62,13 @@ Utils.prototype.promiseError = function (err) {
   return new Promise(function () {
     throw err;
   });
+};
+
+Utils.prototype.promiseErrorFactory = function (err) {
+  var self = this;
+  return function () {
+    return self.promiseError(err);
+  };
 };
 
 Utils.prototype.merge = function (obj1, obj2) {
@@ -170,6 +181,26 @@ Utils.prototype.sort = function (items, attrs) {
 
 Utils.prototype.toArgsArray = function (argsObj) {
   return Array.prototype.slice.call(argsObj);
+};
+
+Utils.prototype.promisify = function (fn, thisArg) {
+  var self = this;
+  return function () {
+    var argsArray = self.toArgsArray(arguments);
+    return new Promise(function (resolve, reject) {
+
+      // Define a callback and add it to the arguments
+      var callback = function (err, param) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(param);
+        }
+      };
+      argsArray.push(callback);
+      fn.apply(thisArg, argsArray);
+    });
+  };
 };
 
 module.exports = new Utils();
