@@ -1,7 +1,9 @@
 'use strict';
 
-var commonUtils = require('../../../common-utils'),
-  oldUtils = require('../../../../scripts/utils'),
+// TODO: is this the best dir for this file?
+
+var commonUtils = require('../common-utils'),
+  oldUtils = require('../../scripts/utils'),
   Promise = require('bluebird');
 
 var Adapter = function (adapter) {

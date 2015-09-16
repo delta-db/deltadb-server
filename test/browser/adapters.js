@@ -12,7 +12,8 @@ describe('adapters', function () {
 
   // TODO: want to test all applicable adapters in browser, but only execute certain tests for
   // certain browsers
-  var idbAdapter = new Adapter(new ORM());
+  var IDBAdapter = require('./idb');
+  var idbAdapter = new IDBAdapter(new ORM());
   idbAdapter.test();
 
 });
