@@ -1,8 +1,7 @@
 Now
 ---
 - use FireFox & Chrome to test indexeddb adapter
-	- add indexeddb adapter to same tests for mem adapter
-	- need 100% coverage
+  - need 100% coverage
 	- Convert all adapters to make db.col() not return a promise and update API docs
 	- convert all .db({}) to .db(name)
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm

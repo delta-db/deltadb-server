@@ -18,7 +18,7 @@
       }
 
       mocha.ui('bdd');
-      mocha.grep(getParameterByName('query'));
+      mocha.grep(getParameterByName('query')); // TODO: is this really needed as can just use ?grep= 
       mocha.reporter('html');
       expect = chai.expect;
     </script>
