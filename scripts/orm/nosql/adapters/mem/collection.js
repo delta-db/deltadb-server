@@ -23,25 +23,26 @@ Collection.prototype.doc = function (data) {
 };
 
 Collection.prototype.get = function (id) {
-  return Promise.resolve(this._docs[id]);
+  return Promise.resolve(this._docs[id] ? this._docs[id] : null);
 };
 
 // TODO: move to common
-Collection.prototype._find = function (query, cursor) {
+Collection.prototype._find = function (query, callback, cursor) {
   return new Promise(function (resolve) {
     var filter = query && query.where ? where.filter(query.where) : null,
       filterCursor = new FilterCursor(cursor, filter);
     if (query && query.order) {
       var sort = order.sort(query.order);
-      resolve(new SortCursor(filterCursor, sort));
+      var sortCursor = new SortCursor(filterCursor, sort);
+      resolve(sortCursor.each(callback));
     } else {
-      resolve(filterCursor);
+      resolve(filterCursor.each(callback));
     }
   });
 };
 
-Collection.prototype.find = function (query) {
-  return this._find(query, new Cursor(this._docs, this));
+Collection.prototype.find = function (query, callback) {
+  return this._find(query, callback, new Cursor(this._docs, this));
 };
 
 Collection.prototype._register = function (doc) {

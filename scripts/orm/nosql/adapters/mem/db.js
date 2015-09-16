@@ -35,4 +35,6 @@ DB.prototype.close = function () {
   return Promise.resolve();
 };
 
+DB.prototype.destroy = utils.resolveFactory();
+
 module.exports = DB;

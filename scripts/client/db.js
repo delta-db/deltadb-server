@@ -1,10 +1,10 @@
 'use strict';
 
-// TODO: later db should be passed in a constructor so that it doesn't have to be passed to sync??
+// TODO: later, db should be passed in a constructor so that it doesn't have to be passed to sync??
 
 // TODO: destroy() that sends { col: '', name: null, val: null } or something like add user role
 
-// TODO: move events to nosql/common layer?
+// TODO: move some events to nosql/common layer?
 
 var inherits = require('inherits'),
   Promise = require('bluebird'),
@@ -20,6 +20,8 @@ var DB = function ( /* name, adapter */ ) {
   this._collections = {};
   this._retryAfterSecs = 180000;
   this._recorded = false;
+
+  this._initStoreLoaded();
 };
 
 inherits(DB, MemDB);
@@ -31,6 +33,11 @@ DB.PROPS_DOC_ID = 'props';
 // Use a version # to allow for patching of the store between versions when the schema changes
 DB.VERSION = 1;
 
+DB.prototype._initStoreLoaded = function () {
+  // This promise ensures that the store is ready before we use it.
+  this._storeLoaded = utils.once(this, 'load');
+};
+
 DB.prototype._import = function (store) {
   this._store = store;
   this._initStore();
@@ -40,6 +47,7 @@ DB.prototype._initStore = function () {
   var self = this,
     promises = [],
     loadingProps = false;
+
   self._store.all(function (colStore) {
     if (colStore._name === DB.PROPS_COL_NAME) {
       loadingProps = true;
@@ -52,6 +60,7 @@ DB.prototype._initStore = function () {
       promises.push(promise);
     }
   });
+
   self._loaded = Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
@@ -104,7 +113,10 @@ DB.prototype._col = function (name, genColStore) {
 
       var promise = null;
       if (genColStore) {
-        promise = self._store.col(name).then(function (colStore) {
+        // Use the _storeLoaded promise to ensure that the store has been loaded first
+        promise = self._storeLoaded.then(function () {
+          return self._store.col(name);
+        }).then(function (colStore) {
           collection._import(colStore);
           return collection;
         });
@@ -116,30 +128,6 @@ DB.prototype._col = function (name, genColStore) {
     }
   });
 };
-
-// DB.prototype._col = function (name, colStore) {
-//   var self = this;
-//   return new Promise(function (resolve) {
-//     if (self._collections[name]) {
-//       resolve(self._collections[name]);
-//     } else {
-//       var promise = null;
-//       if (colStore) {
-//         promise = Promise.resolve(colStore);
-//       } else {
-//         promise = self._store.col(name);
-//       }
-
-//       var ret = promise.then(function (colStore) {
-//         var collection = new Collection(name, self, colStore);
-//         self._collections[name] = collection;
-//         self._emitColCreate(collection);
-//         return collection;
-//       });
-//       resolve(ret);
-//     }
-//   });
-// };
 
 DB.prototype.col = function (name) {
   return this._col(name, true);

@@ -33,17 +33,15 @@ describe('client', function () {
 
   var latestShouldEql = function (expected) {
     // TODO: ensure up in the last couple seconds
-    return tasks.all().then(function (docs) {
-      docs.each(function (doc) {
-        var exp = expected[doc.id()];
-        (typeof exp !== 'undefined').should.eql(true);
-        utils.each(exp, function (attr) {
-          if (typeof attr.seq === 'undefined') {
-            attr.seq = 0;
-          }
-        });
-        doc._dat.latest.should.eql(exp);
+    return tasks.all(function (doc) {
+      var exp = expected[doc.id()];
+      (typeof exp !== 'undefined').should.eql(true);
+      utils.each(exp, function (attr) {
+        if (typeof attr.seq === 'undefined') {
+          attr.seq = 0;
+        }
       });
+      doc._dat.latest.should.eql(exp);
     });
   };
 
@@ -1461,9 +1459,7 @@ describe('client', function () {
       savedDoc = doc;
       return db.col('mycol');
     }).then(function (col) {
-      return col.all();
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._policyName].should.eql(policy);
         doc.should.eql(savedDoc);
@@ -1481,9 +1477,7 @@ describe('client', function () {
       savedDoc = doc;
       return db.col(Doc._userName);
     }).then(function (col) {
-      return col.all();
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
@@ -1500,9 +1494,7 @@ describe('client', function () {
       savedDoc = doc;
       return db.col(Doc._userName);
     }).then(function (col) {
-      return col.all();
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._userName].uuid.should.eql('user-uuid');
         doc.should.eql(savedDoc);
@@ -1522,9 +1514,7 @@ describe('client', function () {
       savedDoc = doc;
       return db.col(colName);
     }).then(function (col) {
-      return col.all();
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return col.all(function (doc) {
         var data = doc.get();
         data.userUUID.should.eql(userUUID);
         data.roleName.should.eql(roleName);
@@ -1545,9 +1535,7 @@ describe('client', function () {
       savedDoc = doc;
       return db.col(colName);
     }).then(function (col) {
-      return col.all();
-    }).then(function (docs) {
-      return docs.each(function (doc) {
+      return col.all(function (doc) {
         var data = doc.get();
         data.userUUID.should.eql(userUUID);
         data.roleName.should.eql(roleName);

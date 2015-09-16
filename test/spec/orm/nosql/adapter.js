@@ -1,9 +1,6 @@
 'use strict';
 
-var utils = require('../../../new-utils'),
-  commonUtils = require('../../../common-utils'),
-  oldUtils = require('../../../../scripts/utils'),
-  Promise = require('bluebird');
+var utils = require('../../../new-utils');
 
 // TODO: split into separate tests
 
@@ -161,47 +158,6 @@ Adapter.prototype.test = function () {
       });
       // TODO: also test using same db after destroying col as in IDB need to close DB to destroy
       // col
-    });
-
-    ////////////////////////////////////////
-    // IDB Specific, TODO: move to separate file
-
-    // TODO: remove after add offset functionality to IDB
-    it('should throw error when finding with offset', function () {
-      return db.col('users').then(function (users) {
-        commonUtils.shouldThrow(function () {
-          return users.find({
-            offset: 0
-          }, function () {});
-        }, new Error());
-      });
-    });
-
-    // TODO: remove after add limit functionality to IDB
-    it('should throw error when finding with limit', function () {
-      return db.col('users').then(function (users) {
-        commonUtils.shouldThrow(function () {
-          return users.find({
-            limit: 1
-          }, function () {});
-        }, new Error());
-      });
-    });
-
-    it('should catch error when creating object store', function () {
-      return new Promise(function (resolve) {
-        var err = new Error('err');
-        db._createObjectStoreIfMissing = oldUtils.promiseErrorFactory(err); // stub
-
-        var os = {
-          callback: function (_err) {
-            _err.should.eql(err);
-            resolve();
-          }
-        };
-
-        db._openAndCreateObjectStoreFactory(os)();
-      });
     });
 
   });

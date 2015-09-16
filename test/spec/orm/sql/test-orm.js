@@ -4,7 +4,6 @@ var testUtils = require('../../../utils'),
   config = require('../../../../config'),
   chai = require('chai'),
   expect = chai.expect,
-  Promise = require('bluebird'),
   MissingError = require('../../../../scripts/orm/sql/common/missing-error');
 
 var testORM = function (name, Adapter) {

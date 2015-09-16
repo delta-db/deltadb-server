@@ -121,13 +121,11 @@ Utils.prototype._toDate = function (val) {
 };
 
 Utils.prototype.allShouldEql = function (collection, expected) {
-  return collection.all().then(function (items) {
-    var allDocs = [];
-    return items.each(function (item) {
-      allDocs.push(item.get());
-    }).then(function () {
-      allDocs.should.eql(expected);
-    });
+  var allDocs = [];
+  return collection.all(function (item) {
+    allDocs.push(item.get());
+  }).then(function () {
+    allDocs.should.eql(expected);
   });
 };
 

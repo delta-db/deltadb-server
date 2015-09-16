@@ -4,9 +4,7 @@ Now
 	- add indexeddb adapter to same tests for mem adapter
 	- need 100% coverage
 	- Convert all adapters to make db.col() not return a promise and update API docs
-	- refactor all() to all(callback)
 	- convert all .db({}) to .db(name)
-	- make sure node tests passing
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - fix error:
   3) deltadb partitioner sql changes offset should get changes by offset:
@@ -65,6 +63,7 @@ Now
       at test/spec/partitioner/sql/changes/offset.js:52:17
 - faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
+- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - use lie instead of bluebird
 - Roadmap
