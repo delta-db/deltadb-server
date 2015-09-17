@@ -20,12 +20,11 @@ before_script:
 
 env:
   matrix:
+  - COMMAND=new-test-phantomjs
   - COMMAND=test-firefox
-  - COMMAND=test-phantomjs
-  # - COMMAND=test-chrome # Uncomment when get chrome testing working in travis
+  - COMMAND=test-chrome
   - COMMAND=coverage
   - COMMAND=assert-beautified
-  - COMMAND=new-test-phantomjs
 
 branches:
   only:
