@@ -1,7 +1,6 @@
 Now
 ---
 - use FireFox & Chrome to test indexeddb adapter
-  - make sure travisci tests passing including for phantomjs, firefox and chrome--make sure code coverage being enforced
 	- Convert all adapters to make db.col() not return a promise and update API docs
 	- convert all .db({}) to .db(name)
 	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm

@@ -17,7 +17,7 @@ require('./new-dev-server');
 
 var spawn = require('child_process').spawn;
 
-// Unless we have mocha-phantomjs installed globalls we have specify the full path
+// Unless we have mocha-phantomjs installed globally we have to specify the full path
 // var child = spawn('mocha-phantomjs', [
 var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', [
   'http://127.0.0.1:8001/test/new-index.html',
