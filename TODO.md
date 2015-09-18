@@ -1,9 +1,5 @@
 Now
 ---
-- use FireFox & Chrome to test indexeddb adapter
-	- Convert all adapters to make db.col() not return a promise and update API docs
-	- convert all .db({}) to .db(name)
-	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - fix error:
   3) deltadb partitioner sql changes offset should get changes by offset:
 
@@ -59,6 +55,10 @@ Now
       at Utils.eqls (test/utils.js:34:30)
       at Utils.changesShouldEql (test/utils.js:350:8)
       at test/spec/partitioner/sql/changes/offset.js:52:17
+- use FireFox & Chrome to test indexeddb adapter
+	- Convert all adapters to make db.col() not return a promise and update API docs
+	- convert all .db({}) to .db(name)
+	- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - faster to use bcrypt instead of bcryptjs for server side only?
 - express (or better) server - use web socket
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
@@ -66,7 +66,7 @@ Now
 - use lie instead of bluebird
 - Roadmap
 - Admin UI, e.g. "Delta Admin"
-- mysql adapter
+- mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 - Doc for example use cases:
 	- Everyone can read and write
 	- Groups can read and write
