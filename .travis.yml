@@ -6,6 +6,12 @@ node_js:
 script: npm run $COMMAND
 
 before_script:
+  # As per https://github.com/travis-ci/travis-ci/issues/272 chrome not working with travisci
+  # - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+  # - sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+  # - sudo apt-get update
+  # - sudo apt-get install google-chrome-stable
+
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - "sleep 5"
@@ -20,12 +26,11 @@ before_script:
 
 env:
   matrix:
+  - COMMAND=new-test-phantomjs
   - COMMAND=test-firefox
-  - COMMAND=test-phantomjs
-  # - COMMAND=test-chrome # Uncomment when get chrome testing working in travis
+  # - COMMAND=test-chrome
   - COMMAND=coverage
   - COMMAND=assert-beautified
-  - COMMAND=new-test-phantomjs
 
 branches:
   only:
