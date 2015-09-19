@@ -177,7 +177,7 @@ ChangesQuery.prototype._changesNestedSQL = function () {
   where = where ? [where, 'and', hasRole] : hasRole;
 
   var replacements = [];
-  var sql = self._sql.findSQL(attrs, self._partition + 'attrs', joins, where, null, null, null, 
+  var sql = self._sql.findSQL(attrs, self._partition + 'attrs', joins, where, null, null, null,
     null, null, null, replacements);
 
   return self._sql.build(sql, replacements);
