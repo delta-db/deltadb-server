@@ -298,7 +298,7 @@ SQL.prototype.truncateTable = function (table, priAttr, priStart) {
 };
 
 // Precondition: same number of $i parameters as replacements.length
-// Note: this currently only needed for nested queries. All other queries should use the native
+// Note: this is currently only needed for nested queries. All other queries should use the native
 // escaping functionality.
 SQL.prototype.build = function (sql, replacements) {
   var self = this,

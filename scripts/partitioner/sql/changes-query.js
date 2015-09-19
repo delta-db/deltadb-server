@@ -112,6 +112,18 @@ ChangesQuery.prototype._whereAllCanRead = function () {
   ];
 };
 
+ChangesQuery.prototype._order = function () {
+  // Most DBs don't guarantee order unless an ORDER BY statement is used and we need our query to be
+  // deterministic. MySQL: http://stackoverflow.com/questions/1949641/mysql-row-order-for-select-
+  // from-table-name, Postgres: http://www.postgresql.org/docs/current/interactive/queries-
+  // order.html. We need to order by the id as timestamps may not be unique and therefore sorting by
+  // a timestamp is not deterministic.
+  return [this._partition + 'attrs.id', 'asc'];
+  // TODO: what happens when our ids overflow? Do we reset them? If so, ordering will fail. We could
+  // take the db offline and adjust all the ids in one shot.
+};
+
+
 ChangesQuery.prototype._changesNestedSQL = function () {
 
   var self = this,
@@ -165,9 +177,9 @@ ChangesQuery.prototype._changesNestedSQL = function () {
   where = where ? [where, 'and', hasRole] : hasRole;
 
   var replacements = [];
-  var sql = self._sql.findSQL(attrs, self._partition + 'attrs', joins, where, null, self._limit,
-    self._offset, null,
-    null, null, replacements);
+  var sql = self._sql.findSQL(attrs, self._partition + 'attrs', joins, where, null, null, null,
+    null, null, null, replacements);
+
   return self._sql.build(sql, replacements);
 };
 
@@ -203,7 +215,8 @@ ChangesQuery.prototype._changes = function () {
   // levels of access to the same attr.
   var where = [self._partition + 'attrs.id', 'in', '{' + nestedSQL + '}'];
 
-  return self._sql.find(attrs, self._partition + 'attrs', joins, where);
+  return self._sql.find(attrs, self._partition + 'attrs', joins, where, self._order(), self._limit,
+    self._offset);
 };
 
 /*
