@@ -2,8 +2,6 @@ Now
 ---
 - use FireFox & Chrome to test indexeddb adapter
 	- Convert all adapters to make db.col() not return a promise and update API docs
-		- idb
-		- mem
 		- client
 	- Rename all use of ._collection to ._col in docs
 	- convert all .db({}) to .db(name)

@@ -10,6 +10,7 @@ var Promise = require('bluebird'),
   Doc = require('./doc'),
   Cursor = require('./cursor');
 
+// TODO: change order so name then this to be standard with other adapters
 var Collection = function (db, name) {
   this._db = db;
   this._name = name;
