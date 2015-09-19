@@ -106,14 +106,4 @@ Collection.prototype.destroy = function () {
   return this._db._destroyCol(this._name);
 };
 
-// Collection.prototype._load = function () {
-// console.log('_load');
-//   var self = this;
-//   return self.all().then(function (docs) {
-//     docs.each(function (doc) {
-// console.log('doc=', doc, doc.get());
-//     });
-//   });
-// };
-
 module.exports = Collection;
