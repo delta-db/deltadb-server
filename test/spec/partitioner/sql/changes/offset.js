@@ -42,7 +42,7 @@ describe('offset', function () {
         readChanges = _readChanges;
         readChanges.length.should.eql(changes.length);
       });
-    }
+    };
 
     var readAndCheckPage = function (offset) {
       return args.db.changes(null, null, 5, offset).then(function (changes) {
@@ -50,8 +50,9 @@ describe('offset', function () {
         if (offset + 5 < n) {
           expPageChanges.push('more'); // indicates more pages
         }
+        expPageChanges.should.eql(changes);
       });
-    }
+    };
 
     var readAndCheckPages = function () {
       return readAndCheckPage(0).then(function () {
@@ -59,7 +60,7 @@ describe('offset', function () {
       }).then(function () {
         return readAndCheckPage(10);
       });
-    }
+    };
 
     return writeAndReadAllChanges().then(function () {
       return readAndCheckPages();
