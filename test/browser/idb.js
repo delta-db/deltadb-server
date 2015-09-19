@@ -16,7 +16,7 @@ Adapter.prototype.test = function () {
 
   var adapter = this._adapter; // for convenience
 
-  describe('adapter', function () { // TODO: output name
+  describe('idb', function () {
 
     var db = null,
       idb = null,
@@ -39,27 +39,26 @@ Adapter.prototype.test = function () {
     });
 
     it('should create doc', function () {
-      return db.col('tasks').then(function (tasks) {
-        var task = tasks.doc({
-          thing: 'sing'
-        });
-        return task.set({
-          priority: 'high'
-        });
+      var tasks = db.col('tasks');
+
+      var task = tasks.doc({
+        thing: 'sing'
+      });
+
+      return task.set({
+        priority: 'high'
       });
     });
 
     it('should reload', function () {
 
       var createTasks = function () {
-        var tasks = null;
-        return db.col('tasks').then(function (_tasks) {
-          tasks = _tasks;
-          return tasks.doc({
-            $id: '1',
-            thing: 'write'
-          }).save();
-        }).then(function () {
+        var tasks = db.col('tasks');
+
+        return tasks.doc({
+          $id: '1',
+          thing: 'write'
+        }).save().then(function () {
           return tasks.doc({
             $id: '2',
             thing: 'sing'
@@ -68,14 +67,12 @@ Adapter.prototype.test = function () {
       };
 
       var createColors = function () {
-        var colors = null;
-        return db.col('colors').then(function (_colors) {
-          colors = _colors;
-          return colors.doc({
-            $id: '3',
-            name: 'red'
-          }).save();
-        }).then(function () {
+        var colors = db.col('colors');
+
+        return colors.doc({
+          $id: '3',
+          name: 'red'
+        }).save().then(function () {
           return colors.doc({
             $id: '4',
             name: 'green'
@@ -148,24 +145,24 @@ Adapter.prototype.test = function () {
 
     // TODO: remove after add offset functionality to IDB
     it('should throw error when finding with offset', function () {
-      return db.col('users').then(function (users) {
-        commonUtils.shouldThrow(function () {
-          return users.find({
-            offset: 0
-          }, function () {});
-        }, new Error());
-      });
+      var users = db.col('users');
+
+      commonUtils.shouldThrow(function () {
+        return users.find({
+          offset: 0
+        }, function () {});
+      }, new Error());
     });
 
     // TODO: remove after add limit functionality to IDB
     it('should throw error when finding with limit', function () {
-      return db.col('users').then(function (users) {
-        commonUtils.shouldThrow(function () {
-          return users.find({
-            limit: 1
-          }, function () {});
-        }, new Error());
-      });
+      var users = db.col('users');
+
+      commonUtils.shouldThrow(function () {
+        return users.find({
+          limit: 1
+        }, function () {});
+      }, new Error());
     });
 
     it('should catch error when creating object store', function () {

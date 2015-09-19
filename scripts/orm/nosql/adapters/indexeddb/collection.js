@@ -23,29 +23,28 @@ Collection.prototype.doc = function (obj) {
 
 Collection.prototype.get = function (id) {
   var self = this;
-  return new Promise(function (resolve, reject) {
-    var tx = self._db._db.transaction(self._name, 'readwrite'),
-      store = tx.objectStore(self._name),
-      request = store.get(id);
+  return self._opened().then(function () {
+    return new Promise(function (resolve, reject) {
+      var tx = self._db._db.transaction(self._name, 'readwrite'),
+        store = tx.objectStore(self._name),
+        request = store.get(id);
 
-    request.onsuccess = function () {
-      resolve(request.result ? new Doc(request.result, self) : null);
-    };
+      request.onsuccess = function () {
+        resolve(request.result ? new Doc(request.result, self) : null);
+      };
 
-    // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't trigger
-    // it.
-    /* istanbul ignore next */
-    request.onerror = function () {
-      reject(request.error);
-    };
+      // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't trigger
+      // it.
+      /* istanbul ignore next */
+      request.onerror = function () {
+        reject(request.error);
+      };
 
-    // TODO: do we also need tx.oncomplete and tx.onerror and if so can we use them instead of
-    // request.onsuccess and request.onerror??
+      // TODO: do we also need tx.oncomplete and tx.onerror and if so can we use them instead of
+      // request.onsuccess and request.onerror??
+    });
   });
 };
-
-// TODO: have to refactor find and all to use callback directly! OR, do it the pouchdb way and
-// buffer all docs into mem? Isn't that a waste though??
 
 // TODO: it is far better to query and sort in IndexedDB based on indexes, but dealing with dynamic
 // indexes is tricky and for a future release. http://stackoverflow.com/questions/6405650/how-do-i
@@ -103,7 +102,21 @@ Collection.prototype.find = function (query, callback) {
 };
 
 Collection.prototype.destroy = function () {
-  return this._db._destroyCol(this._name);
+  var self = this;
+  return self._opened().then(function () {
+    return self._db._destroyCol(self._name);
+  });
+};
+
+Collection.prototype._open = function () {
+  return this._db._openAndCreateObjectStoreWhenReady(this._name);
+};
+
+Collection.prototype._opened = function () {
+  if (!this._openPromise) {
+    this._openPromise = this._open();
+  }
+  return this._openPromise;
 };
 
 module.exports = Collection;

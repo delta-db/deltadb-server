@@ -72,7 +72,7 @@ DB.prototype._initStore = function () {
 
 DB.prototype._createObjectStoreIfMissing = function (name) {
   if (this._db.objectStoreNames.contains(name)) { // exists?
-    return Promise.resolve(new Collection(this, name));
+    return Promise.resolve();
   } else {
     return this._openAndCreateObjectStore(name);
   }
@@ -90,7 +90,7 @@ DB.prototype._openAndCreateObjectStore = function (name) {
 
   var onSuccess = function (request, resolve) {
     self._db = request.result;
-    resolve(new Collection(self, name));
+    resolve();
   };
 
   return self.close().then(function () { // Close any existing connection
@@ -153,14 +153,12 @@ DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
 };
 
 DB.prototype.col = function (name) {
-  var self = this;
-  if (self._collections[name]) { // exists?
-    return Promise.resolve(self._collections[name]);
+  if (this._collections[name]) { // exists?
+    return this._collections[name];
   } else {
-    return self._openAndCreateObjectStoreWhenReady(name).then(function (col) {
-      self._collections[name] = col;
-      return col;
-    });
+    var col = new Collection(this, name);
+    this._collections[name] = col;
+    return col;
   }
 };
 
