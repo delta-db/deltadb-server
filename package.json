@@ -47,11 +47,11 @@
   },
   "dependencies": {
     "bcrypt": "^0.8.1",
-    "bluebird": "^1.0.7",
+    "bluebird": "^2.10.0",
     "inherits": "^2.0.1",
-    "mysql2": "^0.13.0",
+    "mysql2": "^0.15.8",
     "node-uuid": "^1.4.1",
-    "pg": "^3.6.3"
+    "pg": "^4.4.2"
   },
   "devDependencies": {
     "bcryptjs": "^2.2.1",

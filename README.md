@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="50" height="50" /> DeltaDB [![Build Status](https://travis-ci.org/delta-db/deltadb-server.svg)](https://travis-ci.org/delta-db/deltadb-server)
+<img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="50" height="50" /> DeltaDB [![Build Status](https://travis-ci.org/delta-db/deltadb-server.svg)](https://travis-ci.org/delta-db/deltadb-server)[![Dependency Status](https://david-dm.org/delta-db/deltadb-server.svg)](https://david-dm.org/delta-db/deltadb-server)
 ===
 
 DeltaDB is a Front-end-Only Offline-First (FOOF) database designed to talk directly to clients and works great offline and online.
