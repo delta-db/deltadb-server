@@ -5,9 +5,9 @@ var Promise = require('bluebird'),
   CommonCursor = require('../../common/cursor'),
   utils = require('../../../../utils');
 
-var Cursor = function (docs, collection, all) {
+var Cursor = function (docs, col, all) {
   this._docs = docs;
-  this._col = collection; // TODO: remove?
+  this._col = col; // TODO: remove?
   this._all = all;
 };
 

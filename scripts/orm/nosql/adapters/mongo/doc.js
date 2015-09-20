@@ -6,9 +6,9 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractDoc = require('../../doc');
 
-var Doc = function (doc, collection) {
+var Doc = function (doc, col) {
   AbstractDoc.apply(this, arguments); // apply parent constructor
-  this._col = collection;
+  this._col = col;
 };
 
 inherits(Doc, AbstractDoc);

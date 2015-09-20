@@ -4,10 +4,10 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDoc = require('../../common/doc');
 
-var Doc = function (doc, collection) {
+var Doc = function (doc, col) {
   CommonDoc.apply(this, arguments); // apply parent constructor
-  this._col = collection;
-  this._idName = collection._db._idName;
+  this._col = col;
+  this._idName = col._db._idName;
 };
 
 inherits(Doc, CommonDoc);

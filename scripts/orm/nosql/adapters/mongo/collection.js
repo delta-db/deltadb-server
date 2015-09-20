@@ -7,8 +7,8 @@ var Promise = require('bluebird'),
   Cursor = require('./cursor'),
   where = require('./where');
 
-var Collection = function (collection) {
-  this._col = collection;
+var Collection = function (col) {
+  this._col = col;
 };
 
 inherits(Collection, AbstractCollection);

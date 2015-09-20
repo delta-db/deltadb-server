@@ -5,9 +5,9 @@ var utils = require('../../../utils'),
   inherits = require('inherits'),
   Promise = require('bluebird');
 
-var Doc = function (data, collection) {
+var Doc = function (data, col) {
   this._data = data ? data : {};
-  this._col = collection;
+  this._col = col;
   this._dirty = {};
 };
 

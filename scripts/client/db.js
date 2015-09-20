@@ -136,8 +136,8 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
     changes = [];
 
   // TODO: create and use db.all() to iterate through collections
-  utils.each(this._cols, function (collection) {
-    var promise = collection._localChanges(retryAfter, returnSent).then(function (_changes) {
+  utils.each(this._cols, function (col) {
+    var promise = col._localChanges(retryAfter, returnSent).then(function (_changes) {
       changes = changes.concat(_changes);
     });
     promises.push(promise);

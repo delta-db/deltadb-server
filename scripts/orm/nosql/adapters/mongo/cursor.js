@@ -4,9 +4,9 @@ var inherits = require('inherits'),
   AbstractCursor = require('../../cursor'),
   Doc = require('./doc');
 
-var Cursor = function (cursor, collection) {
+var Cursor = function (cursor, col) {
   this._cursor = cursor;
-  this._col = collection;
+  this._col = col;
 };
 
 inherits(Cursor, AbstractCursor);
