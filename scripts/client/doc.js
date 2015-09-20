@@ -76,10 +76,10 @@ Doc.prototype._initStore = function () {
 
 Doc.prototype._open = function () {
   var self = this;
-  return self._collection._opened().then(function () {
+  return self._col._opened().then(function () {
     if (self._genDocStore) {
       // Use self._dat as the store needs the reference and not a copy
-      self._import(Doc._createDocStore(self._dat, self._collection._store));
+      self._import(Doc._createDocStore(self._dat, self._col._store));
     }
   });
 };
@@ -188,7 +188,7 @@ Doc.prototype._eventLayer = function (evnt) {
 Doc.prototype._emit = function (evnt, name, value) {
   if (this._eventLayer(evnt) === 'doc') {
     this.emit(evnt, this);
-    this._collection._emit(evnt, this);
+    this._col._emit(evnt, this);
   } else {
     var attr = {
       name: name,
@@ -196,7 +196,7 @@ Doc.prototype._emit = function (evnt, name, value) {
     };
     this.emit(evnt, attr, this);
 
-    this._collection._emit(evnt, attr, this); // bubble up to collection layer    
+    this._col._emit(evnt, attr, this); // bubble up to collection layer    
   }
 };
 
@@ -418,7 +418,7 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
     if (!returnSent) {
       delete chng.sent; // server doesn't need sent
     }
-    chng.col = this._collection._name;
+    chng.col = this._col._name;
     chng.id = this.id();
     chng.up = change.up.toISOString();
     if (chng.val) { // don't set val if falsy

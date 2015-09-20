@@ -7,7 +7,7 @@ var Promise = require('bluebird'),
 
 var Cursor = function (docs, collection, all) {
   this._docs = docs;
-  this._collection = collection; // TODO: remove?
+  this._col = collection; // TODO: remove?
   this._all = all;
 };
 
