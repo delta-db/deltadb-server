@@ -64,20 +64,13 @@ Doc.prototype._initStore = function () {
 
     self._loadFromStore();
 
-    if (self._store.id()) { // reloading from store and already have id?
+    self.id(self._store.id());
 
-      self.id(self._store.id());
-
-      // register as doc id was just set
-      self._register().then(function () {
-        self.emit('load');
-      });
-
-    } else {
-
+    // register as doc id was just set
+    self._register().then(function () {
       self.emit('load');
+    });
 
-    }
   });
 };
 
