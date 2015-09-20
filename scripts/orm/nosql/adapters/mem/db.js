@@ -14,16 +14,13 @@ var DB = function ( /* name, adapter */ ) {
 inherits(DB, CommonDB);
 
 DB.prototype.col = function (name) {
-  var self = this;
-  return new Promise(function (resolve) {
-    if (self._collections[name]) {
-      resolve(self._collections[name]);
-    } else {
-      var collection = new Collection(name, self);
-      self._collections[name] = collection;
-      resolve(collection);
-    }
-  });
+  if (this._collections[name]) {
+    return this._collections[name];
+  } else {
+    var col = new Collection(name, this);
+    this._collections[name] = col;
+    return col;
+  }
 };
 
 // TODO: should this return a promise like col.all()??

@@ -35,102 +35,95 @@ Adapter.prototype.test = function () {
 
     it('should work', function () {
 
-      var user1 = null,
-        user2 = null,
-        users = null;
+      var users = db.col('users');
 
-      return db.col('users').then(function (_users) {
-        users = _users;
+      var user1 = users.doc({
+        name: 'Jack',
+        age: 24
+      });
 
-        user1 = users.doc({
+      var user2 = users.doc({
+        name: 'Jill',
+        age: 23
+      });
+
+      return user1.save().then(function () {
+        return user2.save();
+      }).then(function () {
+        return users.get(user1.id());
+      }).then(function (userFound) {
+        var doc = userFound.get();
+        doc.should.eql({
+          $id: user1.id(),
           name: 'Jack',
           age: 24
         });
-
-        user2 = users.doc({
+      }).then(function () {
+        user1._set('age', 25);
+        var updates = user1.get(true);
+        updates.should.eql({
+          age: 25
+        });
+        return user1.save();
+      }).then(function () {
+        return users.get(user1.id());
+      }).then(function (userFound) {
+        var doc = userFound.get();
+        doc.should.eql({
+          $id: user1.id(),
+          name: 'Jack',
+          age: 25
+        });
+      }).then(function () {
+        return utils.allShouldEql([{
+          $id: user1.id(),
+          name: 'Jack',
+          age: 25
+        }, {
+          $id: user2.id(),
           name: 'Jill',
           age: 23
-        });
-
-        return user1.save().then(function () {
-          return user2.save();
-        }).then(function () {
-          return users.get(user1.id());
-        }).then(function (userFound) {
-          var doc = userFound.get();
-          doc.should.eql({
-            $id: user1.id(),
-            name: 'Jack',
-            age: 24
-          });
-        }).then(function () {
-          user1._set('age', 25);
-          var updates = user1.get(true);
-          updates.should.eql({
-            age: 25
-          });
-          return user1.save();
-        }).then(function () {
-          return users.get(user1.id());
-        }).then(function (userFound) {
-          var doc = userFound.get();
-          doc.should.eql({
-            $id: user1.id(),
-            name: 'Jack',
-            age: 25
-          });
-        }).then(function () {
-          return utils.allShouldEql([{
-            $id: user1.id(),
-            name: 'Jack',
-            age: 25
+        }], users);
+      }).then(function () {
+        return utils.findShouldEql(
+          [{
+            $id: user2.id(),
+            name: 'Jill',
+            age: 23
           }, {
-            $id: user2.id(),
-            name: 'Jill',
-            age: 23
-          }], users);
-        }).then(function () {
-          return utils.findShouldEql(
-            [{
-              $id: user2.id(),
-              name: 'Jill',
-              age: 23
-            }, {
-              $id: user1.id(),
-              name: 'Jack',
-              age: 25
-            }],
-            users, {
-              where: [
-                ['age', '<', 25], 'or', ['name', '=', 'Jack']
-              ],
-              order: ['age', 'asc']
-                // offset: 0, // TODO: uncomment when working with indexeddb
-                // limit: 2 // // TODO: uncomment when working with indexeddb
-            }
-          );
-        }).then(function () {
-          return user1.destroy();
-        }).then(function () {
-          return utils.allShouldEql([{
-            $id: user2.id(),
-            name: 'Jill',
-            age: 23
-          }], users);
-        });
+            $id: user1.id(),
+            name: 'Jack',
+            age: 25
+          }],
+          users, {
+            where: [
+              ['age', '<', 25], 'or', ['name', '=', 'Jack']
+            ],
+            order: ['age', 'asc']
+              // offset: 0, // TODO: uncomment when working with indexeddb
+              // limit: 2 // // TODO: uncomment when working with indexeddb
+          }
+        );
+      }).then(function () {
+        return user1.destroy();
+      }).then(function () {
+        return utils.allShouldEql([{
+          $id: user2.id(),
+          name: 'Jill',
+          age: 23
+        }], users);
       });
     });
 
     it('should lookup collection', function () {
-      var users = null;
-      return db.col('users').then(function (_users) {
-        users = _users;
-        var user = users.doc({
-          name: 'Jack',
-          age: 24
-        });
-        return user.save();
-      }).then(function () {
+      var users = db.col('users');
+
+      var user = users.doc({
+        name: 'Jack',
+        age: 24
+      });
+
+      return user.save().then(function () {
         return db.col('users');
       }).then(function (users2) {
         users2.should.eql(users);
@@ -138,9 +131,8 @@ Adapter.prototype.test = function () {
     });
 
     it('should get missing doc', function () {
-      return db.col('users').then(function (users) {
-        return users.get('missing');
-      }).then(function (user) {
+      var users = db.col('users');
+      return users.get('missing').then(function (user) {
         (user === null).should.eql(true);
       });
     });
@@ -153,22 +145,21 @@ Adapter.prototype.test = function () {
     });
 
     it('should destroy collection', function () {
-      return db.col('users').then(function (users) {
-        return users.destroy();
-      });
+      var users = db.col('users');
+      return users.destroy();
       // TODO: also test using same db after destroying col as in IDB need to close DB to destroy
       // col
     });
 
     it('should unset', function () {
-      var user = null;
-      return db.col('users').then(function (users) {
-        user = users.doc({
-          name: 'Jack',
-          age: 24
-        });
-        return user.save();
-      }).then(function () {
+      var users = db.col('users');
+
+      var user = users.doc({
+        name: 'Jack',
+        age: 24
+      });
+
+      return user.save().then(function () {
         return user.unset('age');
       }).then(function () {
         user.get().should.eql({
@@ -180,20 +171,20 @@ Adapter.prototype.test = function () {
 
     it('should include', function () {
       // TODO: this test is only for coverage, make it more meaningful
-      return db.col('users').then(function (users) {
-        var user = users.doc();
-        (user._include() !== null).should.eql(true);
-      });
+      var users = db.col('users');
+      var user = users.doc();
+      (user._include() !== null).should.eql(true);
     });
 
     it('should register when missing', function () {
       // TODO: this test is only for coverage, make it more meaningful
-      return db.col('users').then(function (users) {
-        var user = users.doc({
-          $id: 1
-        });
-        user._register();
+      var users = db.col('users');
+
+      var user = users.doc({
+        $id: 1
       });
+
+      return user._register();
     });
 
   });

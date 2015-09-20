@@ -3,7 +3,6 @@
 var utils = require('../../../utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
-// Doc = require('./doc');
 
 var Collection = function (name, db) {
   this._name = name;

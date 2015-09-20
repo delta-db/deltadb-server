@@ -26,9 +26,8 @@ describe('client', function () {
     db = client.db({
       db: 'mydb'
     });
-    return db.col('tasks').then(function (collection) {
-      tasks = collection;
-    });
+
+    tasks = db.col('tasks');
   });
 
   var latestShouldEql = function (expected) {
@@ -1457,8 +1456,7 @@ describe('client', function () {
 
     return db.policy('mycol', policy).then(function (doc) {
       savedDoc = doc;
-      return db.col('mycol');
-    }).then(function (col) {
+      var col = db.col('mycol');
       return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._policyName].should.eql(policy);
@@ -1475,8 +1473,7 @@ describe('client', function () {
 
     return db.createUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Doc._userName);
-    }).then(function (col) {
+      var col = db.col(Doc._userName);
       return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._userName].uuid.should.eql('user-uuid');
@@ -1492,8 +1489,7 @@ describe('client', function () {
 
     return db.updateUser('user-uuid', 'username', 'secret').then(function (doc) {
       savedDoc = doc;
-      return db.col(Doc._userName);
-    }).then(function (col) {
+      var col = db.col(Doc._userName);
       return col.all(function (doc) {
         var obj = doc.get();
         obj[Doc._userName].uuid.should.eql('user-uuid');
@@ -1512,8 +1508,7 @@ describe('client', function () {
 
     return db.addRole(userUUID, roleName).then(function (doc) {
       savedDoc = doc;
-      return db.col(colName);
-    }).then(function (col) {
+      var col = db.col(colName);
       return col.all(function (doc) {
         var data = doc.get();
         data.userUUID.should.eql(userUUID);
@@ -1533,8 +1528,7 @@ describe('client', function () {
 
     return db.removeRole(userUUID, roleName).then(function (doc) {
       savedDoc = doc;
-      return db.col(colName);
-    }).then(function (col) {
+      var col = db.col(colName);
       return col.all(function (doc) {
         var data = doc.get();
         data.userUUID.should.eql(userUUID);

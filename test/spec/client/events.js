@@ -25,11 +25,11 @@ describe('events', function () {
     db = client.db({
       db: 'mydb'
     });
-    return db.col('tasks').then(function (collection) {
-      tasks = collection;
-      task = tasks.doc();
-      task.id('1');
-    });
+
+    tasks = db.col('tasks');
+
+    task = tasks.doc();
+    task.id('1');
   });
 
   var Server = function (changes) {
@@ -587,9 +587,8 @@ describe('events', function () {
   };
 
   var colCreateLocal = function () {
-    return db.col('tasks2').then(function (_tasks2) {
-      tasks2 = _tasks2;
-    });
+    tasks2 = db.col('tasks2');
+    return Promise.resolve();
   };
 
   var colShouldCreateLocal = function (emitter) {
