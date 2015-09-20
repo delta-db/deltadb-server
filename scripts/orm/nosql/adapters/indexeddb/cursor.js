@@ -5,10 +5,10 @@ var Promise = require('bluebird'),
   CommonCursor = require('../../common/cursor'),
   Doc = require('./doc');
 
-var Cursor = function (cursor, callbackWrapper, collection) {
+var Cursor = function (cursor, callbackWrapper, col) {
   this._cursor = cursor;
   this._callbackWrapper = callbackWrapper;
-  this._collection = collection;
+  this._col = col;
 };
 
 inherits(Cursor, CommonCursor);
@@ -18,7 +18,7 @@ Cursor.prototype.each = function (callback) {
   return new Promise(function (resolve) {
     self._callbackWrapper.callback = function (cursor) {
       if (cursor) {
-        callback(new Doc(cursor.value, self._collection));
+        callback(new Doc(cursor.value, self._col));
         cursor.continue();
       } else {
         resolve();

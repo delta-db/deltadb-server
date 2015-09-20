@@ -6,19 +6,19 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   AbstractDoc = require('../../doc');
 
-var Doc = function (doc, collection) {
+var Doc = function (doc, col) {
   AbstractDoc.apply(this, arguments); // apply parent constructor
-  this._collection = collection;
+  this._col = col;
 };
 
 inherits(Doc, AbstractDoc);
 
 Doc.prototype._insert = function () {
-  // var insert = Promise.promisify(this._collection._collection.insert); // not working
+  // var insert = Promise.promisify(this._col._col.insert); // not working
   // return insert(this._data);
   var self = this;
   return new Promise(function (resolve, reject) {
-    self._collection._collection.insert(self._data, function (err, docs) {
+    self._col._col.insert(self._data, function (err, docs) {
       if (err) {
         reject(err);
       } else {
@@ -35,7 +35,7 @@ Doc.prototype._update = function () {
 
     var updates = self.get(self.dirty());
 
-    self._collection._collection.update({
+    self._col._col.update({
         _id: self.id()
       }, {
         $set: updates
@@ -62,7 +62,7 @@ Doc.prototype._save = function () {
 Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    self._collection._collection.destroy({
+    self._col._col.destroy({
       _id: self.id()
     }, function (err) {
       if (err) {

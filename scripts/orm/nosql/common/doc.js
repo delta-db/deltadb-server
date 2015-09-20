@@ -5,9 +5,9 @@ var utils = require('../../../utils'),
   inherits = require('inherits'),
   Promise = require('bluebird');
 
-var Doc = function (data, collection) {
+var Doc = function (data, col) {
   this._data = data ? data : {};
-  this._collection = collection;
+  this._col = col;
   this._dirty = {};
 };
 
@@ -95,15 +95,15 @@ Doc.prototype._include = function () { // Include in cursor?
 
 Doc.prototype._register = function () {
   var self = this;
-  return self._collection.get(self.id()).then(function (doc) {
+  return self._col.get(self.id()).then(function (doc) {
     if (!doc) { // missing? Then register
-      return self._collection._register(self);
+      return self._col._register(self);
     }
   });
 };
 
 Doc.prototype._unregister = function () {
-  return this._collection._unregister(this);
+  return this._col._unregister(this);
 };
 
 Doc.prototype.save = function () {

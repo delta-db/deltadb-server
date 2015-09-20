@@ -7,8 +7,8 @@ var Promise = require('bluebird'),
   Cursor = require('./cursor'),
   where = require('./where');
 
-var Collection = function (collection) {
-  this._collection = collection;
+var Collection = function (col) {
+  this._col = col;
 };
 
 inherits(Collection, AbstractCollection);
@@ -20,7 +20,7 @@ Collection.prototype.doc = function (obj) {
 Collection.prototype.get = function (id) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    self._collection.findOne({
+    self._col.findOne({
       _id: id
     }, function (err, doc) {
       if (err) {
@@ -84,7 +84,7 @@ Collection.prototype.find = function (query) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var mongoQuery = toMongoQuery(query);
-    self._collection.find(mongoQuery.query, mongoQuery.options, function (err, cursor) {
+    self._col.find(mongoQuery.query, mongoQuery.options, function (err, cursor) {
       if (err) {
         reject(err);
       } else {

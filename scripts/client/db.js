@@ -17,7 +17,7 @@ var inherits = require('inherits'),
 var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
 
-  this._collections = {};
+  this._cols = {};
   this._retryAfterSecs = 180000;
   this._recorded = false;
 
@@ -95,13 +95,13 @@ DB.prototype._initProps = function (colStore) {
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype._col = function (name, genColStore) {
-  if (this._collections[name]) {
-    return this._collections[name];
+  if (this._cols[name]) {
+    return this._cols[name];
   } else {
 
     // TODO: does genColStore really need to be passed?
     var col = new Collection(name, this, genColStore);
-    this._collections[name] = col;
+    this._cols[name] = col;
     this._emitColCreate(col);
 
     return col;
@@ -136,8 +136,8 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
     changes = [];
 
   // TODO: create and use db.all() to iterate through collections
-  utils.each(this._collections, function (collection) {
-    var promise = collection._localChanges(retryAfter, returnSent).then(function (_changes) {
+  utils.each(this._cols, function (col) {
+    var promise = col._localChanges(retryAfter, returnSent).then(function (_changes) {
       changes = changes.concat(_changes);
     });
     promises.push(promise);

@@ -1,6 +1,5 @@
 Now
 ---
-- Rename all use of ._collection to ._col in docs
 - express (or better) server - use web socket
 	- make sure msg structure allows for extension, e.g. timestamp handshaking
 - convert all .db({}) to .db(name)

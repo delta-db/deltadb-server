@@ -8,24 +8,24 @@ var Promise = require('bluebird'),
 
 var DB = function ( /* name, adapter */ ) {
   CommonDB.apply(this, arguments); // apply parent constructor
-  this._collections = {};
+  this._cols = {};
 };
 
 inherits(DB, CommonDB);
 
 DB.prototype.col = function (name) {
-  if (this._collections[name]) {
-    return this._collections[name];
+  if (this._cols[name]) {
+    return this._cols[name];
   } else {
     var col = new Collection(name, this);
-    this._collections[name] = col;
+    this._cols[name] = col;
     return col;
   }
 };
 
 // TODO: should this return a promise like col.all()??
 DB.prototype.all = function (callback) {
-  utils.each(this._collections, callback);
+  utils.each(this._cols, callback);
 };
 
 DB.prototype.close = function () {

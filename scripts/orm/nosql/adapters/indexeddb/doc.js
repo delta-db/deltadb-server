@@ -4,10 +4,10 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDoc = require('../../common/doc');
 
-var Doc = function (doc, collection) {
+var Doc = function (doc, col) {
   CommonDoc.apply(this, arguments); // apply parent constructor
-  this._collection = collection;
-  this._idName = collection._db._idName;
+  this._col = col;
+  this._idName = col._db._idName;
 };
 
 inherits(Doc, CommonDoc);
@@ -15,8 +15,8 @@ inherits(Doc, CommonDoc);
 Doc.prototype._put = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
-      store = tx.objectStore(self._collection._name);
+    var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
+      store = tx.objectStore(self._col._name);
 
     var request = store.put(doc);
 
@@ -49,8 +49,8 @@ Doc.prototype._update = function () {
 Doc.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var tx = self._collection._db._db.transaction(self._collection._name, 'readwrite'),
-      store = tx.objectStore(self._collection._name);
+    var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
+      store = tx.objectStore(self._col._name);
 
     var request = store.delete(self.id());
 
@@ -69,7 +69,7 @@ Doc.prototype._destroy = function () {
 Doc.prototype._save = function () {
   var self = this,
     args = arguments;
-  return self._collection._opened().then(function () {
+  return self._col._opened().then(function () {
     return CommonDoc.prototype._save.apply(self, args);
   });
 };

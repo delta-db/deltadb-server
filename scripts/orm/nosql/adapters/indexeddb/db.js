@@ -16,7 +16,7 @@ require('indexeddbshim'); // Automatically sets window.shimIndexedDB
 
 var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor
-  this._collections = {};
+  this._cols = {};
   this._pendingObjectStores = [];
 };
 
@@ -145,11 +145,11 @@ DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
 };
 
 DB.prototype.col = function (name) {
-  if (this._collections[name]) { // exists?
-    return this._collections[name];
+  if (this._cols[name]) { // exists?
+    return this._cols[name];
   } else {
     var col = new Collection(this, name);
-    this._collections[name] = col;
+    this._cols[name] = col;
     return col;
   }
 };
@@ -206,7 +206,7 @@ DB.prototype._destroyCol = function (colName) {
 };
 
 DB.prototype.all = function (callback) {
-  utils.each(this._collections, callback);
+  utils.each(this._cols, callback);
 };
 
 // Keeping this explicit instead of being called implicitly by all() so that a calling process can
