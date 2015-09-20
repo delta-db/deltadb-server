@@ -17,7 +17,7 @@ inherits(DB, AbstractDB);
 DB.prototype.col = function (name) {
   var self = this;
   return new Promise(function (resolve) {
-    resolve(new CollectionWrapper(new Collection(self._db.collection(name))));
+    resolve(new CollectionWrapper(new Collection(self._db.col(name))));
   });
 };
 
