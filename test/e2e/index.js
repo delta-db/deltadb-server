@@ -30,9 +30,7 @@ describe('e2e', function () {
       db: 'mydb'
     });
 
-    return a.col('tasks').then(function (collection) {
-      aTasks = collection;
-    });
+    aTasks = a.col('tasks');
   });
 
   var syncAndProcess = function (localDB) {
@@ -56,9 +54,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.col('tasks');
-    }).then(function (collection) {
-      bTasks = collection;
+      bTasks = b.col('tasks');
       return utils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
@@ -77,9 +73,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.col('tasks');
-    }).then(function (collection) {
-      bTasks = collection;
+      bTasks = b.col('tasks');
       return utils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
@@ -116,9 +110,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.col('tasks');
-    }).then(function (collection) {
-      bTasks = collection;
+      bTasks = b.col('tasks');
       return utils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
@@ -145,9 +137,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.col('tasks');
-    }).then(function (collection) {
-      bTasks = collection;
+      bTasks = b.col('tasks');
       return utils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
@@ -204,9 +194,7 @@ describe('e2e', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return b.col('tasks');
-    }).then(function (collection) {
-      bTasks = collection;
+      bTasks = b.col('tasks');
       return bTasks.get(task1.id());
     }).then(function (bTask1) {
       return bTask1.destroy();

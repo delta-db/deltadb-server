@@ -158,7 +158,7 @@ Adapter.prototype.test = function () {
         name: 'Jack',
         age: 24
       });
-      
+
       return user.save().then(function () {
         return user.unset('age');
       }).then(function () {

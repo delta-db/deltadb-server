@@ -1,11 +1,8 @@
 Now
 ---
-- use FireFox & Chrome to test indexeddb adapter
-	- Convert all adapters to make db.col() not return a promise and update API docs
-		- client
-	- Rename all use of ._collection to ._col in docs
-	- convert all .db({}) to .db(name)
+- Rename all use of ._collection to ._col in docs
 - express (or better) server - use web socket
+- convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm

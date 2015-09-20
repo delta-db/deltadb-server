@@ -5,8 +5,10 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function ( /* data, collection */ ) {
+var Doc = function (data, collection, genDocStore) {
   MemDoc.apply(this, arguments); // apply parent constructor
+  this._genDocStore = genDocStore; // TODO: is this really needed?
+  this._initDat(data);
 };
 
 inherits(Doc, MemDoc);
@@ -29,9 +31,13 @@ Doc.prototype._pointToData = function () {
 };
 
 Doc._createDocStore = function (data, colStore) {
+  return colStore.doc(data);
+};
+
+Doc.prototype._initDat = function (data) {
   // To reduce reads from the store, we will assume that this._dat is always up-to-date and
   // therefore changes can just be committed to the store for persistence
-  var dat = {
+  this._dat = {
     data: data ? data : {},
     changes: [],
     latest: {}, // TODO: best name as pending to be written to server?
@@ -40,44 +46,71 @@ Doc._createDocStore = function (data, colStore) {
     recordedAt: null // used to determine whether doc has been recorded
   };
 
-  return colStore.doc(dat);
+  this._pointToData();
 };
 
-Doc.prototype._initStore = function () {
+Doc.prototype._loadFromStore = function () {
   // TODO: use timestamps of existing data to determine whether data from store should replace
   // existing data as the store might load after the data has already been set
-
   this._dat = this._store.get();
 
   this._pointToData();
+};
 
-  if (this._store.id()) { // reloading from store and already have id?
+Doc.prototype._initStore = function () {
+  var self = this;
 
-    this.id(this._store.id());
+  return self._opened().then(function () {
 
-    // register as doc id was just set
-    var self = this;
-    self._register().then(function () {
+    self._loadFromStore();
+
+    if (self._store.id()) { // reloading from store and already have id?
+
+      self.id(self._store.id());
+
+      // register as doc id was just set
+      self._register().then(function () {
+        self.emit('load');
+      });
+
+    } else {
+
       self.emit('load');
-    });
 
-  } else {
+    }
+  });
+};
 
-    this.emit('load');
+Doc.prototype._open = function () {
+  var self = this;
+  return self._collection._opened().then(function () {
+    if (self._genDocStore) {
+      // Use self._dat as the store needs the reference and not a copy
+      self._import(Doc._createDocStore(self._dat, self._collection._store));
+    }
+  });
+};
 
+Doc.prototype._opened = function () {
+  if (!this._openPromise) {
+    this._openPromise = this._open();
   }
+  return this._openPromise;
 };
 
 Doc.prototype._saveStore = function () {
-  // If there is no id, set one so that the id is not set by the store
-  var id = this.id();
-  if (!id) {
-    id = utils.uuid();
-    this.id(id);
-  }
-  this._store.id(id); // use id from data
+  var self = this;
+  return self._opened().then(function () {
+    // If there is no id, set one so that the id is not set by the store
+    var id = self.id();
+    if (!id) {
+      id = utils.uuid();
+      self.id(id);
+    }
+    self._store.id(id); // use id from data
 
-  return this._store.set(this._dat);
+    return self._store.set(self._dat);
+  });
 };
 
 Doc.prototype.save = function () {

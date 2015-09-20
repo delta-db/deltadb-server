@@ -21,10 +21,8 @@ describe('client', function () {
     db = client.db({
       db: 'mydb'
     });
-    return db.col('tasks').then(function (collection) {
-      tasks = collection;
-      task = tasks.doc();
-    });
+    tasks = db.col('tasks');
+    task = tasks.doc();
   });
 
   // TODO: define afterEach and destroy underlying store
@@ -103,10 +101,7 @@ describe('client', function () {
         version: DB.VERSION
       });
     }).then(function () {
-      return db2.col('tasks');
-    }).then(function (collection) {
-      tasks2 = collection;
-    }).then(function () {
+      tasks2 = db2.col('tasks');
       return tasks2.find(null, function (doc) {
         doc._dat.should.eql(dat);
       }, true); // include destroyed docs
@@ -130,9 +125,7 @@ describe('client', function () {
       db2 = client2.db({
         db: 'mydb'
       });
-      return db2.col('tasks').then(function (collection) {
-        tasks2 = collection;
-      });
+      tasks2 = db2.col('tasks');
     };
 
     // Populate underlying store

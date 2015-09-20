@@ -8,8 +8,9 @@ var inherits = require('inherits'),
   Doc = require('./doc'),
   Cursor = require('../orm/nosql/adapters/mem/cursor');
 
-var Collection = function ( /* name, db */ ) {
+var Collection = function (name, db, genColStore) {
   MemCollection.apply(this, arguments); // apply parent constructor
+  this._genColStore = genColStore; // TODO: really needed??
 };
 
 inherits(Collection, MemCollection);
@@ -24,14 +25,10 @@ Collection.prototype._doc = function (data, genDocStore) {
   if (id && this._docs[id]) { // has id and exists?
     return this._docs[id];
   } else {
-    var doc = new Doc(data, this);
+    var doc = new Doc(data, this, genDocStore);
 
     // In most cases we don't know the id when creating the doc and rely on save() to call
     // register() later this._docs[id] = doc;
-
-    if (genDocStore) {
-      doc._import(Doc._createDocStore(data, this._store));
-    }
 
     // We need the store to be setup before changing the data
     if (genDocStore && data) {
@@ -136,6 +133,17 @@ Collection.prototype._localChanges = function (retryAfter, returnSent) {
   }, true).then(function () {
     return changes;
   });
+};
+
+Collection.prototype._open = function () {
+  return this._db._colStoreOpened(this, this._name, this._genColStore);
+};
+
+Collection.prototype._opened = function () {
+  if (!this._openPromise) {
+    this._openPromise = this._open();
+  }
+  return this._openPromise;
 };
 
 module.exports = Collection;

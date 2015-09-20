@@ -67,7 +67,8 @@ Doc.prototype._destroy = function () {
 };
 
 Doc.prototype._save = function () {
-  var self = this, args = arguments;
+  var self = this,
+    args = arguments;
   return self._collection._opened().then(function () {
     return CommonDoc.prototype._save.apply(self, args);
   });

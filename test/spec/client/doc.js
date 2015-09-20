@@ -19,10 +19,10 @@ describe('doc', function () {
     db = client.db({
       db: 'mydb'
     });
-    return db.col('tasks').then(function (collection) {
-      tasks = collection;
-      task = tasks.doc();
-    });
+
+    tasks = db.col('tasks');
+
+    task = tasks.doc();
   });
 
   it('should record when remote change has seq', function () {

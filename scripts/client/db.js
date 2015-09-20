@@ -53,11 +53,9 @@ DB.prototype._initStore = function () {
       loadingProps = true;
       promises.push(self._initProps(colStore));
     } else {
-      var promise = self._col(colStore._name).then(function (col) {
-        col._import(colStore);
-        return col._loaded;
-      });
-      promises.push(promise);
+      var col = self._col(colStore._name);
+      col._import(colStore);
+      promises.push(col._loaded);
     }
   });
 
@@ -71,62 +69,57 @@ DB.prototype._initStore = function () {
 };
 
 DB.prototype._initProps = function (colStore) {
-  var self = this,
-    promise = null;
+  var self = this;
 
   if (colStore) { // reloading?
-    promise = Promise.resolve(colStore);
+    self._propCol = colStore;
   } else {
-    promise = self._store.col(DB.PROPS_COL_NAME);
+    self._propCol = self._store.col(DB.PROPS_COL_NAME);
   }
 
-  return promise.then(function (col) {
-    self._propCol = col;
-    self._propCol.get(DB.PROPS_DOC_ID).then(function (doc) {
-      if (doc) { // found?
-        self._props = doc;
-      } else {
-        var props = {};
-        props[self._store._idName] = DB.PROPS_DOC_ID;
-        self._props = self._propCol.doc(props);
-        return self._props.set({
-          since: null,
-          version: DB.VERSION
-        });
-      }
-    });
+  return self._propCol.get(DB.PROPS_DOC_ID).then(function (doc) {
+    if (doc) { // found?
+      self._props = doc;
+    } else {
+      var props = {};
+      props[self._store._idName] = DB.PROPS_DOC_ID;
+      self._props = self._propCol.doc(props);
+      return self._props.set({
+        since: null,
+        version: DB.VERSION
+      });
+    }
   });
 };
 
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype._col = function (name, genColStore) {
+  if (this._collections[name]) {
+    return this._collections[name];
+  } else {
+
+    // TODO: does genColStore really need to be passed?
+    var col = new Collection(name, this, genColStore);
+    this._collections[name] = col;
+    this._emitColCreate(col);
+
+    return col;
+  }
+};
+
+// TODO: move to col layer?? TODO: genColStore really needed??
+DB.prototype._colStoreOpened = function (col, name, genColStore) {
   var self = this;
-  return new Promise(function (resolve) {
-    if (self._collections[name]) {
-      resolve(self._collections[name]);
-    } else {
-
-      var collection = new Collection(name, self);
-      self._collections[name] = collection;
-      self._emitColCreate(collection);
-
-      var promise = null;
-      if (genColStore) {
-        // Use the _storeLoaded promise to ensure that the store has been loaded first
-        promise = self._storeLoaded.then(function () {
-          return self._store.col(name);
-        }).then(function (colStore) {
-          collection._import(colStore);
-          return collection;
-        });
-      } else {
-        promise = Promise.resolve(collection);
-      }
-
-      resolve(promise);
-    }
-  });
+  if (genColStore) {
+    return self._storeLoaded.then(function () {
+      var colStore = self._store.col(name);
+      col._import(colStore);
+      return col;
+    });
+  } else {
+    return Promise.resolve();
+  }
 };
 
 DB.prototype.col = function (name) {
@@ -156,9 +149,8 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
 };
 
 DB.prototype._setChange = function (change) {
-  return this.col(change.col).then(function (collection) {
-    return collection._setChange(change);
-  });
+  var col = this.col(change.col);
+  return col._setChange(change);
 };
 
 // Process changes sequentially or else duplicate collections can be created
@@ -212,15 +204,13 @@ DB.prototype._emit = function () { // event, arg1, ... argN
 
 DB.prototype.policy = function (colName, policy) {
   // Find/create collection and set policy for new doc
-  return this.col(colName).then(function (col) {
-    return col.policy(policy);
-  });
+  var col = this.col(colName);
+  return col.policy(policy);
 };
 
 DB.prototype.createUser = function (userUUID, username, password, status) {
-  return this.col(Doc._userName).then(function (col) {
-    return col._createUser(userUUID, username, password, status);
-  });
+  var col = this.col(Doc._userName);
+  return col._createUser(userUUID, username, password, status);
 };
 
 DB.prototype.updateUser = function (userUUID, username, password, status) {
@@ -229,16 +219,14 @@ DB.prototype.updateUser = function (userUUID, username, password, status) {
 
 DB.prototype.addRole = function (userUUID, roleName) {
   var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  return this.col(colName).then(function (col) {
-    return col._addRole(userUUID, roleName);
-  });
+  var col = this.col(colName);
+  return col._addRole(userUUID, roleName);
 };
 
 DB.prototype.removeRole = function (userUUID, roleName) {
   var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  return this.col(colName).then(function (col) {
-    return col._removeRole(userUUID, roleName);
-  });
+  var col = this.col(colName);
+  return col._removeRole(userUUID, roleName);
 };
 
 module.exports = DB;
