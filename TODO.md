@@ -2,6 +2,7 @@ Now
 ---
 - Rename all use of ._collection to ._col in docs
 - express (or better) server - use web socket
+	- make sure msg structure allows for extension, e.g. timestamp handshaking
 - convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app (notewall w/o encryption) - impl deltadb-ng

@@ -147,7 +147,7 @@ Adapter.prototype.test = function () {
     it('should throw error when finding with offset', function () {
       var users = db.col('users');
 
-      commonUtils.shouldThrow(function () {
+      return commonUtils.shouldThrow(function () {
         return users.find({
           offset: 0
         }, function () {});
@@ -158,7 +158,7 @@ Adapter.prototype.test = function () {
     it('should throw error when finding with limit', function () {
       var users = db.col('users');
 
-      commonUtils.shouldThrow(function () {
+      return commonUtils.shouldThrow(function () {
         return users.find({
           limit: 1
         }, function () {});
@@ -168,7 +168,7 @@ Adapter.prototype.test = function () {
     it('should catch error when creating object store', function () {
       return new Promise(function (resolve) {
         var err = new Error('err');
-        db._createObjectStoreIfMissing = oldUtils.promiseErrorFactory(err); // stub
+        db._openAndCreateObjectStore = oldUtils.promiseErrorFactory(err); // stub
 
         var os = {
           callback: function (_err) {

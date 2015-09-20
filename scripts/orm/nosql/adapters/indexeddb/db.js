@@ -70,14 +70,6 @@ DB.prototype._initStore = function () {
   });
 };
 
-DB.prototype._createObjectStoreIfMissing = function (name) {
-  if (this._db.objectStoreNames.contains(name)) { // exists?
-    return Promise.resolve();
-  } else {
-    return this._openAndCreateObjectStore(name);
-  }
-};
-
 DB.prototype._openAndCreateObjectStore = function (name) {
   var self = this;
 
@@ -112,7 +104,7 @@ DB.prototype._storeReady = function () {
 DB.prototype._openAndCreateObjectStoreFactory = function (os) {
   var self = this;
   return function () {
-    return self._createObjectStoreIfMissing(os.name).then(function (col) {
+    return self._openAndCreateObjectStore(os.name).then(function (col) {
       os.callback(null, col);
     }).catch(function (err) {
       os.callback(err);
