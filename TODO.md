@@ -4,8 +4,9 @@ Now
 	- make sure msg structure allows for extension, e.g. timestamp handshaking
 - convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
-- test with actual angular app (notewall w/o encryption) - impl deltadb-ng
+- test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
+- impl deltadb-ng and modify todo example
 - use lie instead of bluebird
 - Roadmap
 - Admin UI, e.g. "Delta Admin"
