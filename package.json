@@ -37,7 +37,7 @@
     "min": "uglifyjs dist/deltadb.js -mc > dist/deltadb.min.js",
     "dev": "browserify test/test.js > test/test-bundle.js && npm run dev-server",
     "dev-server": "./bin/dev-server.js",
-    "coverage": "npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100 && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "coverage": "npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100",
     "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/remove.js -o test/new-test-bundle.js -d",
     "coverage-report": "istanbul report --root coverage lcov",
     "check-coverage": "istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100",
