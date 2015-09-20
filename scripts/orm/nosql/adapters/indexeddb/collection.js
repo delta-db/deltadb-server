@@ -34,8 +34,8 @@ Collection.prototype.get = function (id) {
         resolve(request.result ? new Doc(request.result, self) : null);
       };
 
-      // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't trigger
-      // it.
+      // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't
+      // trigger it.
       /* istanbul ignore next */
       request.onerror = function () {
         reject(request.error);
