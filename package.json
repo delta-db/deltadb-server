@@ -20,7 +20,7 @@
     "url": "https://github.com/redgeoff/deltadb/issues"
   },
   "scripts": {
-    "test-node": "istanbul test ./node_modules/mocha/bin/_mocha test/test.js",
+    "test-node": "istanbul test --dir coverage/node ./node_modules/mocha/bin/_mocha test/test.js",
     "test-performance": "istanbul test ./node_modules/mocha/bin/_mocha -- -g 'delta' test/performance.js",
     "test-browser": "./bin/test-browser.js",
     "beautify-for-test": "node scripts/beautify-proj/index.js -i test -o beautified/beautified -c beautify.json && node scripts/beautify-proj/index.js -i scripts -o beautified/beautified -c beautify.json",
@@ -37,12 +37,13 @@
     "min": "uglifyjs dist/deltadb.js -mc > dist/deltadb.min.js",
     "dev": "browserify test/test.js > test/test-bundle.js && npm run dev-server",
     "dev-server": "./bin/dev-server.js",
-    "coverage": "npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100",
+    "coverage": "mkdir -p coverage/node && npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100 coverage/node/coverage.json",
     "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/remove.js -o test/new-test-bundle.js -d",
-    "coverage-report": "istanbul report --root coverage lcov",
-    "check-coverage": "istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100",
+    "coverage-report": "istanbul report --dir coverage/browser --root coverage/browser lcov",
+    "check-coverage": "istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100 coverage/browser/coverage.json",
     "new-dev-server": "./bin/new-dev-server.js",
-    "new-test-browser": "./bin/new-test-browser.js",
+    "mv-coverage": "mv coverage/coverage.json coverage/browser/coverage.json",
+    "new-test-browser": "mkdir -p coverage/browser && ./bin/new-test-browser.js && npm run mv-coverage",
     "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage"
   },
   "dependencies": {
