@@ -21,7 +21,6 @@ Now
 - create a debug mode that allows DeltaDB to write a lot of info to a log
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
-- concat coverage files and pass everything to coveralls
 
 Next
 ---

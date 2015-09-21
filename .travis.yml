@@ -24,7 +24,7 @@ before_script:
 
   - cp config-default.js config.js
 
-after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+after_script: "cat ./coverage/node/lcov.info ./coverage/browser/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 
 env:
   matrix:
