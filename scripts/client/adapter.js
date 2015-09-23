@@ -6,6 +6,7 @@ var inherits = require('inherits'),
   MemAdapter = require('../orm/nosql/adapters/mem/adapter'),
   DB = require('./db'),
   utils = require('../utils'),
+  clientUtils = require('./utils'),
   Promise = require('bluebird');
 
 var Adapter = function (store) {
@@ -79,6 +80,16 @@ Adapter.prototype.db = function (opts) {
     this.emit('db:create', db);
     return db;
   }
+};
+
+Adapter.prototype._createDatabase = function (dbName) {
+  var systemDB = this.db({ db: clientUtils.SYSTEM_DB_NAME });
+  return systemDB._createDatabase(dbName);
+};
+
+Adapter.prototype._destroyDatabase = function (dbName) {
+  var systemDB = this.db({ db: clientUtils.SYSTEM_DB_NAME });
+  return systemDB._destroyDatabase(dbName);
 };
 
 module.exports = Adapter;

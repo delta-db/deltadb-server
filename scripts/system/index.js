@@ -2,7 +2,8 @@
 
 // TODO: move Cols.ALL up so not at SQL layer. Same for any other partitioner deps at SQL layer
 var Cols = require('../partitioner/sql/col/cols'),
-  Users = require('../partitioner/sql/user/users');
+  Users = require('../partitioner/sql/user/users'),
+  clientUtils = require('../client/utils');
 
 var System = function (manager) {
   this._manager = manager;
@@ -14,10 +15,10 @@ System.DEFAULT_ADMIN_ROLE = '$admin';
 System.DEFAULT_ADMIN_USER = 'admin';
 System.DEFAULT_ADMIN_PWD = 'admin';
 
-System.DB_NAME = '$system';
+System.DB_NAME = clientUtils.SYSTEM_DB_NAME;
 
-System.DB_COLLECTION_NAME = '$db';
-System.DB_ATTR_NAME = '$db';
+System.DB_COLLECTION_NAME = clientUtils.DB_COLLECTION_NAME;
+System.DB_ATTR_NAME = clientUtils.DB_ATTR_NAME;
 
 System.prototype._queueCreateDefaultAdminUser = function () {
   return this._manager.genUserAndQueueCreateUser(System.DEFAULT_ADMIN_USER_UUID,

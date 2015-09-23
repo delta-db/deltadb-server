@@ -2,6 +2,7 @@ Now
 ---
 - express (or better) server - use web socket
 	- make sure msg structure allows for extension, e.g. timestamp handshaking
+	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
 - convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app - todomvc adaptation
@@ -50,6 +51,7 @@ Next
 - could speed up read for certain scenarios by caching non-essential data say every 30 mins in flat files and then having clients read just this data and only query the DB directly for the essential data. Could separate the essential and non-essential via DB's and sync modes, could then put a DB in cache mode and all syncs would be cached and the cached syncs could be rotated.
 - tool in admin UI or code that helps you unit test policies
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
+- create RESTful API in addition to socket API?
 
 NoSQL support
 ---
@@ -85,6 +87,7 @@ Future?
 - Figure out a way to use Selenium with Chrome and Firefox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
 - indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
 - wrap ids to prevent exceptions? Is this a concern with the attrs table? Do we need to have a process that sets the auto_increment back to 0 when it reaches a high enough number? Better to just not have ids for these tables? But then how to order attributes in a deterministic way? Need to take DB offline at this point and adjust all ids down to 0? Could prevent taking DB offline by just starting to adjust all ids with transactions once we get close to the overflow value, but then this would make the changes() call return changes out of order. http://stackoverflow.com/questions/2615417/what-happens-when-auto-increment-on-integer-column-reaches-the-max-value-in-data
+- what is the best web socket framework to use that will give us max speed and num connections? https://medium.com/@denizozger/finding-the-right-node-js-websocket-implementation-b63bfca0539. Probably need to benchmark
 
 
 Misc

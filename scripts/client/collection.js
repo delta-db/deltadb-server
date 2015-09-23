@@ -122,6 +122,14 @@ Collection.prototype._removeRole = function (userUUID, roleName) {
   return doc._removeRole(userUUID, roleName);
 };
 
+Collection.prototype._createDatabase = function (dbName) {
+  return this.doc()._createDatabase(dbName);
+};
+
+Collection.prototype._destroyDatabase = function (dbName) {
+  return this.doc()._destroyDatabase(dbName);
+};
+
 Collection.prototype.find = function (query, callback, destroyed) {
   return this._find(query, callback, new Cursor(this._docs, this, destroyed));
 };
