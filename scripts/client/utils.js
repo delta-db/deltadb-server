@@ -36,4 +36,8 @@ Utils.prototype.NAME_PRE_USER_ROLES = '$ur';
 Utils.prototype.ACTION_ADD = 'add';
 Utils.prototype.ACTION_REMOVE = 'remove';
 
+Utils.prototype.SYSTEM_DB_NAME = '$system';
+Utils.prototype.DB_COLLECTION_NAME = '$db';
+Utils.prototype.DB_ATTR_NAME = '$db';
+
 module.exports = new Utils();

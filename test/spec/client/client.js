@@ -1539,4 +1539,42 @@ describe('client', function () {
 
   });
 
+  it('should create database', function () {
+
+    var dbName = 'mydb';
+
+    return client._createDatabase(dbName).then(function (savedDoc) {
+      var db = client.db({
+        db: '$system'
+      });
+      db.all(function (col) {
+        col.all(function (doc) {
+          var data = doc.get();
+          data.$db.name.should.eql(dbName);
+          doc.should.eql(savedDoc);
+        });
+      });
+    });
+
+  });
+
+  it('should destroy database', function () {
+
+    var dbName = 'mydb';
+
+    return client._destroyDatabase(dbName).then(function (savedDoc) {
+      var db = client.db({
+        db: '$system'
+      });
+      db.all(function (col) {
+        col.all(function (doc) {
+          var data = doc.get();
+          data.$db.name.should.eql(dbName);
+          doc.should.eql(savedDoc);
+        });
+      });
+    });
+
+  });
+
 });

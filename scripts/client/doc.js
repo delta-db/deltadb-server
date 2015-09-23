@@ -393,6 +393,7 @@ Doc.prototype._createUser = function (userUUID, username, password, status) {
   });
 };
 
+// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._addRole = function (userUUID, roleName) {
   var data = {
     action: clientUtils.ACTION_ADD,
@@ -402,11 +403,32 @@ Doc.prototype._addRole = function (userUUID, roleName) {
   return this._setAndSave(data);
 };
 
+// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._removeRole = function (userUUID, roleName) {
   var data = {
     action: clientUtils.ACTION_REMOVE,
     userUUID: userUUID,
     roleName: roleName
+  };
+  return this._setAndSave(data);
+};
+
+// Note: must only be called for System DB
+Doc.prototype._createDatabase = function (dbName) {
+  var data = {};
+  data[clientUtils.DB_ATTR_NAME] = {
+    action: clientUtils.ACTION_ADD,
+    name: dbName
+  };
+  return this._setAndSave(data);
+};
+
+// Note: must only be called for System DB
+Doc.prototype._destroyDatabase = function (dbName) {
+  var data = {};
+  data[clientUtils.DB_ATTR_NAME] = {
+    action: clientUtils.ACTION_REMOVE,
+    name: dbName
   };
   return this._setAndSave(data);
 };

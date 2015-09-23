@@ -229,4 +229,16 @@ DB.prototype.removeRole = function (userUUID, roleName) {
   return col._removeRole(userUUID, roleName);
 };
 
+DB.prototype._createDatabase = function (dbName) {
+  var colName = clientUtils.DB_COLLECTION_NAME;
+  var col = this.col(colName);
+  return col._createDatabase(dbName);
+};
+
+DB.prototype._destroyDatabase = function (dbName) {
+  var colName = clientUtils.DB_COLLECTION_NAME;
+  var col = this.col(colName);
+  return col._destroyDatabase(dbName);
+};
+
 module.exports = DB;
