@@ -1544,7 +1544,9 @@ describe('client', function () {
     var dbName = 'mydb';
 
     return client._createDatabase(dbName).then(function (savedDoc) {
-      var db = client.db({ db: '$system' });
+      var db = client.db({
+        db: '$system'
+      });
       db.all(function (col) {
         col.all(function (doc) {
           var data = doc.get();
@@ -1561,7 +1563,9 @@ describe('client', function () {
     var dbName = 'mydb';
 
     return client._destroyDatabase(dbName).then(function (savedDoc) {
-      var db = client.db({ db: '$system' });
+      var db = client.db({
+        db: '$system'
+      });
       db.all(function (col) {
         col.all(function (doc) {
           var data = doc.get();

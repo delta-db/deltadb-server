@@ -83,12 +83,16 @@ Adapter.prototype.db = function (opts) {
 };
 
 Adapter.prototype._createDatabase = function (dbName) {
-  var systemDB = this.db({ db: clientUtils.SYSTEM_DB_NAME });
+  var systemDB = this.db({
+    db: clientUtils.SYSTEM_DB_NAME
+  });
   return systemDB._createDatabase(dbName);
 };
 
 Adapter.prototype._destroyDatabase = function (dbName) {
-  var systemDB = this.db({ db: clientUtils.SYSTEM_DB_NAME });
+  var systemDB = this.db({
+    db: clientUtils.SYSTEM_DB_NAME
+  });
   return systemDB._destroyDatabase(dbName);
 };
 

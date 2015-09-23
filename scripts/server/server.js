@@ -24,20 +24,20 @@ var Server = function () {
 };
 
 Server.prototype._registerInitListener = function (socket) {
-  socket.on('init', function (/* msg */) {
+  socket.on('init', function ( /* msg */ ) {
     // TODO: also handle authentication here?
   });
 };
 
 Server.prototype._registerSyncListener = function (socket) {
-  socket.on('sync', function (/* msg */) {
+  socket.on('sync', function ( /* msg */ ) {
 
   });
 };
 
 Server.prototype._registerDisconnectListener = function (socket) {
   socket.on('disconnect', function () {
-// TODO: clean up connection w/ client
+    // TODO: clean up connection w/ client
   });
 };
 

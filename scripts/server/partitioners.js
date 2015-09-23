@@ -7,12 +7,15 @@ var Partitioners = function () {
 };
 
 Partitioners.prototype.register = function (dbName, connId) {
-// TODO: should connect be done here? If so then how to report error if no connection?
+  // TODO: should connect be done here? If so then how to report error if no connection?
   if (this._partitioners[dbName]) { // exists?
     this._partitioners[dbName]['ids'][connId] = connId; // register the connId
   } else {
     // First conn for this partitioner
-    this._partitioners[dbName] = { part: new Partitioner(dbName), ids: {} };
+    this._partitioners[dbName] = {
+      part: new Partitioner(dbName),
+      ids: {}
+    };
   }
   return this._partitioners[dbName]['part'];
 };
