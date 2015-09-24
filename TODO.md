@@ -1,7 +1,13 @@
 Now
 ---
 - express (or better) server - use web socket
+	- when there is a new client change:
+		- create a 'change' event that bubbles up to db
+		- db then kicks off a sync process if not already syncing. If already syncing then sets timestamp
+		- when current sync process completes it checks the timestamp and determines if it needs to sync again
+		- test by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- make sure msg structure allows for extension, e.g. timestamp handshaking
+	- events for connect, disconnect
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
 - convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
@@ -25,6 +31,7 @@ Now
 
 Next
 ---
+- client: ability to disconnect and leave disconnected until prompted to connect
 - faster to use bcrypt instead of bcryptjs for server side only?
 - create tour like slack product tour
 - Split into projects:

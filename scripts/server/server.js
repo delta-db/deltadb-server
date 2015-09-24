@@ -1,16 +1,9 @@
 'use strict';
 
-// Need a connection per DB? Seems wasteful and DB may not exist yet and may need to interact w/
-// System DB to create another DB. Advantage to having separate connections is that you can
+// TODO: Need a connection per DB? Seems wasteful, but DB may not exist yet and may need to interact
+// w/ System DB to create another DB. Advantage to having separate connections is that you can
 // prioritize a DB over another! If multiple DBs per socket then how to handle connections with diff
-// servers if DBs on diff servers?
-
-// Use namespaces for each DB name??
-
-// What is exchanged during open? Need to pass db name and authentication?
-
-// Anything done during disconnect? What about a disconnect where reconnect doesn't happen even
-// after a long time?
+// servers if DBs on diff servers? Chosing socket per DB for now.
 
 var app = require('express')(),
   http = require('http').Server(app),
@@ -24,36 +17,49 @@ var Server = function () {
 };
 
 Server.prototype._registerInitListener = function (socket) {
-  socket.on('init', function ( /* msg */ ) {
+  var self = this;
+  socket.on('init', function (msg) {
+    // TODO: error checking if msg not in correct format
+
+    // Lookup/create partitioner for DB name
+    return self._partitioners.register(msg.db, socket).then(function (partitioner) {
+      self._registerDisconnectListener(socket, partitioner);
+      self._registerSyncListener(socket, partitioner);
+    }).catch(function (err) {
+      socket.emit('error', err);
+    });
     // TODO: also handle authentication here?
   });
 };
 
-Server.prototype._registerSyncListener = function (socket) {
-  socket.on('sync', function ( /* msg */ ) {
-
-  });
-};
-
-Server.prototype._registerDisconnectListener = function (socket) {
+Server.prototype._registerDisconnectListener = function (socket, partitioner) {
+  var self = this;
   socket.on('disconnect', function () {
-    // TODO: clean up connection w/ client
+    // Clean up
+    return self._unregister(partitioner._dbName, socket).catch(function ( /* err */ ) {
+      // TODO: write to log if error?
+    });
   });
 };
 
-Server.prototype._registerSocketListeners = function (socket) {
-  this._registerSyncListener(socket);
+Server.prototype._registerSyncListener = function (socket, partitioner) {
+  socket.on('sync', function (msg) {
+    // TODO: error checking if msg not in correct format
+
+// TODO: have partitioners perform sync with since that was stored in partitioners
+
+  });
 };
 
 Server.prototype.listen = function () {
   var self = this;
 
   io.on('connection', function (socket) {
-    self._registerSocketListeners(socket);
+    self._registerInitListener(socket);
   });
 
   http.listen(port, function () {
-    console.log('listening on *:' + port);
+    // console.log('listening on *:' + port);
   });
 };
 
