@@ -13,12 +13,12 @@ Partitioners.POLL_SLEEP_MS = 1000;
 
 Partitioners.prototype.register = function (dbName, socket) {
   if (this._partitioners[dbName]) { // exists?
-    this._partitioners[dbName].conns[socket.conn.id] = { socket: socket, since: null };
+    this._partitioners[dbName].conns[socket.conn.id] = { socket: socket /*, since: null */ };
     return Promise.resolve(this._partitioners[dbName]['part']);
   } else {
     // First conn for this partitioner
     var part = new Partitioner(dbName), ids = {};
-    conns[socket.conn.id] = { socket: socket, since: null }
+    conns[socket.conn.id] = { socket: socket /*, since: null */ }
     this._partitioners[dbName] = {
       part: part,
       conns: conns,
@@ -103,6 +103,32 @@ Partitioners.prototype._poll = function (partitioner) {
       self._beginPolling(partitioner);
     });
   }
+};
+
+Partitioners.prototype._emitChanges = function (socket, changes, since) {
+  socket.emit('changes', { changes: changes, since: since });
+};
+
+Partitioners.prototype.sync = function (dbName, socket, msg) {
+  // It's a little wasteful to have the client pass the since value with each sync, but it will make
+  // it easier for us to reuse the logic later if we also choose to support a RESTful API
+  var self = this,
+    newSince = null,
+    part = self._partitioners[dbName];
+
+  // TODO: this needs to be variable, e.g. false if there is only one DB server and true if there
+  // is more than 1
+  var quorum = true;
+  return part.queue(msg.changes, quorum).then(function () {
+    newSince = new Date();
+  }).then(function () {
+    // TODO: need to support pagination. Need to cap the results with the offset param, but then
+    // need to report to client that there is more data and to do another sync, but don't need
+    // client to resend changes. On the other side, how do we handle pagination from client?
+    return part.changes(msg.since);
+  }).then(function (changes) {
+    self._emitChanges(socket, changes, newSince);
+  });
 };
 
 module.exports = Partitioners;

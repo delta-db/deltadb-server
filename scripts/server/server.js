@@ -43,11 +43,9 @@ Server.prototype._registerDisconnectListener = function (socket, partitioner) {
 };
 
 Server.prototype._registerSyncListener = function (socket, partitioner) {
-  socket.on('sync', function (msg) {
+  socket.on('changes', function (msg) {
     // TODO: error checking if msg not in correct format
-
-// TODO: have partitioners perform sync with since that was stored in partitioners
-
+    self._partitioners.sync(partitioner._dbName, socket);
   });
 };
 

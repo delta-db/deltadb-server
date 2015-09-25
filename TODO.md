@@ -31,6 +31,7 @@ Now
 
 Next
 ---
+- server and client pagination for when there are a large amount of changes (partitioner already supports pagination)
 - client: ability to disconnect and leave disconnected until prompted to connect
 - faster to use bcrypt instead of bcryptjs for server side only?
 - create tour like slack product tour

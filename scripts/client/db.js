@@ -6,13 +6,16 @@
 
 // TODO: move some events to nosql/common layer?
 
+// TODO: separate out socket.io code?
+
 var inherits = require('inherits'),
   Promise = require('bluebird'),
   utils = require('../utils'),
   MemDB = require('../orm/nosql/adapters/mem/db'),
   Doc = require('./doc'),
   Collection = require('./collection'),
-  clientUtils = require('./utils');
+  clientUtils = require('./utils'),
+  io = require('socket.io-client');
 
 var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
@@ -239,6 +242,67 @@ DB.prototype._destroyDatabase = function (dbName) {
   var colName = clientUtils.DB_COLLECTION_NAME;
   var col = this.col(colName);
   return col._destroyDatabase(dbName);
+};
+
+DB.prototype._emitInit = function () {
+  this._socket.emit('init', { db: this._name });
+};
+
+DB.prototype._emitChanges = function (changes, since) {
+  this._socket.emit('changes', { changes: changes, since: since });
+};
+
+// TODO: it appears that the local changes don't get cleared until they are recorded, which is
+// correct, but investigate further to make sure that changes won't be duplicated back and forth.
+DB.prototype._syncWithRemote = function () {
+  // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
+  // code?
+  var self = this,
+    props = null;
+
+  return self._loaded.then(function () { // ensure props have been loaded/created first
+    return self._props.get();
+  }).then(function (_props) {
+    var props = _props;
+    return self._localChanges(self._retryAfter);
+  }).then(function (changes) {
+    self._emitChanges(changes, props.since)
+  });
+
+};
+
+DB.prototype._registerChangesListener = function () {
+  var self = this;
+
+  self._socket.on('changes', function (msg) {
+    return self._loaded.then(function () { // ensure props have been loaded/created first
+      return self._setChanges(msg.changes); // Process the server's changes
+    }).then(function () {
+      return self._props.set({ // Update since
+        since: msg.since
+      });
+    });
+  });
+};
+
+// TODO: call in constructor
+DB.prototype._connect = function () {
+  var self = this;
+
+  self._socket = io.connect('http://localhost:3000'); // TODO: make this configurable
+
+  self._socket.on('connect', function () {
+
+    // TODO: does this get called after reconnect? If so, then won't calling
+    // registerChangesListener() again cause problems? Any clean up needed in this case?
+
+    self._emitInit();
+
+    self._syncWithRemote();
+
+    self._registerChangesListener();
+
+  });
 };
 
 module.exports = DB;

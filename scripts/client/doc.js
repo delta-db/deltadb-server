@@ -447,7 +447,7 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
       chng.val = JSON.stringify(chng.val);
     }
     // if (!change.seq) {
-    //   delete chng.seq; // same some bandwidth and clear the seq if 0
+    //   delete chng.seq; // save some bandwidth and clear the seq if 0
     // }
     changes.push(chng);
     change.sent = new Date();
