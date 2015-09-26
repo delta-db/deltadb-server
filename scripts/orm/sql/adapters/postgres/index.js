@@ -255,8 +255,11 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
 };
 
 SQL.prototype.close = function () {
-  this._client.end(); // not async!
-  return Promise.resolve();
+  var self = this;
+  return new Promise(function (resolve) {
+    self._client.end(); // not async!
+    resolve();
+  });
 };
 
 SQL.prototype.dropAndCloseDatabase = function () {

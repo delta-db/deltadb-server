@@ -3,7 +3,9 @@
 // TODO: separate polling code into different model?
 
 var Promise = require('bluebird'),
-  Partitioner = require('../partitioner/sql');
+  Partitioner = require('../partitioner/sql'),
+  log = require('../utils/log'),
+  utils = require('../utils');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -11,25 +13,34 @@ var Partitioners = function () {
 
 Partitioners.POLL_SLEEP_MS = 1000;
 
+// TODO: split up
 Partitioners.prototype.register = function (dbName, socket) {
-  if (this._partitioners[dbName]) { // exists?
-    this._partitioners[dbName].conns[socket.conn.id] = { socket: socket /*, since: null */ };
-    return Promise.resolve(this._partitioners[dbName]['part']);
+  var self = this;
+  if (self._partitioners[dbName]) { // exists?
+    self._partitioners[dbName].conns[socket.conn.id] = { socket: socket /*, since: null */ };
+    return self._partitioners[dbName].ready;
   } else {
+
     // First conn for this partitioner
-    var part = new Partitioner(dbName), ids = {};
+    var part = new Partitioner(dbName), conns = {};
     conns[socket.conn.id] = { socket: socket /*, since: null */ }
-    this._partitioners[dbName] = {
+    var container = {
       part: part,
       conns: conns,
       poll: true,
       since: null
     };
-    var self = this;
-    return part.connect().then(function () {
+
+    // Save promise so that any registrations for the same partitioner that happen back-to-back can
+    // wait until the partitioner is ready
+    container.ready = part.connect().then(function () {
       self._poll(part);
-      retun part;
+      return part;
     });
+
+    self._partitioners[dbName] = container;
+
+    return container.ready;
   }
 };
 
@@ -43,7 +54,7 @@ Partitioners.prototype.unregister = function (dbName, socket) {
     // socket and stopping the polling is atomic
     this._partitioners[dbName].poll = false; // stop polling
 
-    var part = this._partitioners[dbName];
+    var part = this._partitioners[dbName].part;
     
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
@@ -62,11 +73,12 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
   var self = this;
 
   // Loop through all associated conns and notify that sync is needed
-  self.partitioners[partitioner._dbName].conns.forEach(function (conn) {
+  utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
+    log.info('sending (to ' + conn.socket.conn.id + ') sync-needed');
     conn.socket.emit('sync-needed');
   });
   
-  self.partitioners[partitioner._dbName].since = newSince; // update since
+  self._partitioners[partitioner._dbName].since = newSince; // update since
 };
 
 // TODO: how does server determine when to look for changes? In future, would be nice if this code
@@ -77,7 +89,7 @@ Partitioners.prototype._doPoll = function (partitioner) {
     newSince = new Date(); // save timestamp before to prevent race condition
 
   // Check for changes
-  return self._hasChanges(partitioner, self.partitioners[partitioner._dbName].since)
+  return self._hasChanges(partitioner, self._partitioners[partitioner._dbName].since)
     .then(function (has) {
       if (has) {
         return self._notifyAllPartitionerConnections(partitioner, newSince);
@@ -96,27 +108,30 @@ Partitioners.prototype._hasChanges = function (partitioner, since) {
 Partitioners.prototype._poll = function (partitioner) {
   var self = this;
   if (self._shouldPoll(partitioner)) {
-    self._poll(partitioner).then(function () {
+    self._doPoll(partitioner).then(function () {
       setTimeout(function () {
         self._poll(partitioner);
       }, Partitioners.POLL_SLEEP_MS);
-      self._beginPolling(partitioner);
     });
   }
 };
 
 Partitioners.prototype._emitChanges = function (socket, changes, since) {
-  socket.emit('changes', { changes: changes, since: since });
+  var msg = { changes: changes, since: since };
+  log.info('sending (to ' + socket.conn.id + ') ' + JSON.stringify(msg));
+  socket.emit('changes', msg);
 };
 
 Partitioners.prototype.sync = function (dbName, socket, msg) {
+  log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
+
   // It's a little wasteful to have the client pass the since value with each sync, but it will make
   // it easier for us to reuse the logic later if we also choose to support a RESTful API
   var self = this,
     newSince = null,
-    part = self._partitioners[dbName];
+    part = self._partitioners[dbName].part;
 
-  // TODO: this needs to be variable, e.g. false if there is only one DB server and true if there
+  // TODO: this needs to be a variable, e.g. false if there is only one DB server and true if there
   // is more than 1
   var quorum = true;
   return part.queue(msg.changes, quorum).then(function () {
@@ -125,9 +140,14 @@ Partitioners.prototype.sync = function (dbName, socket, msg) {
     // TODO: need to support pagination. Need to cap the results with the offset param, but then
     // need to report to client that there is more data and to do another sync, but don't need
     // client to resend changes. On the other side, how do we handle pagination from client?
-    return part.changes(msg.since);
+    return part.changes(new Date(msg.since));
   }).then(function (changes) {
-    self._emitChanges(socket, changes, newSince);
+    // TODO: wouldn't it be better to trigger this from server and not in response??? But then need
+    // the server to store the since so that the server doesn't have to ask the client for the
+    // timestamp.
+    if (changes.length > 0) { // Are there local changes?
+      self._emitChanges(socket, changes, newSince);
+    }
   });
 };
 

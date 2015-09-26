@@ -35,6 +35,8 @@ describe('deltadb', function () {
 
   require('./spec');
 
-  require('./e2e');
+  require('./e2e-no-socket');
+
+  require('./e2e'); // TODO: have to launch server as part of tests
 
 });

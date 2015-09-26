@@ -348,6 +348,24 @@ Utils.prototype.changesShouldEql = function (expected, actual) {
   this.eqls(expected, actual);
 };
 
+Utils.prototype.shouldOnce = function (emitter, evnt) {
+  var self = this,
+    err = true,
+    args = null;
+
+  emitter.once(event, function (_args) {
+    err = false;
+    args = _args;
+  });
+
+  return self.timeout(100).then(function () {
+    if (err) {
+      self.never('should have emitted event ' + evnt);
+    }
+    return args;
+  });
+};
+
 Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
   var self = this,
     err = true;

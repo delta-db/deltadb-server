@@ -113,6 +113,10 @@ Doc.prototype.save = function () {
   });
 };
 
+Doc.prototype._emitChange = function () {
+  this._col._db.emit('change');
+};
+
 // TODO: split up
 Doc.prototype._change = function (name, value, updated, recorded, untracked) {
 
@@ -147,6 +151,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
 
   if (!untracked) { // tracking?
     this._dat.changes.push(change);
+    this._emitChange();
   }
 
   if (name) { // update?

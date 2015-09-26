@@ -15,7 +15,9 @@ var inherits = require('inherits'),
   Doc = require('./doc'),
   Collection = require('./collection'),
   clientUtils = require('./utils'),
-  io = require('socket.io-client');
+  io = require('socket.io-client'),
+  Sender = require('./sender'),
+  log = require('../utils/log');
 
 var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
@@ -23,8 +25,11 @@ var DB = function ( /* name, adapter */ ) {
   this._cols = {};
   this._retryAfterSecs = 180000;
   this._recorded = false;
+  this._sender = new Sender(this);
 
   this._initStoreLoaded();
+
+  this._connectWhenReady();
 };
 
 inherits(DB, MemDB);
@@ -38,7 +43,7 @@ DB.VERSION = 1;
 
 DB.prototype._initStoreLoaded = function () {
   // This promise ensures that the store is ready before we use it.
-  this._storeLoaded = utils.once(this, 'load');
+  this._storeLoaded = utils.once(this, 'load'); // TODO: are _storeLoaded and _loaded both needed?
 };
 
 DB.prototype._import = function (store) {
@@ -249,12 +254,17 @@ DB.prototype._emitInit = function () {
 };
 
 DB.prototype._emitChanges = function (changes, since) {
-  this._socket.emit('changes', { changes: changes, since: since });
+  var msg = { changes: changes, since: since };
+  log.info('sending ' + JSON.stringify(msg));
+  this._socket.emit('changes', msg);
 };
 
 // TODO: it appears that the local changes don't get cleared until they are recorded, which is
 // correct, but investigate further to make sure that changes won't be duplicated back and forth.
 DB.prototype._syncWithRemote = function () {
+  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do we need a _connected
+  // flag to determine whether to skip the following?
+
   // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
   // code?
   var self = this,
@@ -263,10 +273,12 @@ DB.prototype._syncWithRemote = function () {
   return self._loaded.then(function () { // ensure props have been loaded/created first
     return self._props.get();
   }).then(function (_props) {
-    var props = _props;
+    props = _props;
     return self._localChanges(self._retryAfter);
   }).then(function (changes) {
-    self._emitChanges(changes, props.since)
+    if (changes.length > 0) { // any local changes?
+      self._emitChanges(changes, props.since);
+    }
   });
 
 };
@@ -275,6 +287,7 @@ DB.prototype._registerChangesListener = function () {
   var self = this;
 
   self._socket.on('changes', function (msg) {
+    log.info('received ' + JSON.stringify(msg));
     return self._loaded.then(function () { // ensure props have been loaded/created first
       return self._setChanges(msg.changes); // Process the server's changes
     }).then(function () {
@@ -285,23 +298,54 @@ DB.prototype._registerChangesListener = function () {
   });
 };
 
+DB.prototype._registerSenderListener = function () {
+  this.on('changes', this._sender.send);
+};
+
+DB.prototype._registerDisconnectListener = function () {
+  this._socket.on('disconnect', function () {
+    log.info('server disconnected');
+  });
+};
+
+DB.prototype._registerSyncNeededListener = function () {
+  var self = this;
+  self._socket.on('sync-needed', function () {
+    log.info('received sync-needed');
+    self._syncWithRemote();    
+  });
+};
+
 // TODO: call in constructor
 DB.prototype._connect = function () {
   var self = this;
 
-  self._socket = io.connect('http://localhost:3000'); // TODO: make this configurable
+  self._socket = io.connect('http://localhost:3000', // TODO: make this configurable
+    { 'force new connection': true }); // same client, multiple connections for testing
+
+  self._registerDisconnectListener();
+
+  self._registerChangesListener();
+
+  self._registerSenderListener();
+
+  self._registerSyncNeededListener();
 
   self._socket.on('connect', function () {
-
-    // TODO: does this get called after reconnect? If so, then won't calling
-    // registerChangesListener() again cause problems? Any clean up needed in this case?
-
     self._emitInit();
 
-    self._syncWithRemote();
+    // TODO: server currently requires init-done before it will start listening to changes
+    self._socket.on('init-done', function () {
+      log.info('received init-done');
+      self._syncWithRemote();
+    });
+  });
+};
 
-    self._registerChangesListener();
-
+DB.prototype._connectWhenReady = function () {
+  var self = this;
+  return self._storeLoaded.then(function () {
+    return self._connect();
   });
 };
 

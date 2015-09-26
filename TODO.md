@@ -6,10 +6,10 @@ Now
 		- db then kicks off a sync process if not already syncing. If already syncing then sets timestamp
 		- when current sync process completes it checks the timestamp and determines if it needs to sync again
 		- test by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
+	- need to make client create DB with $system
 	- make sure msg structure allows for extension, e.g. timestamp handshaking
 	- events for connect, disconnect
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
-- convert all .db({}) to .db(name)
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
@@ -28,9 +28,13 @@ Now
 - create a debug mode that allows DeltaDB to write a lot of info to a log
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
+- investigate use of logger for both server and client
 
 Next
 ---
+- when using socket API, use internal sockets so that different processes can communicate changes without polling
+- create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable
+- convert all .db({}) to .db(name)? Really, because probably need to pass host, user-uuid and password
 - server and client pagination for when there are a large amount of changes (partitioner already supports pagination)
 - client: ability to disconnect and leave disconnected until prompted to connect
 - faster to use bcrypt instead of bcryptjs for server side only?
