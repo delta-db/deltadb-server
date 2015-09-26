@@ -1,6 +1,9 @@
 'use strict';
 
 // TMP - BEGIN
+var log = require('../utils/log');
+log.setSilent(false);
+
 var Partitioner = require('../partitioner/sql');
 // var utils = require('../utils');
 var ensureDBCreated = function () {

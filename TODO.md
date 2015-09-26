@@ -1,14 +1,12 @@
 Now
 ---
 - express (or better) server - use web socket
-	- when there is a new client change:
-		- create a 'change' event that bubbles up to db
-		- db then kicks off a sync process if not already syncing. If already syncing then sets timestamp
-		- when current sync process completes it checks the timestamp and determines if it needs to sync again
-		- test by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
-	- need to make client create DB with $system
-	- make sure msg structure allows for extension, e.g. timestamp handshaking
+	- make sure changes not being duplicated, create unit test
+	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
+	- complete e2e tests (see TODOs)
 	- events for connect, disconnect
+	- need to make client create DB with $system
+	- adjust tests to launch server
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
 - test with actual angular app - todomvc adaptation

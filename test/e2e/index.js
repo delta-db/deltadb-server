@@ -7,6 +7,11 @@ var utils = require('../utils'),
   Client = require('../../scripts/client/adapter'),
   partUtils = require('../spec/partitioner/sql/utils');
 
+// TMP - BEGIN
+var log = require('../../scripts/utils/log');
+log.setSilent(false);
+// TMP - END
+
 describe('e2e', function () {
 
   var storeA = null,
@@ -81,7 +86,7 @@ describe('e2e', function () {
         if (err1 || err2) {
           throw new Error('did not receive change');
         }
-      }, 2000);
+      }, 3000);
     });
 
   });

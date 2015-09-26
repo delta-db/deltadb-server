@@ -1,11 +1,17 @@
 'use strict';
 
 var Log = function () {
-  
+  this._silent = true;
+};
+
+Log.prototype.setSilent = function (silent) {
+  this._silent = silent;
 };
 
 Log.prototype._log = function (msg, type) {
-  console.log(type + ': ' + msg);
+  if (!this._silent) {
+    console.log(type + ': ' + msg);
+  }
 };
 
 Log.prototype.info = function (msg) {
