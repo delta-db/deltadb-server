@@ -53,13 +53,24 @@ describe('e2e', function () {
       priority: 'high'
     });
 
-    var task1PriorityPromise = new Promise(function (resolve) {
-      var err = true;
+    return new Promise(function (resolve) {
+      var err1 = true, err2 = true;
       
       task1.on('attr:record', function (attr) {
         if (attr.name === 'priority') { // receiving priority from server?
-          err = false;
-          resolve();
+          err1 = false;
+          if (!err2) { // both events received?
+            resolve();
+          }
+        }
+      });
+
+      task2.on('attr:record', function (attr) {
+        if (attr.name === 'thing') { // receiving priority from server?
+          err2 = false;
+          if (!err1) { // both events received?
+            resolve();
+          }
         }
       });
 
@@ -67,15 +78,12 @@ describe('e2e', function () {
       task2.save();
 
       setTimeout(function () {
-        if (err) {
-          throw new Error('did not receive priority');
+        if (err1 || err2) {
+          throw new Error('did not receive change');
         }
-      }, 6000);
+      }, 2000);
     });
 
-    return task1PriorityPromise;
-
-// TODO: do the same for task2Thing
   });
 
   // TODO: test changes made to client after it has already done the initial sync, i.e. client needs
