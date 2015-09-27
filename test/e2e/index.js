@@ -5,11 +5,11 @@
 
 /* global before, after */
 
-var utils = require('../utils'),
-  MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
+var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
   partUtils = require('../spec/partitioner/sql/utils'),
-  DB = require('../../scripts/client/db');
+  DB = require('../../scripts/client/db'),
+  Promise = require('bluebird');
 
 // TMP - BEGIN
 var log = require('../../scripts/utils/log');
@@ -27,7 +27,8 @@ describe('e2e', function () {
     b = null,
     bTasks = null;
 
-  var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
+  // TODO: remove the following line? May need to at least set the timeOut
+  partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -53,9 +54,10 @@ describe('e2e', function () {
     // TODO: need to make client creates DB with $system
   });
 
-  it('should send changes', function () {
+  it('should send and receive changes', function () {
 
-    var numSends = 0, numReceives = 0;
+    var numSends = 0,
+      numReceives = 0;
 
     var task1 = aTasks.doc({
       thing: 'write'
@@ -64,22 +66,33 @@ describe('e2e', function () {
     // Create spy to verify that changes sent only once
     a._emitChanges = function (changes) {
       numSends++;
-      changes.should.eql([{ up: changes[0].up, id: changes[0].id, name: 'thing', val: '"write"',
-        col: 'tasks' }]);
+      changes.should.eql([{
+        up: changes[0].up,
+        id: changes[0].id,
+        name: 'thing',
+        val: '"write"',
+        col: 'tasks'
+      }]);
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
     // Create spy to verify that changes received only once
     a._setChanges = function (changes) {
       numReceives++;
-      changes.should.eql([{ up: changes[0].up, id: changes[0].id, re: changes[0].re, name: 'thing',
-        val: '"write"', col: 'tasks' }]);
+      changes.should.eql([{
+        up: changes[0].up,
+        id: changes[0].id,
+        re: changes[0].re,
+        name: 'thing',
+        val: '"write"',
+        col: 'tasks'
+      }]);
       return DB.prototype._setChanges.apply(this, arguments);
-    };    
+    };
 
     return new Promise(function (resolve) {
       var err = true;
-      
+
       task1.on('attr:record', function (attr) {
         if (attr.name === 'thing') { // receiving priority from server?          
 
@@ -113,7 +126,12 @@ describe('e2e', function () {
     // TODO: make sure no duplicate data sent/received - uncomment code below once the DB is being
     // destroyed in afterEach. Currently, the commented code below only works when the DB is fresh
 
-    var err1 = true, err2 = true, aNumSends = 0, aNumReceives = 0, bNumSends = 0, bNumReceives = 0;
+    var err1 = true,
+      err2 = true,
+      aNumSends = 0,
+      aNumReceives = 0,
+      bNumSends = 0,
+      bNumReceives = 0;
 
     var task1 = aTasks.doc({
       $id: '1',
@@ -126,7 +144,7 @@ describe('e2e', function () {
     });
 
     // Create spy to verify that changes sent only once
-    a._emitChanges = function (changes) {
+    a._emitChanges = function ( /* changes */ ) {
       aNumSends++;
       // utils.changesShouldEql([
       //   { name: '$id', val: '"1"',
@@ -136,23 +154,23 @@ describe('e2e', function () {
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
-    var setChangesShouldEql = function (changes) {
-      utils.changesShouldEql([
-        { name: 'thing', val: '"write"',
-          col: 'tasks' },
-        { name: 'priority', val: '"high"',
-          col: 'tasks' }], changes);
+    var setChangesShouldEql = function ( /* changes */ ) {
+      // utils.changesShouldEql([
+      //   { name: 'thing', val: '"write"',
+      //     col: 'tasks' },
+      //   { name: 'priority', val: '"high"',
+      //     col: 'tasks' }], changes);
     };
 
     // Create spy to verify that changes received only once
     a._setChanges = function (changes) {
       aNumReceives++;
-      // setChangesShouldEql(changes);
+      setChangesShouldEql(changes);
       return DB.prototype._setChanges.apply(this, arguments);
     };
 
     // Create spy to verify that changes sent only once
-    b._emitChanges = function (changes) {
+    b._emitChanges = function ( /* changes */ ) {
       bNumSends++;
       // utils.changesShouldEql([
       //   { name: '$id', val: '"1"',
@@ -165,7 +183,7 @@ describe('e2e', function () {
     // Create spy to verify that changes received only once
     b._setChanges = function (changes) {
       bNumReceives++;
-      // setChangesShouldEql(changes);
+      setChangesShouldEql(changes);
       return DB.prototype._setChanges.apply(this, arguments);
     };
 
@@ -192,7 +210,7 @@ describe('e2e', function () {
     };
 
     return new Promise(function (resolve) {
-      
+
       task1.on('attr:record', function (attr) {
         if (attr.name === 'priority') { // receiving priority from server?
           err1 = false;
@@ -226,5 +244,8 @@ describe('e2e', function () {
   // to trigger sync. How to determine when initial sync done? Can do this with spy?
 
   // TODO: test connect/disconnect and making changes when disconnected
+
+  // TODO: test send interval by making interval large and making a bunch of changes in a short
+  // period of time and making sure sync only called twice
 
 });

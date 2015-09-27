@@ -14,15 +14,15 @@ Process.SLEEP_MS = 1000;
 Process.prototype._process = function () {
   // TODO: use DeltaDB client to connect to $system and get list of DBs. Better to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
-  
-// TMP - BEGIN
+
+  // TMP - BEGIN
   var part = new Partitioner('mydb');
   return part.connect().then(function () {
     return part.process();
   }).then(function () {
     return part.closeDatabase();
   });
-// TMP - END
+  // TMP - END
 };
 
 Process.prototype._loop = function () {

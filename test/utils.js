@@ -7,7 +7,8 @@ var Promise = require('bluebird'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
-  commonUtils = require('./common-utils');
+  commonUtils = require('./common-utils'),
+  clientUtils = require('../scripts/client/utils');
 
 var Utils = function () {};
 
@@ -97,8 +98,8 @@ Utils.prototype.contains = function (expected, actual) {
 };
 
 Utils.prototype.timeout = function () {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.never.apply(this, arguments);
+  // TODO: change all callers to use utils
+  return clientUtils.timeout.apply(this, arguments);
 };
 
 Utils.prototype.sleep = function (sleepMs) {

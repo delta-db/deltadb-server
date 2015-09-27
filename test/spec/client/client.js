@@ -611,6 +611,7 @@ describe('client', function () {
 
   it('should sync', function () {
     var server = new Server(); // mock server
+
     server.queue = function (changes) {
       changes.should.eql(
         [{
@@ -627,19 +628,21 @@ describe('client', function () {
           up: changes[1].up
         }]);
     };
+
     var task1 = tasks.doc({
         thing: 'play a song',
         priority: 'high'
       }),
       thingUpdated = null,
       priorityUpdated = null;
+
     return task1.save().then(function () {
+      return db.sync(server);
+    }).then(function () {
       return db._localChanges();
     }).then(function (changes) {
       thingUpdated = new Date(changes[0].up);
       priorityUpdated = new Date(changes[1].up);
-    }).then(function () {
-      return db.sync(server);
     }).then(function () {
       return db._localChanges();
     }).then(function (changes) {

@@ -14,7 +14,7 @@ var ensureDBCreated = function () {
 
   var connectAndCreateAndClose = function () {
     return part.connectAndCreate().then(function () {
-      return part.closeDatabase();    
+      return part.closeDatabase();
     });
   };
 

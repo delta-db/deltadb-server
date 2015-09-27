@@ -1,6 +1,7 @@
 Now
 ---
 - express (or better) server - use web socket
+	- does the partitioner actually have a mechanism for creating a DB from a delta?
 	- need to make client create DB with $system
 	- make sure changes not being duplicated, restore unit test
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
@@ -9,6 +10,7 @@ Now
 	- adjust tests to launch server. Use spawn
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
+- add client tests to browser tests
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - impl deltadb-ng and modify todo example
@@ -30,6 +32,7 @@ Now
 
 Next
 ---
+- there are two "Servers" in the server code -- one should be renamed
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
 - create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable
 - convert all .db({}) to .db(name)? Really, because probably need to pass host, user-uuid and password

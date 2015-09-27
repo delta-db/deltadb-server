@@ -250,14 +250,19 @@ DB.prototype._destroyDatabase = function (dbName) {
 DB.prototype._emitInit = function () {
   var self = this;
   return self._loaded.then(function () { // ensure props have been loaded/created first
-    var msg = { db: self._name, since: self._props.since };
+    var msg = {
+      db: self._name,
+      since: self._props.since
+    };
     log.info('sending init ' + JSON.stringify(msg));
     self._socket.emit('init', msg);
   });
 };
 
 DB.prototype._emitChanges = function (changes) {
-  var msg = { changes: changes };
+  var msg = {
+    changes: changes
+  };
   log.info('sending ' + JSON.stringify(msg));
   this._socket.emit('changes', msg);
 };
@@ -318,7 +323,9 @@ DB.prototype._connect = function () {
   var self = this;
 
   self._socket = io.connect('http://localhost:3000', // TODO: make this configurable
-    { 'force new connection': true }); // same client, multiple connections for testing
+    {
+      'force new connection': true
+    }); // same client, multiple connections for testing
 
   self._registerDisconnectListener();
 

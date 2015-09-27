@@ -40,12 +40,8 @@ Sender.prototype._sendLoop = function () {
 };
 
 Sender.prototype.send = function () {
-// TODO: clean up following comments!!
-// - when there is a new client change:
-//   - create a 'change' event that bubbles up to db
-//   - db then kicks off a sync process if not already syncing. If already syncing then sets timestamp
-//   - when current sync process completes it checks the timestamp and determines if it needs to sync again
-//   - test by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
+  // - Kick off a send process if not already sending. If already sending then set timestamp
+  // - When send process completes, check timestamp and determine if need to send again
   this._requested = new Date();
 
   if (!this._sending) {

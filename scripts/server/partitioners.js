@@ -17,13 +17,20 @@ Partitioners.POLL_SLEEP_MS = 1000;
 Partitioners.prototype.register = function (dbName, socket, since) {
   var self = this;
   if (self._partitioners[dbName]) { // exists?
-    self._partitioners[dbName].conns[socket.conn.id] = { socket: socket, since: since };
+    self._partitioners[dbName].conns[socket.conn.id] = {
+      socket: socket,
+      since: since
+    };
     return self._partitioners[dbName].ready;
   } else {
 
     // First conn for this partitioner
-    var part = new Partitioner(dbName), conns = {};
-    conns[socket.conn.id] = { socket: socket, since: since };
+    var part = new Partitioner(dbName),
+      conns = {};
+    conns[socket.conn.id] = {
+      socket: socket,
+      since: since
+    };
     var container = {
       part: part,
       conns: conns,
@@ -55,7 +62,7 @@ Partitioners.prototype.unregister = function (dbName, socket) {
     this._partitioners[dbName].poll = false; // stop polling
 
     var part = this._partitioners[dbName].part;
-    
+
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
     delete this._partitioners[dbName];
@@ -76,7 +83,7 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
   utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
     self.findAndEmitChanges(partitioner._dbName, conn.socket);
   });
-  
+
   self._partitioners[partitioner._dbName].since = newSince; // update since
 };
 
@@ -116,7 +123,10 @@ Partitioners.prototype._poll = function (partitioner) {
 };
 
 Partitioners.prototype._emitChanges = function (socket, changes, since) {
-  var msg = { changes: changes, since: since };
+  var msg = {
+    changes: changes,
+    since: since
+  };
   log.info('sending (to ' + socket.conn.id + ') ' + JSON.stringify(msg));
   socket.emit('changes', msg);
 };
