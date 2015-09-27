@@ -1,5 +1,8 @@
 'use strict';
 
+// TODO: when get destroyDatabase working with client db then use it with afterEach to destroy the
+// database
+
 /* global before, after */
 
 var utils = require('../utils'),
@@ -49,9 +52,6 @@ describe('e2e', function () {
 
     // TODO: need to make client creates DB with $system
   });
-
-  // TODO: when get destroyDatabase working with client db then use it with afterEach to destroy the
-  // database
 
   it('should send changes', function () {
 
@@ -107,7 +107,7 @@ describe('e2e', function () {
 
   });
 
-  it('should send and receive changes', function () {
+  it('should send and receive partial changes', function () {
     createB();
 
 // TODO: make sure no duplicate data sent/received
@@ -156,10 +156,10 @@ describe('e2e', function () {
   });
 
   // TODO: test changes made to client after it has already done the initial sync, i.e. client needs
-  // to trigger sync
+  // to trigger sync. How to determine when initial sync done? Can do this with spy?
 
   // TODO: test changes made to server after it has already done the initial sync, i.e. server needs
-  // to trigger sync
+  // to trigger sync. How to determine when initial sync done? Can do this with spy?
 
   // TODO: test connect/disconnect and making changes when disconnected
 

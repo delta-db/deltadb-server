@@ -138,10 +138,10 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
 Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   var self = this,
     part = self._partitioners[dbName].part,
-    since = self._partitioners[dbName].since,
+    since = self._partitioners[dbName].conns[socket.conn.id].since,
     newSince = new Date();
 
-  self._partitioners[dbName].since = newSince;
+  self._partitioners[dbName].conns[socket.conn.id].since = newSince;
 
   // TODO: need to support pagination. Need to cap the results with the offset param, but then
   // need to report to client that there is more data and to do another sync, but don't need
