@@ -37,6 +37,6 @@ describe('deltadb', function () {
 
   require('./e2e-no-socket');
 
-  require('./e2e'); // TODO: have to spawn server for tests. Spawn on diff port
+  // require('./e2e'); // TODO: have to spawn server for tests. Spawn on diff port
 
 });

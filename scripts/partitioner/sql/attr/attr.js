@@ -74,28 +74,59 @@ Attr.prototype.createIfPermitted = function () {
   });
 };
 
+// Attr.prototype.setOptions = function () {
+//   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
+//   if (this._params.name === Doc._policyName) {
+//     return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
+//       this._params.changedByUserId, this._params.recordedAt,
+//       this._params.updatedAt, this._params.seq,
+//       this._params.restore, this._params.quorum,
+//       this._params.colId, this._params.userUUID);
+//   } else if (this._params.name === Doc._userName) {
+//     return this._users.setUser(this._params.value, this._params.updatedAt,
+//       this._params.changedByUserId, this._params.changedByUUID);
+//   } else if (this._params.name === Doc._roleName) {
+//     var roleUUID = this._roles.toUUID(this._params.value.roleName);
+//     if (this._params.value.action === UserRoles.ACTION_REMOVE) {
+//       return this._users.removeRole(this._params.forUserId, roleUUID);
+//     } else {
+//       return this._users.addRole(this._params.forUserId, roleUUID,
+//         this._params.changedByUserId, this._params.changedByUUID,
+//         this._params.updatedAt, this._params.docId);
+//     }
+//   } else {
+//     return Promise.resolve();
+//   }
+// };
+
 Attr.prototype.setOptions = function () {
   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
-  if (this._params.name === Doc._policyName) {
-    return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
-      this._params.changedByUserId, this._params.recordedAt,
-      this._params.updatedAt, this._params.seq,
-      this._params.restore, this._params.quorum,
-      this._params.colId, this._params.userUUID);
-  } else if (this._params.name === Doc._userName) {
-    return this._users.setUser(this._params.value, this._params.updatedAt,
-      this._params.changedByUserId, this._params.changedByUUID);
-  } else if (this._params.name === Doc._roleName) {
-    var roleUUID = this._roles.toUUID(this._params.value.roleName);
-    if (this._params.value.action === UserRoles.ACTION_REMOVE) {
-      return this._users.removeRole(this._params.forUserId, roleUUID);
-    } else {
-      return this._users.addRole(this._params.forUserId, roleUUID,
-        this._params.changedByUserId, this._params.changedByUUID,
-        this._params.updatedAt, this._params.docId);
-    }
-  } else {
-    return Promise.resolve();
+
+  switch (this._params.name) {
+
+    case Doc._policyName:
+      return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
+        this._params.changedByUserId, this._params.recordedAt,
+        this._params.updatedAt, this._params.seq,
+        this._params.restore, this._params.quorum,
+        this._params.colId, this._params.userUUID);
+    
+    case Doc._userName:
+      return this._users.setUser(this._params.value, this._params.updatedAt,
+        this._params.changedByUserId, this._params.changedByUUID);
+
+    case Doc._roleName:
+      var roleUUID = this._roles.toUUID(this._params.value.roleName);
+      if (this._params.value.action === UserRoles.ACTION_REMOVE) {
+        return this._users.removeRole(this._params.forUserId, roleUUID);
+      } else {
+        return this._users.addRole(this._params.forUserId, roleUUID,
+          this._params.changedByUserId, this._params.changedByUUID,
+          this._params.updatedAt, this._params.docId);
+      }
+
+    default:
+      return Promise.resolve();
   }
 };
 

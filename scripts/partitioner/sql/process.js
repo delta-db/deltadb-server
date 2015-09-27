@@ -568,7 +568,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
           // role users
           var roleUserAttr = utils.clone(attr);
 
-          // Clone sets Dates to strings, is there a better way?
+          // Clone sets Dates to strings, is there a better way? Yeah, enhance clone
           roleUserAttr.created_at = attr.created_at;
           roleUserAttr.recorded_at = attr.recorded_at;
           roleUserAttr.updated_at = attr.updated_at;
