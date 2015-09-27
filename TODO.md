@@ -1,8 +1,8 @@
 Now
 ---
 - express (or better) server - use web socket
-	- make sure changes not being duplicated, create unit test
 	- need to make client create DB with $system
+	- make sure changes not being duplicated, restore unit test
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
 	- events for connect, disconnect

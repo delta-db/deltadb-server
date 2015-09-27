@@ -110,7 +110,10 @@ describe('e2e', function () {
   it('should send and receive partial changes', function () {
     createB();
 
-// TODO: make sure no duplicate data sent/received
+    // TODO: make sure no duplicate data sent/received - uncomment code below once the DB is being
+    // destroyed in afterEach. Currently, the commented code below only works when the DB is fresh
+
+    var err1 = true, err2 = true, aNumSends = 0, aNumReceives = 0, bNumSends = 0, bNumReceives = 0;
 
     var task1 = aTasks.doc({
       $id: '1',
@@ -122,24 +125,85 @@ describe('e2e', function () {
       priority: 'high'
     });
 
+    // Create spy to verify that changes sent only once
+    a._emitChanges = function (changes) {
+      aNumSends++;
+      // utils.changesShouldEql([
+      //   { name: '$id', val: '"1"',
+      //     col: 'tasks' },
+      //   { name: 'thing', val: '"write"',
+      //     col: 'tasks' }], changes);
+      return DB.prototype._emitChanges.apply(this, arguments);
+    };
+
+    var setChangesShouldEql = function (changes) {
+      utils.changesShouldEql([
+        { name: 'thing', val: '"write"',
+          col: 'tasks' },
+        { name: 'priority', val: '"high"',
+          col: 'tasks' }], changes);
+    };
+
+    // Create spy to verify that changes received only once
+    a._setChanges = function (changes) {
+      aNumReceives++;
+      // setChangesShouldEql(changes);
+      return DB.prototype._setChanges.apply(this, arguments);
+    };
+
+    // Create spy to verify that changes sent only once
+    b._emitChanges = function (changes) {
+      bNumSends++;
+      // utils.changesShouldEql([
+      //   { name: '$id', val: '"1"',
+      //     col: 'tasks' },
+      //   { name: 'priority', val: '"high"',
+      //     col: 'tasks' }], changes);
+      return DB.prototype._emitChanges.apply(this, arguments);
+    };
+
+    // Create spy to verify that changes received only once
+    b._setChanges = function (changes) {
+      bNumReceives++;
+      // setChangesShouldEql(changes);
+      return DB.prototype._setChanges.apply(this, arguments);
+    };
+
+    var shouldResolve = function (resolve) {
+      if (!err1 && !err2) {
+        // if (aNumSends !== 1) {
+        //   throw new Error('a sent more than once');
+        // }
+
+        // if (aNumReceives !== 1) {
+        //   throw new Error('a received more than once');
+        // }
+
+        // if (bNumSends !== 1) {
+        //   throw new Error('b sent more than once');
+        // }
+
+        // if (bNumReceives !== 1) {
+        //   throw new Error('b received more than once');
+        // }
+
+        resolve();
+      }
+    };
+
     return new Promise(function (resolve) {
-      var err1 = true, err2 = true;
       
       task1.on('attr:record', function (attr) {
         if (attr.name === 'priority') { // receiving priority from server?
           err1 = false;
-          if (!err2) { // both events received?
-            resolve();
-          }
+          shouldResolve(resolve);
         }
       });
 
       task2.on('attr:record', function (attr) {
         if (attr.name === 'thing') { // receiving priority from server?
           err2 = false;
-          if (!err1) { // both events received?
-            resolve();
-          }
+          shouldResolve(resolve);
         }
       });
 

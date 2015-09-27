@@ -341,6 +341,14 @@ Utils.prototype.changesShouldEql = function (expected, actual) {
     if (expected[i] && change.re) {
       expected[i].re = change.re;
     }
+
+    if (expected[i] && change.up) {
+      expected[i].up = change.up;
+    }
+
+    if (expected[i] && change.id) {
+      expected[i].id = change.id;
+    }
   });
   this.eqls(expected, actual);
 };
