@@ -5,7 +5,8 @@
 var utils = require('../utils'),
   MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
-  partUtils = require('../spec/partitioner/sql/utils');
+  partUtils = require('../spec/partitioner/sql/utils'),
+  DB = require('../../scripts/client/db');
 
 // TMP - BEGIN
 var log = require('../../scripts/utils/log');
@@ -53,17 +54,43 @@ describe('e2e', function () {
   // database
 
   it('should send changes', function () {
-// TODO: make sure no duplicate data sent/received - I don't think this can be truly tested until the client has the ability to destroy the DB or else there will be existing data lying around for the DB!!
+
+    var numSends = 0, numReceives = 0;
 
     var task1 = aTasks.doc({
-      thing: 'write a song'
+      thing: 'write'
     });
+
+    // Create spy to verify that changes sent only once
+    a._emitChanges = function (changes) {
+      numSends++;
+      changes.should.eql([{ up: changes[0].up, id: changes[0].id, name: 'thing', val: '"write"',
+        col: 'tasks' }]);
+      return DB.prototype._emitChanges.apply(this, arguments);
+    };
+
+    // Create spy to verify that changes received only once
+    a._setChanges = function (changes) {
+      numReceives++;
+      changes.should.eql([{ up: changes[0].up, id: changes[0].id, re: changes[0].re, name: 'thing',
+        val: '"write"', col: 'tasks' }]);
+      return DB.prototype._setChanges.apply(this, arguments);
+    };    
 
     return new Promise(function (resolve) {
       var err = true;
       
       task1.on('attr:record', function (attr) {
-        if (attr.name === 'thing') { // receiving priority from server?
+        if (attr.name === 'thing') { // receiving priority from server?          
+
+          if (numSends !== 1) {
+            throw new Error('sent more than once');
+          }
+
+          if (numReceives !== 1) {
+            throw new Error('received more than once');
+          }
+
           err = false;
           resolve();
         }
@@ -87,7 +114,7 @@ describe('e2e', function () {
 
     var task1 = aTasks.doc({
       $id: '1',
-      thing: 'write a song'
+      thing: 'write'
     });
 
     var task2 = bTasks.doc({

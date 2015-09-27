@@ -282,18 +282,22 @@ DB.prototype._findAndEmitChanges = function () {
 
 };
 
+DB.prototype._processChanges = function (msg) {
+  var self = this;
+  log.info('received ' + JSON.stringify(msg));
+  return self._loaded.then(function () { // ensure props have been loaded/created first
+    return self._setChanges(msg.changes); // Process the server's changes
+  }).then(function () {
+    return self._props.set({ // Update since
+      since: msg.since
+    });
+  });
+};
+
 DB.prototype._registerChangesListener = function () {
   var self = this;
-
   self._socket.on('changes', function (msg) {
-    log.info('received ' + JSON.stringify(msg));
-    return self._loaded.then(function () { // ensure props have been loaded/created first
-      return self._setChanges(msg.changes); // Process the server's changes
-    }).then(function () {
-      return self._props.set({ // Update since
-        since: msg.since
-      });
-    });
+    self._processChanges(msg);
   });
 };
 

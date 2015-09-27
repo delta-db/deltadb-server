@@ -10,7 +10,6 @@ var Sender = function (db) {
 
 Sender.SEND_EVERY_MS = 1000;
 
-// TODO: need to worry about duplicate changes being sent? Can a ts be updated so that this is prevented?
 Sender.prototype._doSend = function () {
   return this._db._findAndEmitChanges();
 };
