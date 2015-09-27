@@ -256,8 +256,8 @@ DB.prototype._emitInit = function () {
   });
 };
 
-DB.prototype._emitChanges = function (changes, since) {
-  var msg = { changes: changes, since: since };
+DB.prototype._emitChanges = function (changes) {
+  var msg = { changes: changes };
   log.info('sending ' + JSON.stringify(msg));
   this._socket.emit('changes', msg);
 };
@@ -275,9 +275,9 @@ DB.prototype._findAndEmitChanges = function () {
   return self._loaded.then(function () { // ensure props have been loaded/created first
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
-    // We still need to emit the changes even if there are none as the server needs to the since to
-    // return changes
-    self._emitChanges(changes, self._props.since);
+    if (changes.length > 0) {
+      self._emitChanges(changes);
+    }
   });
 
 };
@@ -310,7 +310,6 @@ DB.prototype._registerDisconnectListener = function () {
   });
 };
 
-// TODO: call in constructor
 DB.prototype._connect = function () {
   var self = this;
 
@@ -326,7 +325,7 @@ DB.prototype._connect = function () {
   self._socket.on('connect', function () {
     self._emitInit();
 
-    // TODO: server currently requires init-done before it will start listening to changes
+    // Server currently requires init-done before it will start listening to changes
     self._socket.on('init-done', function () {
       log.info('received init-done');
       self._sender.send();
