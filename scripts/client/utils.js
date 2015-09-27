@@ -2,7 +2,8 @@
 
 // TODO: move all code needed by client from ../utils to client/utils
 
-var utils = require('../utils');
+var utils = require('../utils'),
+  Promise = require('bluebird');
 
 var Utils = function () {};
 
@@ -39,5 +40,13 @@ Utils.prototype.ACTION_REMOVE = 'remove';
 Utils.prototype.SYSTEM_DB_NAME = '$system';
 Utils.prototype.DB_COLLECTION_NAME = '$db';
 Utils.prototype.DB_ATTR_NAME = '$db';
+
+Utils.prototype.timeout = function (ms) {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve();
+    }, ms);
+  });
+};
 
 module.exports = new Utils();

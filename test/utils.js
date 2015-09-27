@@ -96,12 +96,9 @@ Utils.prototype.contains = function (expected, actual) {
   actual.should.eql(expected);
 };
 
-Utils.prototype.timeout = function (ms) {
-  return new Promise(function (resolve) {
-    setTimeout(function () {
-      resolve();
-    }, ms);
-  });
+Utils.prototype.timeout = function () {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.never.apply(this, arguments);
 };
 
 Utils.prototype.sleep = function (sleepMs) {

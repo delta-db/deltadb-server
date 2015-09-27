@@ -10,16 +10,16 @@ Log.prototype.setSilent = function (silent) {
 
 Log.prototype._log = function (msg, type) {
   if (!this._silent) {
-    console.log(type + ': ' + msg);
+    console.log(type + ': ' + (new Date()) + ': ' + msg + "\n");
   }
 };
 
 Log.prototype.info = function (msg) {
-  this._log(msg, 'info');
+  this._log(msg, 'Info');
 };
 
 Log.prototype.error = function (msg) {
-  this._log(msg, 'error');
+  this._log(msg, 'Error');
 };
 
 module.exports = new Log();

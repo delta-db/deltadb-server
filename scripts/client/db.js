@@ -23,7 +23,7 @@ var DB = function ( /* name, adapter */ ) {
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};
-  this._retryAfterSecs = 180000;
+  this._retryAfterMSecs = 180000;
   this._recorded = false;
   this._sender = new Sender(this);
 
@@ -180,15 +180,13 @@ DB.prototype._setChanges = function (changes) {
 DB.prototype.sync = function (part, quorum) {
   var self = this,
     newSince = null;
-  return self._localChanges(self._retryAfter).then(function (changes) {
+  return self._localChanges(self._retryAfterMSecs).then(function (changes) {
     return part.queue(changes, quorum);
   }).then(function () {
     newSince = new Date();
     return self._loaded; // ensure props have been loaded/created first
   }).then(function () {
-    return self._props.get();
-  }).then(function (props) {
-    return part.changes(props.since);
+    return part.changes(self._props.since);
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {
@@ -250,7 +248,12 @@ DB.prototype._destroyDatabase = function (dbName) {
 };
 
 DB.prototype._emitInit = function () {
-  this._socket.emit('init', { db: this._name });
+  var self = this;
+  return self._loaded.then(function () { // ensure props have been loaded/created first
+    var msg = { db: self._name, since: self._props.since };
+    log.info('sending init ' + JSON.stringify(msg));
+    self._socket.emit('init', msg);
+  });
 };
 
 DB.prototype._emitChanges = function (changes, since) {
@@ -261,24 +264,20 @@ DB.prototype._emitChanges = function (changes, since) {
 
 // TODO: it appears that the local changes don't get cleared until they are recorded, which is
 // correct, but investigate further to make sure that changes won't be duplicated back and forth.
-DB.prototype._syncWithRemote = function () {
-  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do we need a _connected
-  // flag to determine whether to skip the following?
+DB.prototype._findAndEmitChanges = function () {
+  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do
+  // we need a _connected flag to determine whether to skip the following?
 
   // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
   // code?
-  var self = this,
-    props = null;
+  var self = this;
 
   return self._loaded.then(function () { // ensure props have been loaded/created first
-    return self._props.get();
-  }).then(function (_props) {
-    props = _props;
-    return self._localChanges(self._retryAfter);
+    return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
-    if (changes.length > 0) { // any local changes?
-      self._emitChanges(changes, props.since);
-    }
+    // We still need to emit the changes even if there are none as the server needs to the since to
+    // return changes
+    self._emitChanges(changes, self._props.since);
   });
 
 };
@@ -299,20 +298,15 @@ DB.prototype._registerChangesListener = function () {
 };
 
 DB.prototype._registerSenderListener = function () {
-  this.on('changes', this._sender.send);
+  var self = this;
+  self.on('changes', function () {
+    self._sender.send();
+  });
 };
 
 DB.prototype._registerDisconnectListener = function () {
   this._socket.on('disconnect', function () {
     log.info('server disconnected');
-  });
-};
-
-DB.prototype._registerSyncNeededListener = function () {
-  var self = this;
-  self._socket.on('sync-needed', function () {
-    log.info('received sync-needed');
-    self._syncWithRemote();    
   });
 };
 
@@ -329,15 +323,13 @@ DB.prototype._connect = function () {
 
   self._registerSenderListener();
 
-  self._registerSyncNeededListener();
-
   self._socket.on('connect', function () {
     self._emitInit();
 
     // TODO: server currently requires init-done before it will start listening to changes
     self._socket.on('init-done', function () {
       log.info('received init-done');
-      self._syncWithRemote();
+      self._sender.send();
     });
   });
 };

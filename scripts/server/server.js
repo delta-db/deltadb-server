@@ -27,16 +27,24 @@ Server.prototype._emitInitDone = function (socket) {
   socket.emit('init-done');
 };
 
+Server.prototype._findAndEmitChanges = function (socket, partitioner) {
+  // The server just connected so send the latest changes to the client
+  this._partitioners.findAndEmitChanges(partitioner._dbName, socket);
+};
+
 Server.prototype._registerInitListener = function (socket) {
   var self = this;
   socket.on('init', function (msg) {
+    log.info('received (from ' + socket.conn.id + ') init:' + JSON.stringify(msg));
     // TODO: error checking if msg not in correct format
 
     // Lookup/create partitioner for DB name
-    return self._partitioners.register(msg.db, socket).then(function (partitioner) {
+    var since = msg.since ? new Date(msg.since) : null;
+    return self._partitioners.register(msg.db, socket, since).then(function (partitioner) {
       self._registerDisconnectListener(socket, partitioner);
-      self._registerSyncListener(socket, partitioner);
+      self._registerChangesListener(socket, partitioner);
       self._emitInitDone(socket);
+      self._findAndEmitChanges(socket, partitioner);
     }).catch(function (err) {
       socket.emit('error', err);
     });
@@ -60,11 +68,11 @@ Server.prototype._registerDisconnectListener = function (socket, partitioner) {
   socket.on('disconnect', this._onDisconnectFactory(socket, partitioner));
 };
 
-Server.prototype._registerSyncListener = function (socket, partitioner) {
+Server.prototype._registerChangesListener = function (socket, partitioner) {
   var self = this;
   socket.on('changes', function (msg) {
     // TODO: error checking if msg not in correct format
-    self._partitioners.sync(partitioner._dbName, socket, msg);
+    self._partitioners._queueChanges(partitioner._dbName, socket, msg);
   });
 };
 

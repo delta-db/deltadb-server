@@ -25,6 +25,17 @@ describe('e2e', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
+  var createB = function () {
+    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
+    clientB = new Client(storeB);
+
+    b = clientB.db({
+      db: 'mydb'
+    });
+
+    bTasks = b.col('tasks');
+  };
+
   beforeEach(function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientA = new Client(storeA);
@@ -35,19 +46,45 @@ describe('e2e', function () {
 
     aTasks = a.col('tasks');
 
-    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientB = new Client(storeB);
+    // TODO: need to make client creates DB with $system
+  });
 
-    b = clientB.db({
-      db: 'mydb'
+  // TODO: when get destroyDatabase working with client db then use it with afterEach to destroy the
+  // database
+
+  it('should send changes', function () {
+// TODO: make sure no duplicate data sent/received - I don't think this can be truly tested until the client has the ability to destroy the DB or else there will be existing data lying around for the DB!!
+
+    var task1 = aTasks.doc({
+      thing: 'write a song'
     });
 
-    bTasks = b.col('tasks');
+    return new Promise(function (resolve) {
+      var err = true;
+      
+      task1.on('attr:record', function (attr) {
+        if (attr.name === 'thing') { // receiving priority from server?
+          err = false;
+          resolve();
+        }
+      });
 
-    // TODO: need to make client create DB with $system
+      task1.save();
+
+      setTimeout(function () {
+        if (err) {
+          throw new Error('did not receive change');
+        }
+      }, 3000);
+    });
+
   });
 
   it('should send and receive changes', function () {
+    createB();
+
+// TODO: make sure no duplicate data sent/received
+
     var task1 = aTasks.doc({
       $id: '1',
       thing: 'write a song'

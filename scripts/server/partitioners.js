@@ -14,16 +14,16 @@ var Partitioners = function () {
 Partitioners.POLL_SLEEP_MS = 1000;
 
 // TODO: split up
-Partitioners.prototype.register = function (dbName, socket) {
+Partitioners.prototype.register = function (dbName, socket, since) {
   var self = this;
   if (self._partitioners[dbName]) { // exists?
-    self._partitioners[dbName].conns[socket.conn.id] = { socket: socket /*, since: null */ };
+    self._partitioners[dbName].conns[socket.conn.id] = { socket: socket, since: since };
     return self._partitioners[dbName].ready;
   } else {
 
     // First conn for this partitioner
     var part = new Partitioner(dbName), conns = {};
-    conns[socket.conn.id] = { socket: socket /*, since: null */ }
+    conns[socket.conn.id] = { socket: socket, since: since };
     var container = {
       part: part,
       conns: conns,
@@ -74,8 +74,7 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
 
   // Loop through all associated conns and notify that sync is needed
   utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
-    log.info('sending (to ' + conn.socket.conn.id + ') sync-needed');
-    conn.socket.emit('sync-needed');
+    self.findAndEmitChanges(partitioner._dbName, conn.socket);
   });
   
   self._partitioners[partitioner._dbName].since = newSince; // update since
@@ -122,29 +121,32 @@ Partitioners.prototype._emitChanges = function (socket, changes, since) {
   socket.emit('changes', msg);
 };
 
-Partitioners.prototype.sync = function (dbName, socket, msg) {
+// TODO: remove dbName parameter as can derive dbName from socket
+Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
 
-  // It's a little wasteful to have the client pass the since value with each sync, but it will make
-  // it easier for us to reuse the logic later if we also choose to support a RESTful API
   var self = this,
-    newSince = null,
     part = self._partitioners[dbName].part;
 
   // TODO: this needs to be a variable, e.g. false if there is only one DB server and true if there
   // is more than 1
   var quorum = true;
-  return part.queue(msg.changes, quorum).then(function () {
+  return part.queue(msg.changes, quorum);
+};
+
+// TODO: remove dbName parameter as can derive dbName from socket
+Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
+  var self = this,
+    part = self._partitioners[dbName].part,
+    since = self._partitioners[dbName].since,
     newSince = new Date();
-  }).then(function () {
-    // TODO: need to support pagination. Need to cap the results with the offset param, but then
-    // need to report to client that there is more data and to do another sync, but don't need
-    // client to resend changes. On the other side, how do we handle pagination from client?
-    return part.changes(new Date(msg.since));
-  }).then(function (changes) {
-    // TODO: wouldn't it be better to trigger this from server and not in response??? But then need
-    // the server to store the since so that the server doesn't have to ask the client for the
-    // timestamp.
+
+  self._partitioners[dbName].since = newSince;
+
+  // TODO: need to support pagination. Need to cap the results with the offset param, but then
+  // need to report to client that there is more data and to do another sync, but don't need
+  // client to resend changes. On the other side, how do we handle pagination from client?
+  return part.changes(since).then(function (changes) {
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);
     }

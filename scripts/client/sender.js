@@ -1,5 +1,7 @@
 'use strict';
 
+var utils = require('./utils');
+
 var Sender = function (db) {
   this._db = db;
   this._sending = false;
@@ -10,24 +12,36 @@ Sender.SEND_EVERY_MS = 1000;
 
 // TODO: need to worry about duplicate changes being sent? Can a ts be updated so that this is prevented?
 Sender.prototype._doSend = function () {
-  return this._db._syncWithRemote();
+  return this._db._findAndEmitChanges();
 };
 
 Sender.prototype._sendLoop = function () {
   var self = this;
+
   if (self._lastSent.getTime() > self._requested.getTime()) { // nothing more to send?
     self._sending = false;
   } else {
-    self._lastSent = new Date();
-    self._doSend().then(function () {
-      setTimeout(self._sendLoop, self.SEND_EVERY_MS);
+
+    // Sleep by 1 ms so that _lastSent is != _requested for the first request
+    return utils.timeout(1).then(function () {
+      self._lastSent = new Date();
+      return self._doSend();
+    }).then(function () {
+      //   return utils.timeout(Sender.SEND_EVERY_MS);
+      // }).then(function () {
+      //   self._sendLoop();
+
+      // TODO: is it better to use setTimout below than another promise as it is won't cause a stack
+      // overflow?
+      setTimeout(function () {
+        self._sendLoop();
+      }, Sender.SEND_EVERY_MS);
     });
   }
 };
 
 Sender.prototype.send = function () {
-console.log('Sender.prototype.send');
-// TODO: clean up comments for here
+// TODO: clean up following comments!!
 // - when there is a new client change:
 //   - create a 'change' event that bubbles up to db
 //   - db then kicks off a sync process if not already syncing. If already syncing then sets timestamp
