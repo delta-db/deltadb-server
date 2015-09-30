@@ -27,7 +27,7 @@ describe('client', function () {
 
   // TODO: define afterEach and destroy underlying store
 
-  it('it should restore from store', function () {
+  it('should restore from store', function () {
 
     var client2 = null,
       db2 = null,

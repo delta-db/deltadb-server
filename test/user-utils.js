@@ -1,7 +1,8 @@
 'use strict';
 
 var testUtils = require('./utils'),
-  Manager = require('../scripts/manager');
+  Manager = require('../scripts/manager'),
+  Cols = require('../scripts/partitioner/sql/col/cols');
 
 var Utils = function (args) {
   // Need to store DB wrapper as DB instance may not be ready yet
@@ -79,8 +80,12 @@ Utils.prototype.setPolicy = function (policy, col, id, userUUID) {
   }
 };
 
-Utils.prototype.allowAll = function () {
-  return this.setPolicy(this.allPolicy); // all can CRUD
+Utils.prototype.allowAll = function (col, id, userUUID) {
+  return this.setPolicy(this.allPolicy, col, id, userUUID); // all can CRUD
+};
+
+Utils.prototype.allowAllForAllCols = function () {
+  return this.allowAll(Cols.ALL, Cols.ID_ALL, '$admin');
 };
 
 Utils.prototype.roleIds = null;
@@ -94,6 +99,20 @@ Utils.prototype.getRoleIds = function () {
     });
     self.roleIds = roleIds;
     return roleIds;
+  });
+};
+
+Utils.prototype.createDatabase = function (dbName, userUUID) {
+  var mgr = this._mgr();
+  return mgr.queueCreateDatabase(dbName, userUUID).then(function () {
+    return mgr._partitioner.process();
+  });
+};
+
+Utils.prototype.destroyDatabase = function (dbName, userUUID) {
+  var mgr = this._mgr();
+  return mgr.queueDestroyDatabase(dbName, userUUID).then(function () {
+    return mgr._partitioner.process();
   });
 };
 

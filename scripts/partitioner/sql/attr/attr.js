@@ -5,7 +5,8 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   AttrRec = require('./attr-rec'),
   AttrParams = require('./attr-params'),
-  UserRoles = require('../user/user-roles');
+  UserRoles = require('../user/user-roles'),
+  System = require('../../../system');
 
 var Doc = require('../../../client/doc');
 
@@ -23,6 +24,10 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
 };
 
 Attr.prototype.create = function () {
+  // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
+  // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
+  // set the attr then would it be retried?
+
   var self = this,
     up = null,
     latestNoDelRestore = null;
@@ -74,30 +79,20 @@ Attr.prototype.createIfPermitted = function () {
   });
 };
 
-// Attr.prototype.setOptions = function () {
-//   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
-//   if (this._params.name === Doc._policyName) {
-//     return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
-//       this._params.changedByUserId, this._params.recordedAt,
-//       this._params.updatedAt, this._params.seq,
-//       this._params.restore, this._params.quorum,
-//       this._params.colId, this._params.userUUID);
-//   } else if (this._params.name === Doc._userName) {
-//     return this._users.setUser(this._params.value, this._params.updatedAt,
-//       this._params.changedByUserId, this._params.changedByUUID);
-//   } else if (this._params.name === Doc._roleName) {
-//     var roleUUID = this._roles.toUUID(this._params.value.roleName);
-//     if (this._params.value.action === UserRoles.ACTION_REMOVE) {
-//       return this._users.removeRole(this._params.forUserId, roleUUID);
-//     } else {
-//       return this._users.addRole(this._params.forUserId, roleUUID,
-//         this._params.changedByUserId, this._params.changedByUUID,
-//         this._params.updatedAt, this._params.docId);
-//     }
-//   } else {
-//     return Promise.resolve();
-//   }
-// };
+Attr.prototype._createOrDestroyDatabase = function () {
+
+  // Only create DB if this the system partitioner
+  if (this._partitioner._dbName !== System.DB_NAME) {
+    // TODO: log?
+    return Promise.resolve();
+  }
+
+  if (this._params.value.action === AttrRec.ACTION_REMOVE) {
+    return this._partitioner.destroyAnotherDatabase(this._params.value.name);
+  } else {
+    return this._partitioner.createAnotherDatabase(this._params.value.name);
+  }
+};
 
 Attr.prototype.setOptions = function () {
   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
@@ -105,6 +100,7 @@ Attr.prototype.setOptions = function () {
   switch (this._params.name) {
 
     case Doc._policyName:
+      // TODO: create fn for following
       return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
         this._params.changedByUserId, this._params.recordedAt,
         this._params.updatedAt, this._params.seq,
@@ -112,10 +108,11 @@ Attr.prototype.setOptions = function () {
         this._params.colId, this._params.userUUID);
     
     case Doc._userName:
+      // TODO: create fn for following
       return this._users.setUser(this._params.value, this._params.updatedAt,
         this._params.changedByUserId, this._params.changedByUUID);
 
-    case Doc._roleName:
+    case Doc._roleName: // TODO: split into fns
       var roleUUID = this._roles.toUUID(this._params.value.roleName);
       if (this._params.value.action === UserRoles.ACTION_REMOVE) {
         return this._users.removeRole(this._params.forUserId, roleUUID);
@@ -124,6 +121,9 @@ Attr.prototype.setOptions = function () {
           this._params.changedByUserId, this._params.changedByUUID,
           this._params.updatedAt, this._params.docId);
       }
+
+    case System.DB_ATTR_NAME:
+      return this._createOrDestroyDatabase();
 
     default:
       return Promise.resolve();

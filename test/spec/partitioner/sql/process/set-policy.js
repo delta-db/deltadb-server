@@ -27,7 +27,6 @@ describe('set-policy', function () {
             id: Roles.ID_SUPER,
             uuid: '$r$super'
           },
-          //          { id: Roles.ID_ADMIN, uuid: '$r$admin' },
           {
             id: Roles.ID_OWNER,
             uuid: '$r$owner'

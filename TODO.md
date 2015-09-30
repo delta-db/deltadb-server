@@ -1,7 +1,7 @@
 Now
 ---
 - express (or better) server - use web socket
-	- does the partitioner actually have a mechanism for creating a DB from a delta?
+	- when creating DB with delta, recorded_at only set if success? What if DB down or no permissions? Are there retries?
 	- need to make client create DB with $system
 	- make sure changes not being duplicated, restore unit test
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
