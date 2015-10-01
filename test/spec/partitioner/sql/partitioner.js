@@ -24,4 +24,11 @@ describe('partitioner', function () {
     });
   });
 
+  // it('should throw error if trying to connect to missing db', function () {
+  //   var otherPart = new Partitioner('testdb2');
+  //   return testUtils.shouldThrow(function () {
+  //     return otherPart.connect();
+  //   }, new Error('myerr'));
+  // });
+
 });

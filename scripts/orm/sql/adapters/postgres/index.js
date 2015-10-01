@@ -27,7 +27,7 @@ SQL.prototype._createDatabase = function (db) {
   return self._query('CREATE DATABASE ' + db);
 };
 
-SQL.prototype._connect = function (db, host, username, password, port) {
+SQL.prototype.connect = function (db, host, username, password, port) {
   var self = this,
     connect = Promise.promisify(pg.connect, pg);
   var con = 'postgres://' + username + ':' + password + '@' + host + '/' + self.escape(db);
@@ -38,22 +38,25 @@ SQL.prototype._connect = function (db, host, username, password, port) {
   });
 };
 
+SQL.prototype.createAndUse = function (db, host, username, password, port) {
+  // Note: need to specify a DB when connecting
+  var self = this;
+  // Connect to postgres db, create db and then connect to new db
+  return self.connect('postgres', host, username, password, port).then(function () {
+    return self._createDatabase(db);
+  }).then(function () {
+    return self.close();
+  }).then(function () {
+    return self.connect(db, host, username, password, port);
+  });
+};
+
+// TODO: remove?
 SQL.prototype.connectAndUse = function (db, host, username, password, port) {
   // Note: need to specify a DB when connecting
-  var self = this,
-    created = false;
-  return self._connect(db, host, username, password, port).catch(function () {
-    // create db and the reconnect
-    created = true;
-    return self._connect('postgres', host, username, password, port).then(function () {
-      return self._createDatabase(db);
-    }).then(function () {
-      return self.close();
-    }).then(function () {
-      return self._connect(db, host, username, password, port);
-    }).then(function () {
-      return created;
-    });
+  var self = this
+  return self.connect(db, host, username, password, port).catch(function () {
+    return self.createAndUse(db, host, username, password, port);
   });
 };
 
@@ -267,7 +270,7 @@ SQL.prototype.dropAndCloseDatabase = function () {
   var self = this,
     db = self._db;
   return self.close().then(function () {
-    return self._connect('postgres', self._host, self._username, self._password, self._port);
+    return self.connect('postgres', self._host, self._username, self._password, self._port);
   }).then(function () {
     return self._query('DROP DATABASE ' + self.escape(db));
   }).then(function () {
