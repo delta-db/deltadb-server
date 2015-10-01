@@ -26,7 +26,11 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
 Attr.prototype.create = function () {
   // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
   // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
-  // set the attr then would it be retried?
+  // set the attr then would it be retried? Should permission errors just fail, but DB down errors
+  // be retried? But, then how do we ensure that the doc was indeed updated, i.e. the change was the
+  // latest before creating the DB? For now, we'll assume that if there is a problem creating the DB
+  // that the client will detect this when trying to connect to the DB and will receive a
+  // DBMissingError, upon which it will try to recreate the DB.
 
   var self = this,
     up = null,
@@ -51,6 +55,12 @@ Attr.prototype.create = function () {
     }
   }).then(function () {
     if (latestNoDelRestore && up) {
+      // Only set the options if the doc was updated. We want to prevent back-to-back changes from
+      // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
+      // no guarantee of which order they will be received. This means that if we receive the
+      // destroy DB first then we'll destroy and then create. Instead, we'll ignore any deltas for
+      // docs for which we have already received a later update, e.g. we'd process the destroy and
+      // ignore the create.
       return self.setOptions();
     }
   });

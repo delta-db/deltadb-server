@@ -141,4 +141,7 @@ describe('attr', function () {
     });
   });
 
+  // TODO: what if remote server receives a destroy DB before a create DB, will we keep trying to
+  // destroy the DB or will this be ignored? This error should probably be ignored.
+
 });

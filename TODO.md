@@ -1,8 +1,8 @@
 Now
 ---
 - express (or better) server - use web socket
-	- when creating DB with delta, recorded_at only set if success? What if DB down or no permissions? Are there retries?
-	- need to make client create DB with $system
+	- need to make client create DB with $system - use DBMissingError during init to determine
+	- ability for client to destroy DB. Also, update wiki
 	- make sure changes not being duplicated, restore unit test
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
@@ -101,6 +101,7 @@ Future?
 - indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
 - wrap ids to prevent exceptions? Is this a concern with the attrs table? Do we need to have a process that sets the auto_increment back to 0 when it reaches a high enough number? Better to just not have ids for these tables? But then how to order attributes in a deterministic way? Need to take DB offline at this point and adjust all ids down to 0? Could prevent taking DB offline by just starting to adjust all ids with transactions once we get close to the overflow value, but then this would make the changes() call return changes out of order. http://stackoverflow.com/questions/2615417/what-happens-when-auto-increment-on-integer-column-reaches-the-max-value-in-data
 - what is the best web socket framework to use that will give us max speed and num connections? https://medium.com/@denizozger/finding-the-right-node-js-websocket-implementation-b63bfca0539. Probably need to benchmark
+- auto restore for when DB destroyed?
 
 
 Misc

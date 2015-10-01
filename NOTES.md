@@ -196,7 +196,7 @@ No changes are guaranteed to be received in any order so something like:
 1. ClientA locks down MyRole
 2. ClientA gives ThatUser access to MyRole
 3. ClientB (ThatUser) makes a change to MyData that requires MyRole
-If 3. happens before 2. then the change will fail. It is the client's responsibility to inform the user that they don't have access to MyData until they are added to MyRole. The client uses the "record" construct to guarantee that theses changes have occurred.
+If 3. happens before 2. then the change will fail. It is the client's responsibility to inform the user that they don't have access to MyData until they are added to MyRole. The client uses the "record" construct to guarantee that these changes have occurred.
 
 
 DeltaDB Server Stack
