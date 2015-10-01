@@ -136,18 +136,15 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 
 Part.prototype.connect = function () {
   // TODO: throw error if _dbName is reserved
-  return this._sql.connectAndUse(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
+  return this._sql.connect(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
     this._dbPwd);
 };
 
 Part.prototype.createDatabase = function () {
-  return this.createTables();
-};
-
-Part.prototype.connectAndCreate = function () {
   var self = this;
-  return self.connect().then(function () {
-    return self.createDatabase();
+  return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
+    self._dbPwd).then(function () {
+    return self.createTables();
   });
 };
 
@@ -169,12 +166,12 @@ Part.prototype.closeDatabase = function () {
 Part.prototype.createAnotherDatabase = function (dbName) {
   // Create a different DB and then just close it as another partitioner will manage it
   var sql = new SQL(); // TODO: pass in constructor
-  var part = new Part(this._toUniqueDBName(dbName), sql);
+  var part = new Part(dbName, sql);
   return this._users.getSuperUser().then(function (user) {
     // Default other DB's super user salt and pwd so that it matches "ours"
     Users.SUPER_SALT = user.salt;
     Users.SUPER_PWD = user.password;
-    return part.connectAndCreate();
+    return part.createDatabase();
   }).then(function () {
     return part.closeDatabase();
   });
@@ -183,7 +180,7 @@ Part.prototype.createAnotherDatabase = function (dbName) {
 Part.prototype.destroyAnotherDatabase = function (dbName) {
   // Destroy a different DB and then just close it as another partitioner will manage it
   var sql = new SQL(); // TODO: pass in constructor
-  var part = new Part(this._toUniqueDBName(dbName), sql);
+  var part = new Part(dbName, sql);
   return part.connect().then(function () {
     return part.destroyDatabase();
   });

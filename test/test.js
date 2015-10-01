@@ -16,12 +16,13 @@ describe('deltadb', function () {
   before(function () {
     // Create the db and only once for all the tests
     var db = new Partitioner('testdb');
-    return db.connectAndCreate().then(function () {
+    return db.connect().then(function () {
       return db.closeDatabase(); // close as beforeEach will connect
     }).catch(function () {
-      // If there is an error, assume it is because the testdb already exists so just close db as
-      // the tests will truncate the db before each test
-      return db.closeDatabase();
+      // If there is an error, assume it is because the testdb doesn't exist
+      return db.createDatabase().then(function () {
+        return db.closeDatabase(); // close as beforeEach will connect
+      });
     });
   });
 

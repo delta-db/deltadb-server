@@ -13,7 +13,7 @@ var ensureDBCreated = function () {
   var part = new Partitioner('mydb');
 
   var connectAndCreateAndClose = function () {
-    return part.connectAndCreate().then(function () {
+    return part.createDatabase().then(function () {
       return part.closeDatabase();
     });
   };

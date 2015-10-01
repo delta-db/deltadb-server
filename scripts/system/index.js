@@ -55,7 +55,7 @@ System.prototype._queueAdminPolicy = function () {
 
 System.prototype.create = function () {
   var self = this;
-  return self._manager._partitioner.connectAndCreate().then(function () {
+  return self._manager._partitioner.createDatabase().then(function () {
     return self._queueCreateDefaultAdminUser();
   }).then(function () {
     return self._manager._partitioner.process(); // actually create user & role

@@ -48,7 +48,9 @@ describe('system', function () {
 
   afterEach(function () {
     return system.destroy().then(function () {
-      return partitioner.destroyAnotherDatabase('myotherdb');
+      return partitioner.destroyAnotherDatabase('myotherdb').catch(function () {
+        // Ignore error in case trying to destroy after DB has already been destroyed
+      });
     });
   });
 
