@@ -150,6 +150,10 @@ Part.prototype.createDatabase = function () {
   return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
     self._dbPwd).then(function () {
     return self.createTables();
+
+}).then(function () {
+console.log('---------------------DONE CREATING TABLES!!!');
+
   });
 };
 

@@ -54,6 +54,14 @@ DB.prototype._initStoreLoaded = function () {
   this._storeLoaded = utils.once(this, 'load'); // TODO: are _storeLoaded and _loaded both needed?
 };
 
+// TODO: can this be cleaned up? Do we really need _storeLoaded, _loaded and _ready?
+DB.prototype._ready = function () {
+  var self = this;
+  return self._storeLoaded.then(function () {
+    return self._loaded;
+  });
+};
+
 DB.prototype._import = function (store) {
   this._store = store;
   this._initStore();
@@ -269,7 +277,8 @@ DB.prototype.destroy = function () {
 DB.prototype._emitInit = function () {
 console.log('_emitInit1');
   var self = this;
-  return self._loaded.then(function () { // ensure props have been loaded/created first
+  return self._ready().then(function () { // ensure props have been loaded/created first
+//  return self._loaded.then(function () { // ensure props have been loaded/created first
 console.log('_emitInit2');
     var msg = {
       db: self._name,
@@ -298,7 +307,8 @@ DB.prototype._findAndEmitChanges = function () {
   // code?
   var self = this;
 
-  return self._loaded.then(function () { // ensure props have been loaded/created first
+//  return self._loaded.then(function () { // ensure props have been loaded/created first
+  return self._ready().then(function () { // ensure props have been loaded/created first
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
     if (changes.length > 0) {
@@ -311,7 +321,8 @@ DB.prototype._findAndEmitChanges = function () {
 DB.prototype._processChanges = function (msg) {
   var self = this;
   log.info('received ' + JSON.stringify(msg));
-  return self._loaded.then(function () { // ensure props have been loaded/created first
+  return self._ready().then(function () { // ensure props have been loaded/created first
+//  return self._loaded.then(function () { // ensure props have been loaded/created first
     return self._setChanges(msg.changes); // Process the server's changes
   }).then(function () {
     return self._props.set({ // Update since

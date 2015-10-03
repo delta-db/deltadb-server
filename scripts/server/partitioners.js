@@ -16,14 +16,17 @@ Partitioners.POLL_SLEEP_MS = 1000;
 
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since) {
+console.log('Partitioners.prototype.register1 ', dbName);
   var self = this;
   if (self._partitioners[dbName]) { // exists?
+console.log('Partitioners.prototype.register2 ', dbName);
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
       since: since
     };
     return self._partitioners[dbName].ready;
   } else {
+console.log('Partitioners.prototype.register3 ', dbName);
 
     // First conn for this partitioner
     var part = new Partitioner(dbName),
@@ -42,11 +45,20 @@ Partitioners.prototype.register = function (dbName, socket, since) {
     // Save promise so that any registrations for the same partitioner that happen back-to-back can
     // wait until the partitioner is ready
     container.ready = part.connect().then(function () {
+console.log('Partitioners.prototype.register3a ', dbName);
+      self._partitioners[dbName] = container;
       self._poll(part);
       return part;
+//     }).catch(function (err) {
+// console.log('***********unregistering dbName=', dbName);
+//       // Unregister so that we can re-register later, e.g. the db doesn't exist yet and we we going
+//       // to create it
+//       return self.unregister(dbName, socket).then(function () {
+//         throw err;
+//       });
     });
 
-    self._partitioners[dbName] = container;
+console.log('Partitioners.prototype.register4 ', dbName);
 
     return container.ready;
   }
@@ -55,6 +67,12 @@ Partitioners.prototype.register = function (dbName, socket, since) {
 Partitioners.prototype.unregister = function (dbName, socket) {
   // Remove the connection
   delete this._partitioners[dbName].conns[socket.conn.id];
+console.log('Partitioners.prototype.unregister1 ', dbName);
+console.log('Partitioners.prototype.unregister1a ', dbName, 'socket.conn.id=', socket.conn.id);
+
+// for (var i in this._partitioners) {
+// console.log('&&&&&&&&&&&this._partitioners[' + i + '] exists');
+// }
 
   // Delete partitioner if no more connections for this partition
   if (this._partitioners[dbName].conns.length === 0) {
@@ -66,9 +84,12 @@ Partitioners.prototype.unregister = function (dbName, socket) {
 
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
+console.log('Partitioners.prototype.unregister2 ', dbName);
     delete this._partitioners[dbName];
     return part.closeDatabase();
   } else {
+console.log('Partitioners.prototype.unregister2 ', dbName);
+
     return Promise.resolve();
   }
 };

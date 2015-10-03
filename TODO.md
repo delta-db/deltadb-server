@@ -112,4 +112,5 @@ Docs
 Misc
 ---
 - Use BaaS (Backend as a Service) phrase?
+- Create a repo with vagrant that benchmarks deltadb, pouchdb, delta-pouch, firebase & meteor
 
