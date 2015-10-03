@@ -203,9 +203,23 @@ DocRecs.prototype.canUpdate = function (docId, updatedAt) {
     ['id', '=', '"' + docId + '"'], 'and',
     where
   ]).then(function (results) {
-    if (!results.rows) {
-      throw new ForbiddenError('cannot update ' + docId + ' at ' + updatedAt);
+    if (results.rows) { // update allowed
+      return;
     }
+
+    // The update may not have succeeded as a delete came first, but we may still need to update
+    // updated_at
+    return self._sql.find(['id'], self._name, null, [
+      ['id', '=', '"' + docId + '"'], 'and', [
+        ['updated_at', '<=', '"' + updatedAt.toISOString() + '"'], 'or', ['updated_at',
+          '=', 'null'
+        ]
+      ]
+    ]).then(function (results) {
+      if (!results.rows) { 
+        throw new ForbiddenError('cannot update ' + docId + ' at ' + updatedAt);
+      }
+    });
   });
 };
 

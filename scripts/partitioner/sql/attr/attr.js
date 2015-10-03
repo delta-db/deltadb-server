@@ -24,6 +24,7 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
   this._partitioner = partitioner;
 };
 
+// TODO: remove
 // Attr.prototype.create = function () {
 //   // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
 //   // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
@@ -66,7 +67,6 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
 //     }
 //   });
 // };
-
 
 // TODO: split up
 Attr.prototype.create = function () {
@@ -116,7 +116,7 @@ Attr.prototype.create = function () {
     }
   }).catch(function (err) {
     if (err instanceof ForbiddenError) {
-      log.error('Cannot create attr, err=' + err.message);
+      log.error('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
       throw err;
     }
