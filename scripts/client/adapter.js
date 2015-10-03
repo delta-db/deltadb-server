@@ -22,43 +22,57 @@ var Adapter = function (store) {
 
 inherits(Adapter, MemAdapter);
 
-Adapter.prototype._createMissingStores = function () {
-  // Resolves after all the missing stores have loaded
-  var self = this,
-    promises = [];
-  self.all(function (db) {
-    if (!db._store) { // store hasn't been reloaded?
-      db._import(self._store.db({
-        db: db._name
-      }));
-      promises.push(db._loaded);
-    }
-  });
-  return Promise.all(promises);
-};
-
 Adapter.prototype._initStore = function () {
+  this._loaded = this._store._load();
+};
+
+Adapter.prototype._initDBStore = function (db) {
   var self = this;
-  self._loaded = self._store._load().then(function () {
-    var promises = [];
-
-    self._store.all(function (dbStore) {
-      var db = self.db({
-        db: dbStore._name
-      });
-      db._import(dbStore);
-      promises.push(db._loaded);
-    });
-
-    return Promise.all(promises).then(function () {
-      // Create missing stores after all the existing stores have been loaded so that we don't have
-      // a race condition where we are trying to create a store that is also being reloaded
-      return self._createMissingStores();
-    }).then(function () {
-      self._emit('load');
-    });
+  self._loaded.then(function () {
+    var dbStore = self._store.db({ db: db._name }); // get or create store
+    db._import(dbStore);
   });
 };
+
+// TODO: remove as handled at db layer now
+// Adapter.prototype._createMissingStores = function () {
+//   // Resolves after all the missing stores have loaded
+//   var self = this,
+//     promises = [];
+//   self.all(function (db) {
+//     if (!db._store) { // store hasn't been reloaded?
+//       db._import(self._store.db({
+//         db: db._name
+//       }));
+//       promises.push(db._loaded);
+//     }
+//   });
+//   return Promise.all(promises);
+// };
+
+// TODO: remove as handled at db layer now
+// Adapter.prototype._initStore = function () {
+//   var self = this;
+//   self._loaded = self._store._load().then(function () {
+//     var promises = [];
+
+//     self._store.all(function (dbStore) {
+//       var db = self.db({
+//         db: dbStore._name
+//       });
+//       db._import(dbStore);
+//       promises.push(db._loaded);
+//     });
+
+//     return Promise.all(promises).then(function () {
+//       // Create missing stores after all the existing stores have been loaded so that we don't have
+//       // a race condition where we are trying to create a store that is also being reloaded
+//       return self._createMissingStores();
+//     }).then(function () {
+//       self._emit('load');
+//     });
+//   });
+// };
 
 Adapter.prototype._emit = function () { // event, arg1, ... argN
   this.emit.apply(this, utils.toArgsArray(arguments));
@@ -82,18 +96,34 @@ Adapter.prototype.db = function (opts) {
   }
 };
 
+Adapter.prototype._systemDB = function () {
+  if (!this._sysDB) {
+    this._sysDB = this.db({ db: clientUtils.SYSTEM_DB_NAME }); // TODO: pass url here
+  }
+  return this._sysDB;
+};
+
 Adapter.prototype._createDatabase = function (dbName) {
-  var systemDB = this.db({
-    db: clientUtils.SYSTEM_DB_NAME
+  var self = this;
+  return self._systemDB()._createDatabase(dbName).then(function (doc) {
+    return new Promise(function (resolve) {
+      doc.on('attr:record', function (attr) {
+// TODO: why is the attr value not dbName???
+console.log('attr:record, dbName=', dbName, 'attr=', attr);
+        if (attr.value === dbName) { // db was created
+          resolve();
+        }
+      });
+    });
   });
-  return systemDB._createDatabase(dbName);
 };
 
 Adapter.prototype._destroyDatabase = function (dbName) {
-  var systemDB = this.db({
-    db: clientUtils.SYSTEM_DB_NAME
+  var self = this;
+  return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
+    return utils.once(doc, 'attr:record'); // resolve when DB destroyed
+    // TODO: actually check attr:record event to make sure it is a destroy for this dbName
   });
-  return systemDB._destroyDatabase(dbName);
 };
 
 module.exports = Adapter;

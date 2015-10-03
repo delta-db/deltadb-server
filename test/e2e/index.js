@@ -51,7 +51,15 @@ describe('e2e', function () {
 
     aTasks = a.col('tasks');
 
-    // TODO: need to make client creates DB with $system
+    // TODO: need to make client create DB with $system
+  });
+
+  afterEach(function () {
+    return a.destroy().then(function () {
+      if (b) {
+        return b.destroy();
+      }
+    });
   });
 
   it('should send and receive changes', function () {

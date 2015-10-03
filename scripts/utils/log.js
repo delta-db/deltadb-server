@@ -18,6 +18,10 @@ Log.prototype.info = function (msg) {
   this._log(msg, 'Info');
 };
 
+Log.prototype.warning = function (msg) {
+  this._log(msg, 'Warning');
+};
+
 Log.prototype.error = function (msg) {
   this._log(msg, 'Error');
 };

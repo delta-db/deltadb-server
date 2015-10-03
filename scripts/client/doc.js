@@ -210,6 +210,17 @@ Doc.prototype._emitDocCreate = function () {
   this._emit('doc:create', this._idName, this.id());
 };
 
+Doc.prototype._saveRecording = function (name, value, recorded) {
+  if (name && this._dat.latest[name]) {
+
+    this._emit('attr:record', name, value);
+    this._emit('doc:record', name, value);
+
+    this._dat.latest[name].re = recorded;
+    this._dat.recordedAt = recorded;
+  }
+};
+
 // TODO: better "changes" structure needed so that recording can happen faster? Use Dictionary to
 // index by docUUID and attrName?
 Doc.prototype._record = function (name, value, updated, seq, recorded) {
@@ -230,20 +241,17 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
     if (change.name === name && val === value && change.up.getTime() === updated.getTime() &&
       changeSeq === seq) {
 
-      found = true;
+      found = true; // TODO: stop looping once the change has been found
 
-      if (name && self._dat.latest[name]) {
-
-        self._emit('attr:record', name, value);
-        self._emit('doc:record', name, value);
-
-        self._dat.latest[name].re = recorded;
-        self._dat.recordedAt = recorded;
-      }
+      self._saveRecording(name, value, recorded);
 
       delete self._dat.changes[i]; // the change was recorded with a quorum of servers so destroy it
     }
   });
+
+  if (!found) { // change originated from server?
+    self._saveRecording(name, value, recorded);
+  }
 };
 
 Doc.prototype._changeDoc = function (doc) {

@@ -288,8 +288,9 @@ Process.prototype._getOrCreateCol = function (col) {
           col.updatedAt, col.recordedByUserId);
       }
     }).catch(function (err) {
-      // TODO: log ForbiddenError?
-      if (!(err instanceof ForbiddenError)) {
+      if (err instanceof ForbiddenError) {
+        log.error('Error getting or creating col ' + col.colName + ', err=' + err.message);
+      } else {
         throw err;
       }
     });
@@ -365,8 +366,9 @@ Process.prototype._getOrCreateDoc = function (partition, doc) {
           doc.attrName, doc.attrVal, doc.colName, doc.recordedByUserId);
       }
     }).catch(function (err) {
-      log.error(err);
-      if (!(err instanceof ForbiddenError)) {
+      if (err instanceof ForbiddenError) {
+        log.error('Error getting or creating doc, err=' + err.message);        
+      } else {
         throw err;
       }
     });
@@ -579,7 +581,9 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
 
           self._deltas.push(roleUserAttr);
         }).catch(function (err) {
-          if (!(err instanceof ForbiddenError)) {
+          if (err instanceof ForbiddenError) {
+            log.error('Error looking up or adding user to role, err=' + err.message);
+          } else {
             throw err;
           }
           // Destroy attr as don't have perm
@@ -695,7 +699,9 @@ Process.prototype._processAttr = function (attr) {
   return self._createOrUpdateAttrs(attr).then(function () {
     return self._destroyQueueAttrRec(attr); // remove from queue
   }).catch(function (err) {
-    if (!(err instanceof ForbiddenError)) {
+    if (err instanceof ForbiddenError) {
+      log.error('Error processing attr=' + JSON.stringify(attr) + ', err=' + err.message);
+    } else {
       throw err;
     }
   });

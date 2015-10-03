@@ -5,7 +5,8 @@
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
   log = require('../utils/log'),
-  utils = require('../utils');
+  utils = require('../utils'),
+  clientUtils = require('../client/utils');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -106,7 +107,8 @@ Partitioners.prototype._doPoll = function (partitioner) {
 Partitioners.prototype._hasChanges = function (partitioner, since) {
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
-  return partitioner.changes(since, null, 1).then(function (changes) {
+  var all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  return partitioner.changes(since, null, 1, null, all).then(function (changes) {
     return changes.length > 0;
   });
 };
@@ -146,6 +148,7 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
 
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
+console.log('findAndEmitChanges1, dbName=', dbName);
   var self = this,
     part = self._partitioners[dbName].part,
     since = self._partitioners[dbName].conns[socket.conn.id].since,
@@ -156,8 +159,10 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   // TODO: need to support pagination. Need to cap the results with the offset param, but then
   // need to report to client that there is more data and to do another sync, but don't need
   // client to resend changes. On the other side, how do we handle pagination from client?
-  return part.changes(since).then(function (changes) {
+  var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  return part.changes(since, null, null, null, all).then(function (changes) {
     if (changes.length > 0) { // Are there local changes?
+console.log('findAndEmitChanges3, dbName=', dbName + ', changes=', changes);
       self._emitChanges(socket, changes, newSince);
     }
   });

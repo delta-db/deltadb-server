@@ -29,12 +29,14 @@ var Globals = require('./globals'),
   Changes = require('./changes'),
   Partition = require('./partition'),
   QueueAttrRecs = require('./queue/queue-attr-recs'),
-  config = require('../../../config');
+  config = require('../../../config'),
+  log = require('../../utils/log');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
+  this._connected = false;
 
   this._globals = new Globals(this._sql);
   this._roles = new Roles(this._sql, this);
@@ -136,8 +138,11 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 
 Part.prototype.connect = function () {
   // TODO: throw error if _dbName is reserved
-  return this._sql.connect(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
-    this._dbPwd);
+  var self = this;
+  return self._sql.connect(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
+    self._dbPwd).then(function () {
+      self._connected = true;
+    });
 };
 
 Part.prototype.createDatabase = function () {
@@ -155,16 +160,28 @@ Part.prototype.truncateDatabase = function () {
 
 // TODO: rename to destroy?
 Part.prototype.destroyDatabase = function () {
-  return this._sql.dropAndCloseDatabase();
+  var self = this, promise = null;
+  if (self._connected) {
+    promise = Promise.resolve();
+  } else {
+    promise = self.connect();
+  }
+  return promise.then(function () {
+    return self._sql.dropAndCloseDatabase();
+  });
 };
 
 // TODO: rename to disconnect?
 Part.prototype.closeDatabase = function () {
-  return this._sql.close();
+  var self = this;
+  return self._sql.close().then(function () {
+    self._connected = false;
+  });
 };
 
 Part.prototype.createAnotherDatabase = function (dbName) {
   // Create a different DB and then just close it as another partitioner will manage it
+  log.info('creating another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
   return this._users.getSuperUser().then(function (user) {
@@ -179,6 +196,7 @@ Part.prototype.createAnotherDatabase = function (dbName) {
 
 Part.prototype.destroyAnotherDatabase = function (dbName) {
   // Destroy a different DB and then just close it as another partitioner will manage it
+  log.info('destroying another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
   return part.connect().then(function () {

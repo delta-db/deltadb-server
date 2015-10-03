@@ -10,7 +10,8 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   pg = require('pg'),
   AbstractSQL = require('../../common'),
-  SQLError = require('../../common/sql-error');
+  SQLError = require('../../common/sql-error'),
+  DBMissingError = require('../../../../client/db-missing-error');
 
 var SQL = function () {};
 
@@ -35,6 +36,10 @@ SQL.prototype.connect = function (db, host, username, password, port) {
   return connect(con).then(function (args) {
     self._client = args[0];
     self._execute = Promise.promisify(self._client.query, self._client);
+  }).catch(function (err) {
+    if (err.code === '3D000') {
+      throw new DBMissingError(err.message);
+    }
   });
 };
 

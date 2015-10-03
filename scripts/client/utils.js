@@ -2,12 +2,54 @@
 
 // TODO: move all code needed by client from ../utils to client/utils
 
-var utils = require('../utils'),
-  Promise = require('bluebird');
+var Promise = require('bluebird'),
+  bcrypt = require('bcryptjs');
 
-var Utils = function () {};
+var Utils = function () {
+  this._bcrypt = bcrypt; // only for unit testing
+};
 
 Utils.prototype.STATUS_ENABLED = 'enabled'; // Also set here so that client doesn't need Users
+
+Utils.prototype.hash = function (password, salt) {
+  var self = this;
+  return new Promise(function (resolve, reject) {
+    self._bcrypt.hash(password, salt, function (err, hash) {
+      if (err) {
+        reject(err);
+      }
+      resolve(hash);
+    });
+  });
+};
+
+Utils.prototype.genSalt = function () {
+  var self = this;
+  return new Promise(function (resolve, reject) {
+    self._bcrypt.genSalt(10, function (err, salt) {
+      if (err) {
+        reject(err);
+      }
+      resolve(salt);
+    });
+  });
+};
+
+Utils.prototype.hashPassword = function (password, salt) {
+  return this.hash(password, salt).then(function (hash) {
+    return {
+      salt: salt,
+      hash: hash
+    };
+  });
+};
+
+Utils.prototype.genSaltAndHashPassword = function (password) {
+  var self = this;
+  return self.genSalt(10).then(function (salt) {
+    return self.hashPassword(password, salt);
+  });
+};
 
 Utils.prototype.genUser = function (userUUID, username, password, status) {
   // Include uuid in user so that can retrieve userUUIDs using deltas
@@ -16,7 +58,7 @@ Utils.prototype.genUser = function (userUUID, username, password, status) {
     username: username,
     status: status ? status : this.STATUS_ENABLED
   };
-  return utils.genSaltAndHashPassword(password).then(function (saltAndPwd) {
+  return this.genSaltAndHashPassword(password).then(function (saltAndPwd) {
     user.salt = saltAndPwd.salt;
     user.password = saltAndPwd.hash;
     return user;
@@ -46,6 +88,27 @@ Utils.prototype.timeout = function (ms) {
     setTimeout(function () {
       resolve();
     }, ms);
+  });
+};
+
+// Executes promise and then resolves after event emitted once
+Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
+  var defer = Promise.defer();
+
+  emitter.once(evnt, function () {
+    defer.resolve(arguments);
+  });
+
+  return promiseFactory().then(function () {
+    return defer.promise;
+  });
+};
+
+Utils.prototype.once = function (emitter, evnt) {
+  return new Promise(function (resolve) {
+    emitter.once(evnt, function () {
+      resolve(arguments);
+    });
   });
 };
 

@@ -46,7 +46,8 @@ Server.prototype._registerInitListener = function (socket) {
       self._emitInitDone(socket);
       self._findAndEmitChanges(socket, partitioner);
     }).catch(function (err) {
-      socket.emit('error', err);
+      log.warning('err=' + err.message);
+      socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
     });
     // TODO: also handle authentication here?
   });

@@ -8,7 +8,8 @@
 var uuid = require('node-uuid'),
   Promise = require('bluebird'),
   // bcrypt = require('bcrypt'); // TODO: use for server as faster?
-  bcrypt = require('bcryptjs');
+  bcrypt = require('bcryptjs'),
+  clientUtils = require('../client/utils');
 
 var Utils = function () {
   this._bcrypt = bcrypt; // only for unit testing
@@ -88,43 +89,23 @@ Utils.prototype.merge = function (obj1, obj2) {
 };
 
 Utils.prototype.hash = function (password, salt) {
-  var self = this;
-  return new Promise(function (resolve, reject) {
-    self._bcrypt.hash(password, salt, function (err, hash) {
-      if (err) {
-        reject(err);
-      }
-      resolve(hash);
-    });
-  });
+  // TODO: change all callers to use utils
+  return clientUtils.hash.apply(this, arguments);
 };
 
 Utils.prototype.genSalt = function () {
-  var self = this;
-  return new Promise(function (resolve, reject) {
-    self._bcrypt.genSalt(10, function (err, salt) {
-      if (err) {
-        reject(err);
-      }
-      resolve(salt);
-    });
-  });
+  // TODO: change all callers to use utils
+  return clientUtils.genSalt.apply(this, arguments);
 };
 
 Utils.prototype.hashPassword = function (password, salt) {
-  return this.hash(password, salt).then(function (hash) {
-    return {
-      salt: salt,
-      hash: hash
-    };
-  });
+  // TODO: change all callers to use utils
+  return clientUtils.hashPassword.apply(this, arguments);
 };
 
 Utils.prototype.genSaltAndHashPassword = function (password) {
-  var self = this;
-  return self.genSalt(10).then(function (salt) {
-    return self.hashPassword(password, salt);
-  });
+  // TODO: change all callers to use utils
+  return clientUtils.genSaltAndHashPassword.apply(this, arguments);
 };
 
 Utils.prototype.notDefined = function (val) {
@@ -136,24 +117,14 @@ Utils.prototype.isDefined = function (val) {
 };
 
 // Executes promise and then resolves after event emitted once
-Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
-  var defer = Promise.defer();
-
-  emitter.once(evnt, function () {
-    defer.resolve(arguments);
-  });
-
-  return promiseFactory().then(function () {
-    return defer.promise;
-  });
+Utils.prototype.doAndOnce = function () {
+  // TODO: change all callers to use utils
+  return clientUtils.doAndOnce.apply(this, arguments);
 };
 
-Utils.prototype.once = function (emitter, evnt) {
-  return new Promise(function (resolve) {
-    emitter.once(evnt, function () {
-      resolve(arguments);
-    });
-  });
+Utils.prototype.once = function () {
+  // TODO: change all callers to use utils
+  return clientUtils.once.apply(this, arguments);
 };
 
 Utils.prototype.sort = function (items, attrs) {
