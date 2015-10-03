@@ -6,7 +6,8 @@ var Promise = require('bluebird'),
   AttrRec = require('./attr-rec'),
   AttrParams = require('./attr-params'),
   UserRoles = require('../user/user-roles'),
-  System = require('../../../system');
+  System = require('../../../system'),
+  log = require('../../../utils/log');
 
 var Doc = require('../../../client/doc');
 
@@ -23,14 +24,62 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
   this._partitioner = partitioner;
 };
 
+// Attr.prototype.create = function () {
+//   // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
+//   // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
+//   // set the attr then would it be retried? Should permission errors just fail, but DB down errors
+//   // be retried? But, then how do we ensure that the doc was indeed updated, i.e. the change was the
+//   // latest before creating the DB? For now, we'll assume that if there is a problem creating the DB
+//   // that the client will detect this when trying to connect to the DB and will receive a
+//   // DBMissingError, upon which it will try to recreate the DB.
+
+//   var self = this,
+//     up = null,
+//     latestNoDelRestore = null;
+
+//   // Don't replace LATEST unless there is a quorum
+//   if (self._partitionName === constants.LATEST && !self._params.quorum) {
+//     return Promise.resolve(false);
+//   }
+
+//   return self.createIfPermitted().then(function () {
+//     return self.setDestroyedOrUpdateDoc();
+//   }).then(function (updated) {
+//     up = updated; // attr was updated? (non-del update)
+
+//     // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
+//     latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
+//       self._params.name;
+
+//     if (latestNoDelRestore) {
+//       return self.restoreIfDestroyedBefore();
+//     }
+//   }).then(function () {
+//     if (latestNoDelRestore && up) {
+//       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
+//       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
+//       // no guarantee of which order they will be received. This means that if we receive the
+//       // destroy DB first then we'll destroy and then create. Instead, we'll ignore any deltas for
+//       // docs for which we have already received a later update, e.g. we'd process the destroy and
+//       // ignore the create.
+//       return self.setOptions();
+//     }
+//   });
+// };
+
+
+// TODO: split up
 Attr.prototype.create = function () {
-  // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
-  // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
-  // set the attr then would it be retried? Should permission errors just fail, but DB down errors
-  // be retried? But, then how do we ensure that the doc was indeed updated, i.e. the change was the
-  // latest before creating the DB? For now, we'll assume that if there is a problem creating the DB
-  // that the client will detect this when trying to connect to the DB and will receive a
-  // DBMissingError, upon which it will try to recreate the DB.
+  // We want to make sure that we set the options before we create the attr as creating the attr
+  // will alert the calling process and we want this alert to be done after the options are set,
+  // e.g. alert after the DB has been created.
+  //
+  // 1. Check permissions
+  // 2. Can we destroy or update the doc based on timestamp? (need to gurantee that we haven't
+  //    processed an earlier change)
+  // 3. Set options, e.g. create a DB
+  // 4. Create the attr
+  // 5. Auto restore if the attr was previously deleted
 
   var self = this,
     up = null,
@@ -41,20 +90,14 @@ Attr.prototype.create = function () {
     return Promise.resolve(false);
   }
 
-  return self.createIfPermitted().then(function () {
-    return self.setDestroyedOrUpdateDoc();
-  }).then(function (updated) {
-    up = updated; // attr was updated? (non-del update)
+  // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
+  latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
+    self._params.name;
 
-    // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
-    latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
-      self._params.name;
-
-    if (latestNoDelRestore) {
-      return self.restoreIfDestroyedBefore();
-    }
+  return self._canCreate().then(function () {
+    return self._canDestroyOrUpdateDoc();
   }).then(function () {
-    if (latestNoDelRestore && up) {
+    if (latestNoDelRestore) {
       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
       // no guarantee of which order they will be received. This means that if we receive the
@@ -62,6 +105,20 @@ Attr.prototype.create = function () {
       // docs for which we have already received a later update, e.g. we'd process the destroy and
       // ignore the create.
       return self.setOptions();
+    }
+  }).then(function () {
+    return self.createIfPermitted();
+  }).then(function () {
+    return self.setDestroyedOrUpdateDoc();
+  }).then(function (updated) {
+    if (latestNoDelRestore) {
+      return self.restoreIfDestroyedBefore();
+    }
+  }).catch(function (err) {
+    if (err instanceof ForbiddenError) {
+      log.error('Cannot create attr, err=' + err.message);
+    } else {
+      throw err;
     }
   });
 };
@@ -77,14 +134,32 @@ Attr.prototype.newAttrRec = function (partitionName) {
   return new AttrRec(this._sql, partitionName, this._params, this._partitioner);
 };
 
-Attr.prototype.createIfPermitted = function () {
+Attr.prototype._canCreate = function () {
   var self = this;
   var action = self._params.value ? constants.ACTION_UPDATE : constants.ACTION_DESTROY;
-  var attrRec = self.newAttrRec(self._partitionName);
   return self.permitted(action).then(function (allowed) {
     if (!allowed) {
       throw new ForbiddenError(action + ' forbidden');
     }
+  });
+};
+
+// Attr.prototype.createIfPermitted = function () {
+//   var self = this;
+//   var action = self._params.value ? constants.ACTION_UPDATE : constants.ACTION_DESTROY;
+//   var attrRec = self.newAttrRec(self._partitionName);
+//   return self.permitted(action).then(function (allowed) {
+//     if (!allowed) {
+//       throw new ForbiddenError(action + ' forbidden');
+//     }
+//     return attrRec.createOrReplace();
+//   });
+// };
+
+Attr.prototype.createIfPermitted = function () {
+  var self = this;
+  var attrRec = self.newAttrRec(self._partitionName);
+  return self._canCreate().then(function () {
     return attrRec.createOrReplace();
   });
 };
@@ -158,6 +233,20 @@ Attr.prototype.setDestroyedOrUpdateDoc = function () {
       .then(function (results) {
         return results && results.affected > 0;
       });
+  }
+};
+
+Attr.prototype._canDestroyOrUpdateDoc = function () {
+  var self = this;
+  if (self.destroyingDoc()) {
+    // TODO: all params needed?
+    return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
+      self._params.updatedAt, self._params.restore, self._params.docUUID,
+      self._params.colId, self._params.userUUID);
+  } else {
+    // TODO: remove new Date()
+    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
+    return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
   }
 };
 

@@ -12,7 +12,8 @@
 // TODO: separate DB specific logic to doc-rec & doc-recs and use doc and docs for layer above
 
 var constants = require('../constants'),
-  SQLError = require('../../../orm/sql/common/sql-error');
+  SQLError = require('../../../orm/sql/common/sql-error'),
+  ForbiddenError = require('../forbidden-error');
 
 var DocRecs = function (sql, partition, policy, attrRecs, userRoles) {
   this._sql = sql;
@@ -179,6 +180,35 @@ DocRecs.prototype.update = function (docId, updatedAt) {
   });
 };
 
+// TODO: reuse common code in update()
+DocRecs.prototype.canUpdate = function (docId, updatedAt) {
+  var self = this;
+
+  // Use < for destroyed_at so that deletions take priority. It is possible that an update and a doc
+  // deletion occur at the same time and we have no notion of a seq num to determine priority so we
+  // will assume that the doc deletion is the latest change.
+  var where = [
+    [
+      ['updated_at', '<', '"' + updatedAt.toISOString() + '"'], 'or', ['updated_at', '=',
+        'null'
+      ]
+    ], 'and', [
+      ['destroyed_at', '=', 'null'], 'or', ['destroyed_at', '<', '"' + updatedAt.toISOString() +
+        '"'
+      ]
+    ]
+  ];
+
+  return self._sql.find(['id'], self._name, null, [
+    ['id', '=', '"' + docId + '"'], 'and',
+    where
+  ]).then(function (results) {
+    if (!results.rows) {
+      throw new ForbiddenError('cannot update ' + docId + ' at ' + updatedAt);
+    }
+  });
+};
+
 DocRecs.prototype.lastDestroyedAt = function (docId) {
   return this._sql.find(['last_destroyed_at'], this._name, null, ['id', '=', '"' + docId + '"'])
     .then(function (results) {
@@ -200,6 +230,23 @@ DocRecs.prototype.setDestroyedAt = function (docId, destroyedAt) {
       ]
     ]
   ]);
+};
+
+DocRecs.prototype.canDestroyAt = function (docId, destroyedAt) {
+  var where = ['id', '=', '"' + docId + '"'];
+  // Use <= so that we trigger an update to docs that can be used to determine whether we need to
+  // update
+  return this._sql.find(['id'], this._name, null, [where, 'and', ['updated_at', '<=', '"' + destroyedAt.toISOString() + '"'],
+    'and', [
+      ['destroyed_at', '<=', '"' + destroyedAt.toISOString() + '"'], 'or', ['destroyed_at',
+        '=', 'null'
+      ]
+    ]
+  ]).then(function (results) {
+    if (!results.rows) {
+      throw new ForbiddenError('cannot destroy ' + docId + ' at ' + destroyedAt);
+    }
+  });
 };
 
 DocRecs.prototype.destroyBefore = function (before) {

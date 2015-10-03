@@ -120,6 +120,7 @@ console.log('attr:record, dbName=', dbName, 'attr=', attr);
 
 Adapter.prototype._destroyDatabase = function (dbName) {
   var self = this;
+console.log('Adapter.prototype._destroyDatabase ', dbName);
   return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
     return utils.once(doc, 'attr:record'); // resolve when DB destroyed
     // TODO: actually check attr:record event to make sure it is a destroy for this dbName
