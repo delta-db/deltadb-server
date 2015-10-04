@@ -29,7 +29,7 @@ describe('e2e', function () {
 
   // TODO: remove the following line? May need to at least set the timeOut
   partUtils.init(this, beforeEach, afterEach, false, before, after);
-this.timeout(10000); // TODO: remove!
+// this.timeout(15000); // TODO: remove!
 
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -119,12 +119,6 @@ this.timeout(10000); // TODO: remove!
       });
 
       task1.save();
-
-      setTimeout(function () {
-        if (err) {
-          throw new Error('did not receive change');
-        }
-      }, 3000);
     });
 
   });
@@ -236,12 +230,6 @@ this.timeout(10000); // TODO: remove!
 
       task1.save();
       task2.save();
-
-      setTimeout(function () {
-        if (err1 || err2) {
-          throw new Error('did not receive change');
-        }
-      }, 3000);
     });
 
   });
