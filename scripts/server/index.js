@@ -58,11 +58,7 @@ var Server = require('./server'),
 var server = new Server(),
   process = new Process();
 
-try { // TODO: remove
 ensureDBCreated().then(function () { // TODO: remove this promise!
   process.run();
   server.listen();
 });
-} catch (err) {
-console.log('main err=', err);
-}

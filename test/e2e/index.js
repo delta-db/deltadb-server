@@ -40,6 +40,7 @@ describe('e2e', function () {
   };
 
   beforeEach(function () {
+
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientA = new Client(storeA);
 

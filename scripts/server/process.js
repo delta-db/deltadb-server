@@ -31,22 +31,13 @@ Process.prototype._initSystemDB = function () {
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
 
-// TODO: make sure below working
-  // Load all existing DBs
-  self._dbs.on('load', function () { // when finished loading
-console.log('$$$$$$$$$$$finished loading');
-    self._dbs.all(function (doc) {
-console.log('$$$$$$$$$$$doc=', doc.get());
-    });
-  });
-
   self._dbs.on('attr:record', function (attr, doc) {
     if (attr.name === clientUtils.DB_ATTR_NAME) { // db destroyed/created?
       if (attr.value === null) { // db destroyed?
-console.log('*************** destroying ', doc.id());
+// console.log('*************** destroying ', doc.id());
         delete self._dbNames[doc.id()];
       } else {
-console.log('*************** creating ', doc.id(), '=>', attr.value);
+// console.log('*************** creating ', doc.id(), '=>', attr.value);
         self._dbNames[doc.id()] = attr.value;
       }
     }
