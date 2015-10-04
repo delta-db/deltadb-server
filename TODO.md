@@ -1,8 +1,6 @@
 Now
 ---
 - express (or better) server - use web socket
-	- doc for 'loaded' event
-	- make sure changes not being duplicated, restore unit test
 	- clear console.logs
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)

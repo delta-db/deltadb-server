@@ -150,20 +150,20 @@ describe('e2e', function () {
     // Create spy to verify that changes sent only once
     a._emitChanges = function ( /* changes */ ) {
       aNumSends++;
-      // utils.changesShouldEql([
-      //   { name: '$id', val: '"1"',
-      //     col: 'tasks' },
-      //   { name: 'thing', val: '"write"',
-      //     col: 'tasks' }], changes);
+      utils.changesShouldEql([
+        { name: '$id', val: '"1"',
+          col: 'tasks' },
+        { name: 'thing', val: '"write"',
+          col: 'tasks' }], changes);
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
     var setChangesShouldEql = function ( /* changes */ ) {
-      // utils.changesShouldEql([
-      //   { name: 'thing', val: '"write"',
-      //     col: 'tasks' },
-      //   { name: 'priority', val: '"high"',
-      //     col: 'tasks' }], changes);
+      utils.changesShouldEql([
+        { name: 'thing', val: '"write"',
+          col: 'tasks' },
+        { name: 'priority', val: '"high"',
+          col: 'tasks' }], changes);
     };
 
     // Create spy to verify that changes received only once
@@ -176,11 +176,11 @@ describe('e2e', function () {
     // Create spy to verify that changes sent only once
     b._emitChanges = function ( /* changes */ ) {
       bNumSends++;
-      // utils.changesShouldEql([
-      //   { name: '$id', val: '"1"',
-      //     col: 'tasks' },
-      //   { name: 'priority', val: '"high"',
-      //     col: 'tasks' }], changes);
+      utils.changesShouldEql([
+        { name: '$id', val: '"1"',
+          col: 'tasks' },
+        { name: 'priority', val: '"high"',
+          col: 'tasks' }], changes);
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
@@ -193,21 +193,21 @@ describe('e2e', function () {
 
     var shouldResolve = function (resolve) {
       if (!err1 && !err2) {
-        // if (aNumSends !== 1) {
-        //   throw new Error('a sent more than once');
-        // }
+        if (aNumSends !== 1) {
+          throw new Error('a sent more than once');
+        }
 
-        // if (aNumReceives !== 1) {
-        //   throw new Error('a received more than once');
-        // }
+        if (aNumReceives !== 1) {
+          throw new Error('a received more than once');
+        }
 
-        // if (bNumSends !== 1) {
-        //   throw new Error('b sent more than once');
-        // }
+        if (bNumSends !== 1) {
+          throw new Error('b sent more than once');
+        }
 
-        // if (bNumReceives !== 1) {
-        //   throw new Error('b received more than once');
-        // }
+        if (bNumReceives !== 1) {
+          throw new Error('b received more than once');
+        }
 
         resolve();
       }
