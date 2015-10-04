@@ -7,62 +7,58 @@ var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
   MemAdapter = require('../orm/nosql/adapters/mem'),
   Client = require('../client'),
-  clientUtils = require('../client/utils');
+  clientUtils = require('../client/utils'),
+  utils = require('../utils'),
+  Promise = require('bluebird');
 
 var Process = function () {
   this._initSystemDB();
+  this._dbNames = { system: clientUtils.SYSTEM_DB_NAME };
 };
 
 Process.SLEEP_MS = 1000;
 
 // Use a client to connect to the System DB to load and track the creation/destruction of DBs
 Process.prototype._initSystemDB = function () {
-  var store = new MemAdapter();
-  this._client = new Client(store);
+  var self = this,
+    store = new MemAdapter();
+  
+  self._client = new Client(store);
 
   // TODO: doesn't url need to be set here?
-  this._systemDB = this._client.db({ db: clientUtils.SYSTEM_DB_NAME });
+  self._systemDB = self._client.db({ db: clientUtils.SYSTEM_DB_NAME });
 
-  this._systemDB.on('attr:recorded', function (attr, doc) {
-// TODO: we need this working
-console.log('********attr:recorded, attr=', attr, 'doc=', doc)
+  self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
+
+  self._dbs.on('attr:record', function (attr, doc) {
+    if (attr.name === clientUtils.DB_ATTR_NAME) { // db destroyed/created?
+      if (attr.value === null) { // db destroyed?
+        delete self._dbNames[doc.id()];
+      } else {
+        self._dbNames[doc.id()] = attr.value;
+      }
+    }
   });
 };
 
-Process.prototype._process = function () {
+Process.prototype._processDB = function (dbName) {
   // TODO: use DeltaDB client to connect to $system and get list of DBs. Better to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
-// TODO: loop for system & all DBs
-
-  var part = new Partitioner(clientUtils.SYSTEM_DB_NAME);
+  var part = new Partitioner(dbName);
   return part.connect().then(function () {
     return part.process();
   }).then(function () {
     return part.closeDatabase();
+  });
+};
 
-// TMP - BEGIN
-}).then(function () {
-part = new Partitioner('mydb');
-return part.connect().then(function () {
-  return part.process();
-}).then(function () {
-  return part.closeDatabase();
-}).catch(function () {
-// Ignore error causes by mydb not being created yet
-});
-// TMP - END
-
-  });  
-
-// // TMP - BEGIN
-// var part = new Partitioner('mydb');
-// return part.connect().then(function () {
-//   return part.process();
-// }).then(function () {
-//   return part.closeDatabase();
-// });
-// // TMP - END
+Process.prototype._process = function () {
+  var self = this, promises = [];
+  utils.each(self._dbNames, function (dbName) {
+    promises.push(self._processDB(dbName));
+  });
+  return Promise.all(promises);
 };
 
 Process.prototype._loop = function () {

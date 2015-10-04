@@ -1,16 +1,14 @@
 Now
 ---
 - express (or better) server - use web socket
-	- partitioners not using system db to process--hard coded for now!
 	- need to make client create DB with $system - use DBMissingError during init to determine
-	- ability for client to destroy DB. Also, update wiki
 	- make sure changes not being duplicated, restore unit test
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
 	- events for connect, disconnect
 	- adjust tests to launch server. Use spawn
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
-- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer
+- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer--can it now?
 - add client tests to browser tests
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
