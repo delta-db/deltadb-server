@@ -40,6 +40,7 @@ Sender.prototype._sendLoop = function () {
 };
 
 Sender.prototype.send = function () {
+console.log('send for ' + this._db._name);
   // - Kick off a send process if not already sending. If already sending then set timestamp
   // - When send process completes, check timestamp and determine if need to send again
   this._requested = new Date();

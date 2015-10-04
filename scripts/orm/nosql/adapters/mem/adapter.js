@@ -27,4 +27,8 @@ Adapter.prototype.all = function (callback) {
   utils.each(this._dbs, callback);
 };
 
+Adapter.prototype.exists = function (dbName) {
+  return this._dbs[dbName] ? true : false;
+};
+
 module.exports = Adapter;

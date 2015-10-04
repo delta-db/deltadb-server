@@ -304,8 +304,8 @@ Doc.prototype._events = function (name, value, updated) {
 };
 
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
-
-  if (name !== this._idName) { // TODO: do we really not to "track" id changes??
+console.log('Doc.prototype._set, name=', name, 'value=', value);
+  if (name !== this._idName) { // TODO: do we really not want to "track" id changes??
     this._change(name, value, updated, recorded, untracked);
   }
 
@@ -443,6 +443,7 @@ Doc.prototype._destroyDatabase = function (dbName) {
     action: clientUtils.ACTION_REMOVE,
     name: dbName
   };
+console.log('Doc.prototype._destroyDatabase, data=', data);
   return this._setAndSave(data);
 };
 

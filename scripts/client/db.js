@@ -2,8 +2,6 @@
 
 // TODO: later, db should be passed in a constructor so that it doesn't have to be passed to sync??
 
-// TODO: destroy() that sends { col: '', name: null, val: null } or something like add user role
-
 // TODO: move some events to nosql/common layer?
 
 // TODO: separate out socket.io code?
@@ -265,6 +263,7 @@ console.log('DB.prototype._createDatabase, dbName=', dbName);
 };
 
 DB.prototype._destroyDatabase = function (dbName) {
+console.log('DB.prototype._destroyDatabase, dbName=', dbName);
   var colName = clientUtils.DB_COLLECTION_NAME;
   var col = this.col(colName);
   return col._destroyDatabase(dbName);
@@ -341,7 +340,8 @@ console.log('DB.prototype._registerChangesListener dbName=', self._name, ' msg='
 
 DB.prototype._registerSenderListener = function () {
   var self = this;
-  self.on('changes', function () {
+  self.on('change', function () {
+console.log('about to send changes for ' + self._name);
     self._sender.send();
   });
 };
@@ -408,6 +408,10 @@ console.log('connecting to ' + self._name);
     self._init();
   });
 
+};
+
+DB.prototype._disconnect = function () {
+  this._socket.disconnect();
 };
 
 DB.prototype._connectWhenReady = function () {

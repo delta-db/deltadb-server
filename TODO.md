@@ -1,6 +1,7 @@
 Now
 ---
 - express (or better) server - use web socket
+	- partitioners not using system db to process--hard coded for now!
 	- need to make client create DB with $system - use DBMissingError during init to determine
 	- ability for client to destroy DB. Also, update wiki
 	- make sure changes not being duplicated, restore unit test
@@ -32,6 +33,7 @@ Now
 
 Next
 ---
+- codeclimate.com
 - there are two "Servers" in the server code -- one should be renamed
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
 - create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable
@@ -65,6 +67,7 @@ Next
 - tool in admin UI or code that helps you unit test policies
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
 - create RESTful API in addition to socket API?
+
 
 NoSQL support
 ---

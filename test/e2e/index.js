@@ -29,7 +29,7 @@ describe('e2e', function () {
 
   // TODO: remove the following line? May need to at least set the timeOut
   partUtils.init(this, beforeEach, afterEach, false, before, after);
-this.timeout(10000);
+this.timeout(10000); // TODO: remove!
 
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser

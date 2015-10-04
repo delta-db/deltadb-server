@@ -49,13 +49,6 @@ console.log('Partitioners.prototype.register3a ', dbName);
       self._partitioners[dbName] = container;
       self._poll(part);
       return part;
-//     }).catch(function (err) {
-// console.log('***********unregistering dbName=', dbName);
-//       // Unregister so that we can re-register later, e.g. the db doesn't exist yet and we we going
-//       // to create it
-//       return self.unregister(dbName, socket).then(function () {
-//         throw err;
-//       });
     });
 
 console.log('Partitioners.prototype.register4 ', dbName);
@@ -66,16 +59,22 @@ console.log('Partitioners.prototype.register4 ', dbName);
 
 Partitioners.prototype.unregister = function (dbName, socket) {
   // Remove the connection
+
+for (var i in this._partitioners[dbName].conns) {
+console.log('&&&&&&&&&&&1this._partitioners[' + dbName + '].conns[' + i + '] exists');
+}
+
   delete this._partitioners[dbName].conns[socket.conn.id];
 console.log('Partitioners.prototype.unregister1 ', dbName);
 console.log('Partitioners.prototype.unregister1a ', dbName, 'socket.conn.id=', socket.conn.id);
 
-// for (var i in this._partitioners) {
-// console.log('&&&&&&&&&&&this._partitioners[' + i + '] exists');
-// }
+for (var i in this._partitioners[dbName].conns) {
+console.log('&&&&&&&&&&&2this._partitioners[' + dbName + '].conns[' + i + '] exists');
+}
 
   // Delete partitioner if no more connections for this partition
-  if (this._partitioners[dbName].conns.length === 0) {
+//  if (this._partitioners[dbName].conns.length === 0) {
+  if (utils.empty(this._partitioners[dbName].conns)) {
     // This needs to be kept here and not nested in another fn so that the process of removing the
     // socket and stopping the polling is atomic
     this._partitioners[dbName].poll = false; // stop polling
@@ -88,14 +87,14 @@ console.log('Partitioners.prototype.unregister2 ', dbName);
     delete this._partitioners[dbName];
     return part.closeDatabase();
   } else {
-console.log('Partitioners.prototype.unregister2 ', dbName);
+console.log('Partitioners.prototype.unregister3 ', dbName);
 
     return Promise.resolve();
   }
 };
 
 Partitioners.prototype._shouldPoll = function (partitioner) {
-  return this._partitioners[partitioner._dbName].poll;
+  return this._partitioners[partitioner._dbName] && this._partitioners[partitioner._dbName].poll;
 };
 
 Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner, newSince) {
