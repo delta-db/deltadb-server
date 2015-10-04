@@ -7,7 +7,8 @@ var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   partUtils = require('../spec/partitioner/sql/utils'),
   DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
-  clientUtils = require('../../scripts/client/utils');
+  clientUtils = require('../../scripts/client/utils'),
+  utils = require('../utils');
 
 // TMP - BEGIN
 var log = require('../../scripts/utils/log');
@@ -135,102 +136,132 @@ describe('e2e', function () {
       aNumSends = 0,
       aNumReceives = 0,
       bNumSends = 0,
-      bNumReceives = 0;
+      bNumReceives = 0,
+      docUUID = 'doc-uuid';
 
     var task1 = aTasks.doc({
-      $id: '1',
+      $id: docUUID,
       thing: 'write'
     });
 
     var task2 = bTasks.doc({
-      $id: '1',
+      $id: docUUID,
       priority: 'high'
     });
 
-    // Create spy to verify that changes sent only once
-    a._emitChanges = function ( /* changes */ ) {
-      aNumSends++;
-      utils.changesShouldEql([
-        { name: '$id', val: '"1"',
-          col: 'tasks' },
-        { name: 'thing', val: '"write"',
-          col: 'tasks' }], changes);
-      return DB.prototype._emitChanges.apply(this, arguments);
-    };
+console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++');
+console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++');
+console.log('+++++++++++++++++++++++++++++++++++++++++++++++++++');
+if (a._setChanges === b._setChanges) {
+  console.log('EQL');
+} else {
+  console.log('NOT EQL');  
+}
 
-    var setChangesShouldEql = function ( /* changes */ ) {
-      utils.changesShouldEql([
-        { name: 'thing', val: '"write"',
-          col: 'tasks' },
-        { name: 'priority', val: '"high"',
-          col: 'tasks' }], changes);
-    };
+console.log('task1._dbg=', task1._dbg, 'task2._dbg=', task2._dbg);
 
-    // Create spy to verify that changes received only once
-    a._setChanges = function (changes) {
-      aNumReceives++;
-      setChangesShouldEql(changes);
-      return DB.prototype._setChanges.apply(this, arguments);
-    };
+//     // Create spy to verify that changes sent only once
+//     a._emitChanges = function (changes) {
+//       aNumSends++;
+//       utils.changesShouldEql([
+//         { name: '$id', val: '"' + docUUID + '"',
+//           col: 'tasks' },
+//         { name: 'thing', val: '"write"',
+//           col: 'tasks' }], changes);
+//       return DB.prototype._emitChanges.apply(this, arguments);
+//     };
 
-    // Create spy to verify that changes sent only once
-    b._emitChanges = function ( /* changes */ ) {
-      bNumSends++;
-      utils.changesShouldEql([
-        { name: '$id', val: '"1"',
-          col: 'tasks' },
-        { name: 'priority', val: '"high"',
-          col: 'tasks' }], changes);
-      return DB.prototype._emitChanges.apply(this, arguments);
-    };
+//     var setChangesShouldEql = function (changes) {
+//       utils.changesShouldEql([
+//         { name: 'thing', val: '"write"',
+//           col: 'tasks' },
+//         { name: 'priority', val: '"high"',
+//           col: 'tasks' }], changes);
+//     };
 
-    // Create spy to verify that changes received only once
-    b._setChanges = function (changes) {
-      bNumReceives++;
-      setChangesShouldEql(changes);
-      return DB.prototype._setChanges.apply(this, arguments);
-    };
+//     // Create spy to verify that changes received only once
+//     a._setChanges = function (changes) {
+// console.log('a._setChanges, changes=', changes);
+// if (this === a) {
+//   console.log('IS A');
+// }
+//       aNumReceives++;
+//       setChangesShouldEql(changes);
+//       return DB.prototype._setChanges.apply(this, arguments);
+//     };
 
-    var shouldResolve = function (resolve) {
+// // Create spy to verify that changes sent only once
+// b._emitChanges = function (changes) {
+//   bNumSends++;
+//   utils.changesShouldEql([
+//     { name: '$id', val: '"' + docUUID + '"',
+//       col: 'tasks' },
+//     { name: 'priority', val: '"high"',
+//       col: 'tasks' }], changes);
+//   return DB.prototype._emitChanges.apply(this, arguments);
+// };
+
+// // Create spy to verify that changes received only once
+// b._setChanges = function (changes) {
+//   bNumReceives++;
+//   setChangesShouldEql(changes);
+//   return DB.prototype._setChanges.apply(this, arguments);
+// };
+
+    var shouldResolve = function (resolve, reject) {
       if (!err1 && !err2) {
         if (aNumSends !== 1) {
-          throw new Error('a sent more than once');
+          reject(new Error('a did not send exactly once'));
         }
 
         if (aNumReceives !== 1) {
-          throw new Error('a received more than once');
+          reject(new Error('a did not receive exactly once'));
         }
 
         if (bNumSends !== 1) {
-          throw new Error('b sent more than once');
+          reject(new Error('b did not send exactly once'));
         }
 
         if (bNumReceives !== 1) {
-          throw new Error('b received more than once');
+          reject(new Error('b did not receive exactly once'));
         }
 
         resolve();
       }
     };
 
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
 
-      task1.on('attr:record', function (attr) {
+      task1.on('attr:record', function (attr, doc) {
+if (attr === 'wtf') {
+console.log('attr:record task1: wtf');
+return;
+}
+// WHY IS $system being sent here???
+console.log('attr:record task1: attr=', attr, 'doc._dbg', doc._dbg, 'col._name', task1._col._name, 'doc._col._name', doc._col._name);
         if (attr.name === 'priority') { // receiving priority from server?
           err1 = false;
-          shouldResolve(resolve);
+          shouldResolve(resolve, reject);
         }
       });
 
-      task2.on('attr:record', function (attr) {
+      task2.on('attr:record', function (attr, doc) {
+if (attr === 'wtf') {
+console.log('attr:record task2: wtf');
+return;
+}
+console.log('attr:record task2: attr=', attr, 'doc._dbg', doc._dbg, 'col._name', task2._col._name);
         if (attr.name === 'thing') { // receiving priority from server?
           err2 = false;
-          shouldResolve(resolve);
+          shouldResolve(resolve, reject);
         }
       });
 
-      task1.save();
-      task2.save();
+task1.emit('attr:record', 'wtf');
+
+// TODO: restore
+//      task1.save();
+//      task2.save();
     });
 
   });

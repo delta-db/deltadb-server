@@ -11,6 +11,7 @@ var Promise = require('bluebird'),
   Doc = require('./doc');
 
 var Collection = function (name, db) {
+  CommonCollection.apply(this, arguments); // apply parent constructor
   this._name = name;
   this._db = db;
   this._docs = {};

@@ -6,6 +6,7 @@ var inherits = require('inherits'),
 // Properties = require('./properties'); // TODO: remove??
 
 var Adapter = function () {
+  CommonAdapter.apply(this, arguments); // apply parent constructor
   this._dbs = {};
 };
 

@@ -19,6 +19,9 @@ var inherits = require('inherits'),
   DBMissingError = require('./db-missing-error');
 
 var DB = function ( /* name, adapter */ ) {
+
+this._dbg = Math.random(); // TODO: remove
+
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};
@@ -117,9 +120,14 @@ DB.prototype._initProps = function (colStore) {
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype._col = function (name, genColStore) {
+console.log('DB.prototype._col1, name=', name, 'this._cols=', this._cols);
+
   if (this._cols[name]) {
+console.log('DB.prototype._col2, name=', name);
+
     return this._cols[name];
   } else {
+console.log('DB.prototype._col3, name=', name);
 
     // TODO: does genColStore really need to be passed?
     var col = new Collection(name, this, genColStore);
@@ -172,6 +180,7 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
 
 DB.prototype._setChange = function (change) {
   var col = this.col(change.col);
+console.log('DB.prototype._setChange, col._name=', col._name);
   return col._setChange(change);
 };
 
@@ -298,7 +307,6 @@ DB.prototype._findAndEmitChanges = function () {
   // code?
   var self = this;
 
-//  return self._loaded.then(function () { // ensure props have been loaded/created first
   return self._ready().then(function () { // ensure props have been loaded/created first
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
@@ -310,10 +318,10 @@ DB.prototype._findAndEmitChanges = function () {
 };
 
 DB.prototype._processChanges = function (msg) {
+console.log('DB.prototype._processChanges, db._dbg=', this._dbg, 'msg=', msg);
   var self = this;
   log.info('received ' + JSON.stringify(msg));
   return self._ready().then(function () { // ensure props have been loaded/created first
-//  return self._loaded.then(function () { // ensure props have been loaded/created first
     return self._setChanges(msg.changes); // Process the server's changes
   }).then(function () {
     return self._props.set({ // Update since
@@ -408,7 +416,9 @@ DB.prototype._disconnect = function () {
 DB.prototype._connectWhenReady = function () {
   var self = this;
   return self._storeLoaded.then(function () {
-    return self._connect();
+    if (!self._adapter._localOnly) {
+      return self._connect();
+    }
   });
 };
 

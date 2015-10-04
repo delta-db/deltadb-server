@@ -9,6 +9,9 @@ var inherits = require('inherits'),
   Cursor = require('../orm/nosql/adapters/mem/cursor');
 
 var Collection = function (name, db, genColStore) {
+
+this._dbg = Math.random(); // TODO: remove
+
   MemCollection.apply(this, arguments); // apply parent constructor
   this._genColStore = genColStore; // TODO: really needed??
 };
@@ -54,6 +57,7 @@ Collection.prototype._initStore = function () {
 };
 
 Collection.prototype._setChange = function (change) {
+// console.log('Collection.prototype._setChange col._name', this._name, 'change=', change);
   var self = this,
     doc = null;
   return self.get(change.id).then(function (_doc) {

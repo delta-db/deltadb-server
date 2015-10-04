@@ -93,6 +93,7 @@ Utils.prototype.timeout = function (ms) {
 
 // Executes promise and then resolves after event emitted once
 Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
+  // TODO: refactor to not use defer!!
   var defer = Promise.defer();
 
   emitter.once(evnt, function () {

@@ -5,6 +5,7 @@ var utils = require('../../../utils'),
   inherits = require('inherits');
 
 var Collection = function (name, db) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
   this._name = name;
   this._db = db;
 };

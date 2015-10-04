@@ -9,7 +9,7 @@ describe('adapters', function () {
 
   var ORM = require('../../../../scripts/orm/nosql/adapters/mem');
 
-  var adapter = new Adapter(new ORM());
+  var adapter = new Adapter(ORM);
 
   adapter.test();
 

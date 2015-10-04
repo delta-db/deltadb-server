@@ -7,6 +7,7 @@ var utils = require('../../../utils'),
   inherits = require('inherits');
 
 var DB = function (name, adapter) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
   this._name = name;
   this._adapter = adapter;
   this._idName = '$id'; // TODO: should every idName be moved to the DB layer?

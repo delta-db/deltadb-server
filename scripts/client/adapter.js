@@ -9,10 +9,12 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   Promise = require('bluebird');
 
-var Adapter = function (store) {
+var Adapter = function (store, localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
 
   this._store = store;
+  this._localOnly = localOnly;
+
   this._initStore();
 };
 

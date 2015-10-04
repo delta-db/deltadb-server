@@ -1,11 +1,13 @@
 'use strict';
 
 var utils = require('../../../utils'),
-  EventEmitter = require('events').EventEmitter,
+//  EventEmitter = require('events').EventEmitter,
+EventEmitter = require('../../../../node_modules/events').EventEmitter,
   inherits = require('inherits'),
   Promise = require('bluebird');
 
 var Doc = function (data, col) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
   this._data = data ? data : {};
   this._col = col;
   this._dirty = {};

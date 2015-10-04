@@ -6,5 +6,6 @@ describe('client', function () {
   require('./delta-db');
   require('./doc');
   require('./events');
+  require('./multiple');
   require('./persist');
 });

@@ -1,6 +1,7 @@
 Now
 ---
 - express (or better) server - use web socket
+	- should send and receive partial changes - why is emit on one doc emitting on both??
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
 	- event for connect. Disconnect even already exists, but add info about both to wiki

@@ -1,16 +1,19 @@
 'use strict';
 
-var utils = require('../../../new-utils');
+var utils = require('../../../new-utils'),
+  testUtils = require('../../../utils');
 
 // TODO: split into separate tests
 
-var Adapter = function (adapter) {
-  this._adapter = adapter;
+var Adapter = function (Adapter) {
+  this._Adapter = Adapter;
+  this._adapter = new Adapter();
 };
 
 Adapter.prototype.test = function () {
 
-  var adapter = this._adapter; // for convenience
+  var Adapter = this._Adapter,
+    adapter = this._adapter; // for convenience
 
   describe('adapter ' + adapter.constructor.name, function () {
 
@@ -186,6 +189,34 @@ Adapter.prototype.test = function () {
 
       return user._register();
     });
+
+// // TODO: remove
+// it('tmp should have unique event emitters', function () {
+
+//   var adapter1 = new Adapter(),
+//     adapter2 = new Adapter(),
+//     db1 = adapter1.db({ db: 'mydb' }),
+//     db2 = adapter1.db({ db: 'mydb' }),
+//     col1 = db1.col('mycol'),
+//     col2 = db2.col('mycol'),
+//     doc1 = col1.doc(),
+//     doc2 = col2.doc();
+
+// doc1.on('attr:record', function () {
+//   console.log('doc1 attr:record');
+// });
+
+// doc2.on('attr:record', function () {
+//   console.log('doc2 attr:record');
+// });
+
+//   var promiseFactory = function () {
+//     doc1.emit('attr:record');
+//     return Promise.resolve();
+//   };
+
+//   return testUtils.shouldDoAndNotOnce(promiseFactory, doc2, 'attr:record');
+// });
 
   });
 

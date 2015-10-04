@@ -12,6 +12,7 @@ var Promise = require('bluebird'),
 
 // TODO: change order so name then this to be standard with other adapters
 var Collection = function (db, name) {
+  CommonCollection.apply(this, arguments); // apply parent constructor
   this._db = db;
   this._name = name;
 };

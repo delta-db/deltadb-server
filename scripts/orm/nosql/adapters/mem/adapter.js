@@ -6,6 +6,7 @@ var inherits = require('inherits'),
   utils = require('../../../../utils');
 
 var Adapter = function () {
+  CommonAdapter.apply(this, arguments); // apply parent constructor
   this._dbs = {};
 };
 
