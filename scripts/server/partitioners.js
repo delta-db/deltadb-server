@@ -60,17 +60,22 @@ console.log('Partitioners.prototype.register4 ', dbName);
 Partitioners.prototype.unregister = function (dbName, socket) {
   // Remove the connection
 
-for (var i in this._partitioners[dbName].conns) {
-console.log('&&&&&&&&&&&1this._partitioners[' + dbName + '].conns[' + i + '] exists');
-}
+// for (var i in this._partitioners[dbName].conns) {
+// console.log('&&&&&&&&&&&1this._partitioners[' + dbName + '].conns[' + i + '] exists');
+// }
+
+  // Guard against race conditions
+  if (!this._partitioners[dbName]) {
+    return Promise.resolve();
+  }
 
   delete this._partitioners[dbName].conns[socket.conn.id];
-console.log('Partitioners.prototype.unregister1 ', dbName);
-console.log('Partitioners.prototype.unregister1a ', dbName, 'socket.conn.id=', socket.conn.id);
+// console.log('Partitioners.prototype.unregister1 ', dbName);
+// console.log('Partitioners.prototype.unregister1a ', dbName, 'socket.conn.id=', socket.conn.id);
 
-for (var i in this._partitioners[dbName].conns) {
-console.log('&&&&&&&&&&&2this._partitioners[' + dbName + '].conns[' + i + '] exists');
-}
+// for (var i in this._partitioners[dbName].conns) {
+// console.log('&&&&&&&&&&&2this._partitioners[' + dbName + '].conns[' + i + '] exists');
+// }
 
   // Delete partitioner if no more connections for this partition
 //  if (this._partitioners[dbName].conns.length === 0) {
@@ -83,11 +88,11 @@ console.log('&&&&&&&&&&&2this._partitioners[' + dbName + '].conns[' + i + '] exi
 
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
-console.log('Partitioners.prototype.unregister2 ', dbName);
+// console.log('Partitioners.prototype.unregister2 ', dbName);
     delete this._partitioners[dbName];
     return part.closeDatabase();
   } else {
-console.log('Partitioners.prototype.unregister3 ', dbName);
+// console.log('Partitioners.prototype.unregister3 ', dbName);
 
     return Promise.resolve();
   }

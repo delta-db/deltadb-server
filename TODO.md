@@ -1,8 +1,9 @@
 Now
 ---
 - express (or better) server - use web socket
-	- need to make client create DB with $system - use DBMissingError during init to determine
+	- doc for 'loaded' event
 	- make sure changes not being duplicated, restore unit test
+	- clear console.logs
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
 	- events for connect, disconnect
@@ -65,6 +66,7 @@ Next
 - tool in admin UI or code that helps you unit test policies
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
 - create RESTful API in addition to socket API?
+- Currently, if we have two clients connected to the same DB and one client tries to destroy the DB then an error is reported. Is this a good safeguard or should the server force a closure of all client connections for this DB so that the DB can be destroyed? 
 
 
 NoSQL support

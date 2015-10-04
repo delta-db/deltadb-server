@@ -18,6 +18,7 @@ var Process = function () {
 
 Process.SLEEP_MS = 1000;
 
+// TODO: split up
 // Use a client to connect to the System DB to load and track the creation/destruction of DBs
 Process.prototype._initSystemDB = function () {
   var self = this,
@@ -30,11 +31,22 @@ Process.prototype._initSystemDB = function () {
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
 
+// TODO: make sure below working
+  // Load all existing DBs
+  self._dbs.on('load', function () { // when finished loading
+console.log('$$$$$$$$$$$finished loading');
+    self._dbs.all(function (doc) {
+console.log('$$$$$$$$$$$doc=', doc.get());
+    });
+  });
+
   self._dbs.on('attr:record', function (attr, doc) {
     if (attr.name === clientUtils.DB_ATTR_NAME) { // db destroyed/created?
       if (attr.value === null) { // db destroyed?
+console.log('*************** destroying ', doc.id());
         delete self._dbNames[doc.id()];
       } else {
+console.log('*************** creating ', doc.id(), '=>', attr.value);
         self._dbNames[doc.id()] = attr.value;
       }
     }
@@ -42,6 +54,7 @@ Process.prototype._initSystemDB = function () {
 };
 
 Process.prototype._processDB = function (dbName) {
+// console.log('processing ', dbName);
   // TODO: use DeltaDB client to connect to $system and get list of DBs. Better to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
@@ -55,6 +68,7 @@ Process.prototype._processDB = function (dbName) {
 
 Process.prototype._process = function () {
   var self = this, promises = [];
+// console.log('self._dbNames=', self._dbNames);
   utils.each(self._dbNames, function (dbName) {
     promises.push(self._processDB(dbName));
   });

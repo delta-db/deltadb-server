@@ -1,15 +1,13 @@
 'use strict';
 
-// TODO: when get destroyDatabase working with client db then use it with afterEach to destroy the
-// database
-
 /* global before, after */
 
 var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
   partUtils = require('../spec/partitioner/sql/utils'),
   DB = require('../../scripts/client/db'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  clientUtils = require('../../scripts/client/utils');
 
 // TMP - BEGIN
 var log = require('../../scripts/utils/log');
@@ -29,7 +27,6 @@ describe('e2e', function () {
 
   // TODO: remove the following line? May need to at least set the timeOut
   partUtils.init(this, beforeEach, afterEach, false, before, after);
-// this.timeout(15000); // TODO: remove!
 
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -51,15 +48,18 @@ describe('e2e', function () {
     });
 
     aTasks = a.col('tasks');
-
-    // TODO: need to make client create DB with $system
   });
 
   afterEach(function () {
-    return a.destroy().then(function () {
-      if (b) {
-        return b.destroy();
-      }
+    // TODO: we cannot destroy the DB if there is another client connected to it. Therefore, we need
+    // to disconnect the extra client and then sleep a little to make sure that the DB connection is
+    // closed. Is this a good safeguard to maintain?
+    //
+    var promise = b ? b._disconnect() : Promise.resolve();
+    return promise.then(function () {
+      return clientUtils.timeout(1000);
+    }).then(function () {
+      return a.destroy();
     });
   });
 

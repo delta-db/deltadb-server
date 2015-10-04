@@ -347,8 +347,10 @@ console.log('about to send changes for ' + self._name);
 };
 
 DB.prototype._registerDisconnectListener = function () {
-  this._socket.on('disconnect', function () {
+  var self = this;
+  self._socket.on('disconnect', function () {
     log.info('server disconnected');
+    self.emit('disconnect');
   });
 };
 
@@ -411,7 +413,9 @@ console.log('connecting to ' + self._name);
 };
 
 DB.prototype._disconnect = function () {
+  var promise = utils.once(this, 'disconnect');
   this._socket.disconnect();
+  return promise;
 };
 
 DB.prototype._connectWhenReady = function () {

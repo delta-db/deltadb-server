@@ -7,7 +7,8 @@ var Promise = require('bluebird'),
   AttrParams = require('./attr-params'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
-  log = require('../../../utils/log');
+  log = require('../../../utils/log'),
+  SQLError = require('../../../orm/sql/common/sql-error');
 
 var Doc = require('../../../client/doc');
 
@@ -23,50 +24,6 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
   this._roles = roles;
   this._partitioner = partitioner;
 };
-
-// TODO: remove
-// Attr.prototype.create = function () {
-//   // TODO: should setOptions() be called before the attr is created? e.g. if there is an error when
-//   // setting the policy because the DB goes down then we don't want the attr to be set? If we didn't
-//   // set the attr then would it be retried? Should permission errors just fail, but DB down errors
-//   // be retried? But, then how do we ensure that the doc was indeed updated, i.e. the change was the
-//   // latest before creating the DB? For now, we'll assume that if there is a problem creating the DB
-//   // that the client will detect this when trying to connect to the DB and will receive a
-//   // DBMissingError, upon which it will try to recreate the DB.
-
-//   var self = this,
-//     up = null,
-//     latestNoDelRestore = null;
-
-//   // Don't replace LATEST unless there is a quorum
-//   if (self._partitionName === constants.LATEST && !self._params.quorum) {
-//     return Promise.resolve(false);
-//   }
-
-//   return self.createIfPermitted().then(function () {
-//     return self.setDestroyedOrUpdateDoc();
-//   }).then(function (updated) {
-//     up = updated; // attr was updated? (non-del update)
-
-//     // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
-//     latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
-//       self._params.name;
-
-//     if (latestNoDelRestore) {
-//       return self.restoreIfDestroyedBefore();
-//     }
-//   }).then(function () {
-//     if (latestNoDelRestore && up) {
-//       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
-//       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
-//       // no guarantee of which order they will be received. This means that if we receive the
-//       // destroy DB first then we'll destroy and then create. Instead, we'll ignore any deltas for
-//       // docs for which we have already received a later update, e.g. we'd process the destroy and
-//       // ignore the create.
-//       return self.setOptions();
-//     }
-//   });
-// };
 
 // TODO: split up
 Attr.prototype.create = function () {
@@ -115,7 +72,9 @@ Attr.prototype.create = function () {
       return self.restoreIfDestroyedBefore();
     }
   }).catch(function (err) {
-    if (err instanceof ForbiddenError) {
+    // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
+    // We can expect an SQLError if two clients try to create the DB at the same time
+    if (err instanceof ForbiddenError || err instanceof SQLError) {
       log.error('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
       throw err;
