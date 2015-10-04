@@ -108,8 +108,6 @@ Adapter.prototype._createDatabase = function (dbName) {
   return self._systemDB()._createDatabase(dbName).then(function (doc) {
     return new Promise(function (resolve) {
       doc.on('attr:record', function (attr) {
-// TODO: why is the attr value not dbName???
-console.log('attr:record, dbName=', dbName, 'attr=', attr);
         if (attr.value === dbName) { // db was created
           resolve();
         }
@@ -120,14 +118,12 @@ console.log('attr:record, dbName=', dbName, 'attr=', attr);
 
 Adapter.prototype._destroyDatabase = function (dbName) {
   var self = this;
-console.log('Adapter.prototype._destroyDatabase ', dbName);
 
   // If the db exists then close it first!! I don't think we have to worry about a race condition
   // where the client re-creates this DB while trying to destroy as the destroy will just fail as
   // the db is in use and will be retried later.
   var promise = null;
   if (this.exists(dbName)) {
-console.log('disconnect ', dbName);
     // TODO: really need a get so that URL doesn't need to be specified here?
     var db = this.db({ db: dbName });
 
@@ -141,7 +137,6 @@ console.log('disconnect ', dbName);
   }).then(function (doc) {
     return new Promise(function (resolve) {
       doc.on('attr:record', function (attr) {
-console.log('attr:record, dbName=', dbName, 'attr=', attr);
         if (attr.value === null) { // db was destroyed
           resolve();
         }

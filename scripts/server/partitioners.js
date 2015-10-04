@@ -16,17 +16,14 @@ Partitioners.POLL_SLEEP_MS = 1000;
 
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since) {
-console.log('Partitioners.prototype.register1 ', dbName);
   var self = this;
   if (self._partitioners[dbName]) { // exists?
-console.log('Partitioners.prototype.register2 ', dbName);
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
       since: since
     };
     return self._partitioners[dbName].ready;
   } else {
-console.log('Partitioners.prototype.register3 ', dbName);
 
     // First conn for this partitioner
     var part = new Partitioner(dbName),
@@ -45,13 +42,10 @@ console.log('Partitioners.prototype.register3 ', dbName);
     // Save promise so that any registrations for the same partitioner that happen back-to-back can
     // wait until the partitioner is ready
     container.ready = part.connect().then(function () {
-console.log('Partitioners.prototype.register3a ', dbName);
       self._partitioners[dbName] = container;
       self._poll(part);
       return part;
     });
-
-console.log('Partitioners.prototype.register4 ', dbName);
 
     return container.ready;
   }
@@ -60,25 +54,14 @@ console.log('Partitioners.prototype.register4 ', dbName);
 Partitioners.prototype.unregister = function (dbName, socket) {
   // Remove the connection
 
-// for (var i in this._partitioners[dbName].conns) {
-// console.log('&&&&&&&&&&&1this._partitioners[' + dbName + '].conns[' + i + '] exists');
-// }
-
   // Guard against race conditions
   if (!this._partitioners[dbName]) {
     return Promise.resolve();
   }
 
   delete this._partitioners[dbName].conns[socket.conn.id];
-// console.log('Partitioners.prototype.unregister1 ', dbName);
-// console.log('Partitioners.prototype.unregister1a ', dbName, 'socket.conn.id=', socket.conn.id);
-
-// for (var i in this._partitioners[dbName].conns) {
-// console.log('&&&&&&&&&&&2this._partitioners[' + dbName + '].conns[' + i + '] exists');
-// }
 
   // Delete partitioner if no more connections for this partition
-//  if (this._partitioners[dbName].conns.length === 0) {
   if (utils.empty(this._partitioners[dbName].conns)) {
     // This needs to be kept here and not nested in another fn so that the process of removing the
     // socket and stopping the polling is atomic
@@ -88,11 +71,9 @@ Partitioners.prototype.unregister = function (dbName, socket) {
 
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
-// console.log('Partitioners.prototype.unregister2 ', dbName);
     delete this._partitioners[dbName];
     return part.closeDatabase();
   } else {
-// console.log('Partitioners.prototype.unregister3 ', dbName);
 
     return Promise.resolve();
   }
@@ -173,7 +154,6 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
 
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
-console.log('findAndEmitChanges1, dbName=', dbName);
   var self = this,
     part = self._partitioners[dbName].part,
     since = self._partitioners[dbName].conns[socket.conn.id].since,
@@ -187,7 +167,6 @@ console.log('findAndEmitChanges1, dbName=', dbName);
   var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
   return part.changes(since, null, null, null, all).then(function (changes) {
     if (changes.length > 0) { // Are there local changes?
-console.log('findAndEmitChanges3, dbName=', dbName + ', changes=', changes);
       self._emitChanges(socket, changes, newSince);
     }
   });

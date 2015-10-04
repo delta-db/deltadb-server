@@ -69,10 +69,8 @@ DB.prototype._initStore = function () {
   var self = this,
     promises = [],
     loadingProps = false;
-console.log('DB.prototype._initStore1, name=' + self._name);
 
   self._store.all(function (colStore) {
-console.log('DB.prototype._initStore2, name=' + self._name);
     if (colStore._name === DB.PROPS_COL_NAME) {
       loadingProps = true;
       promises.push(self._initProps(colStore));
@@ -83,10 +81,7 @@ console.log('DB.prototype._initStore2, name=' + self._name);
     }
   });
 
-console.log('DB.prototype._initStore3, name=' + self._name);
-
   self._loaded = Promise.all(promises).then(function () {
-console.log('DB.prototype._initStore4, name=' + self._name);
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
     }
@@ -184,15 +179,17 @@ DB.prototype._setChange = function (change) {
 DB.prototype._setChanges = function (changes) {
   var self = this,
     chain = Promise.resolve();
-console.log('sync for ', self._name, ', changes=', changes);
+
   if (!changes) {
     return chain;
   }
+
   changes.forEach(function (change) {
     chain = chain.then(function () {
       return self._setChange(change);
     });
   });
+
   return chain;
 };
 
@@ -256,14 +253,12 @@ DB.prototype.removeRole = function (userUUID, roleName) {
 };
 
 DB.prototype._createDatabase = function (dbName) {
-console.log('DB.prototype._createDatabase, dbName=', dbName);
   var colName = clientUtils.DB_COLLECTION_NAME;
   var col = this.col(colName);
   return col._createDatabase(dbName);
 };
 
 DB.prototype._destroyDatabase = function (dbName) {
-console.log('DB.prototype._destroyDatabase, dbName=', dbName);
   var colName = clientUtils.DB_COLLECTION_NAME;
   var col = this.col(colName);
   return col._destroyDatabase(dbName);
@@ -274,11 +269,8 @@ DB.prototype.destroy = function () {
 };
 
 DB.prototype._emitInit = function () {
-console.log('_emitInit1');
   var self = this;
   return self._ready().then(function () { // ensure props have been loaded/created first
-//  return self._loaded.then(function () { // ensure props have been loaded/created first
-console.log('_emitInit2');
     var msg = {
       db: self._name,
       since: self._props.since
@@ -333,7 +325,6 @@ DB.prototype._processChanges = function (msg) {
 DB.prototype._registerChangesListener = function () {
   var self = this;
   self._socket.on('changes', function (msg) {
-console.log('DB.prototype._registerChangesListener dbName=', self._name, ' msg=', msg);
     self._processChanges(msg);
   });
 };
@@ -341,7 +332,6 @@ console.log('DB.prototype._registerChangesListener dbName=', self._name, ' msg='
 DB.prototype._registerSenderListener = function () {
   var self = this;
   self.on('change', function () {
-console.log('about to send changes for ' + self._name);
     self._sender.send();
   });
 };
@@ -356,7 +346,6 @@ DB.prototype._registerDisconnectListener = function () {
 
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
-console.log('_createDatabaseAndInit, name=' + self._name);
   return self._adapter._createDatabase(self._name).then(function () {
     return self._init();
   });
@@ -378,7 +367,6 @@ DB.prototype._registerErrorListener = function () {
 
 DB.prototype._init = function () {
   var self = this;
-console.log('_init for name=' + self._name);
 
   self._emitInit();
 
@@ -392,7 +380,6 @@ console.log('_init for name=' + self._name);
 DB.prototype._connect = function () {
   var self = this;
 
-console.log('connecting to ' + self._name);
   self._socket = io.connect(self._url,
     {
       'force new connection': true
@@ -419,10 +406,8 @@ DB.prototype._disconnect = function () {
 };
 
 DB.prototype._connectWhenReady = function () {
-console.log('DB.prototype._connectWhenReady1, name=' + this._name);
   var self = this;
   return self._storeLoaded.then(function () {
-console.log('DB.prototype._connectWhenReady2, name=' + self._name);
     return self._connect();
   });
 };

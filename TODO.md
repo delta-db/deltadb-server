@@ -1,10 +1,9 @@
 Now
 ---
 - express (or better) server - use web socket
-	- clear console.logs
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs)
-	- events for connect, disconnect
+	- event for connect. Disconnect even already exists, but add info about both to wiki
 	- adjust tests to launch server. Use spawn
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
 - test client with idb, there will be problems as the idb adapter cannot reload at adapter layer--can it now?
