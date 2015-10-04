@@ -136,11 +136,10 @@ console.log('disconnect ', dbName);
   return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
     return new Promise(function (resolve) {
       doc.on('attr:record', function (attr) {
-// TODO: actually check attr:record event to make sure it is a destroy for this dbName
 console.log('attr:record, dbName=', dbName, 'attr=', attr);
-//        if (attr.value === dbName) { // db was destroyed
-        resolve();
-//        }
+        if (attr.value === null) { // db was destroyed
+          resolve();
+        }
       });
     });
   });
