@@ -8,7 +8,8 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../utils/log'),
-  SQLError = require('../../../orm/sql/common/sql-error');
+  SQLError = require('../../../orm/sql/common/sql-error'),
+  Docs = require('../doc/docs');
 
 var Doc = require('../../../client/doc');
 
@@ -40,6 +41,7 @@ Attr.prototype.create = function () {
 
   var self = this,
     up = null,
+    latestNoRestore = null,
     latestNoDelRestore = null;
 
   // Don't replace LATEST unless there is a quorum
@@ -47,14 +49,19 @@ Attr.prototype.create = function () {
     return Promise.resolve(false);
   }
 
+  latestNoRestore = !self._params.restore && self._partitionName === constants.LATEST;
+
   // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
-  latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
-    self._params.name;
+  latestNoDelRestore = latestNoRestore && self._params.name;
+
+// if (latestNoRestore) {
+// console.log('creating params=', self._params);
+// }
 
   return self._canCreate().then(function () {
     return self._canDestroyOrUpdateDoc();
   }).then(function () {
-    if (latestNoDelRestore) {
+    if (latestNoRestore) {
       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
       // no guarantee of which order they will be received. This means that if we receive the
@@ -132,6 +139,10 @@ Attr.prototype._createOrDestroyDatabase = function () {
   }
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+// console.log('Attr.prototype._createOrDestroyDatabase destroying ' + this._params.value.name)
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
     return this._partitioner.destroyAnotherDatabase(this._params.value.name);
   } else {
     return this._partitioner.createAnotherDatabase(this._params.value.name);
@@ -174,8 +185,23 @@ Attr.prototype.setOptions = function () {
   }
 };
 
+// Attr.prototype.destroyingDoc = function () {
+//   return !this._params.name && !this._params.value;
+// };
+
 Attr.prototype.destroyingDoc = function () {
-  return !this._params.name && !this._params.value;
+  // TODO: similar code exists in process, attr-rec and here => re-use??
+  var name = this._params.name,
+    value = this._params.value;
+  if (Docs.isIdLess(this._params.name)) { // an id-less change?
+    if (this._params.value.action === AttrRec.ACTION_ADD) {
+      value = this._params.value.action.name;
+    } else { // remove doc
+      name = null;
+      value = null;
+    }
+  }
+  return !name && !value;
 };
 
 // Resolves as true if doc is updated and not destroyed
@@ -198,11 +224,13 @@ Attr.prototype.setDestroyedOrUpdateDoc = function () {
 Attr.prototype._canDestroyOrUpdateDoc = function () {
   var self = this;
   if (self.destroyingDoc()) {
+// console.log('Attr.prototype._canDestroyOrUpdateDoc1, self._params', self._params);
     // TODO: all params needed?
     return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
       self._params.updatedAt, self._params.restore, self._params.docUUID,
       self._params.colId, self._params.userUUID);
   } else {
+// console.log('Attr.prototype._canDestroyOrUpdateDoc2, self._params', self._params);
     // TODO: remove new Date()
     var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
     return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);

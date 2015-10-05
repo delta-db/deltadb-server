@@ -167,6 +167,10 @@ Part.prototype.destroyDatabase = function () {
     promise = self.connect();
   }
   return promise.then(function () {
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+// console.log('Part.prototype.destroyDatabase ' + self._dbName)
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
     return self._sql.dropAndCloseDatabase();
   });
 };

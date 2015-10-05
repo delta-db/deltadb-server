@@ -120,15 +120,9 @@ DB.prototype._initProps = function (colStore) {
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
 DB.prototype._col = function (name, genColStore) {
-console.log('DB.prototype._col1, name=', name, 'this._cols=', this._cols);
-
   if (this._cols[name]) {
-console.log('DB.prototype._col2, name=', name);
-
     return this._cols[name];
   } else {
-console.log('DB.prototype._col3, name=', name);
-
     // TODO: does genColStore really need to be passed?
     var col = new Collection(name, this, genColStore);
     this._cols[name] = col;

@@ -1,9 +1,12 @@
 Now
 ---
 - express (or better) server - use web socket
+	- need to deal with client reconciling ids for create/destroy db deltas
+	- remove _dbg code
 	- should send and receive partial changes - why is emit on one doc emitting on both??
+	- fix old tests
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
-	- complete e2e tests (see TODOs)
+	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 	- event for connect. Disconnect even already exists, but add info about both to wiki
 	- adjust tests to launch server. Use spawn
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root

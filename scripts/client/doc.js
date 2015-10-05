@@ -327,6 +327,11 @@ Doc.prototype.unset = function (name, updated, recorded, untracked) {
   return MemDoc.prototype.unset.apply(this, arguments);
 };
 
+// TODO: remove this after enhance id-less docs to reconcile with ids?
+Doc.prototype._destroyLocally = function () {
+  return MemDoc.prototype.destroy.apply(this, arguments);
+};
+
 Doc.prototype.destroy = function (destroyedAt, untracked) {
   // Doesn't actually remove data as we need to preserve tombstone so that we can ignore any
   // outdated changes received for destroyed data
@@ -437,6 +442,7 @@ Doc.prototype._createDatabase = function (dbName) {
     action: clientUtils.ACTION_ADD,
     name: dbName
   };
+console.log('&&&&&&&&&&&&&&&&&&&Doc.prototype._createDatabase, ', dbName, 'this._dbg=', this._dbg);
   return this._setAndSave(data);
 };
 

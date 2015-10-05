@@ -9,7 +9,8 @@ var Partitioner = require('../partitioner/sql'),
   Client = require('../client'),
   clientUtils = require('../client/utils'),
   utils = require('../utils'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  DBMissingError = require('../client/db-missing-error');
 
 var Process = function () {
   this._initSystemDB();
@@ -51,6 +52,12 @@ Process.prototype._processDB = function (dbName) {
     return part.process();
   }).then(function () {
     return part.closeDatabase();
+  }).catch(function (err) {
+    // Don't throw DBMissingError as the DB may have just been destroyed and not yet removed from
+    // _dbNames
+    if (!(err instanceof DBMissingError)) {
+      throw err;
+    }
   });
 };
 

@@ -233,10 +233,10 @@ console.log('task1._dbg=', task1._dbg, 'task2._dbg=', task2._dbg);
     return new Promise(function (resolve, reject) {
 
       task1.on('attr:record', function (attr, doc) {
-if (attr === 'wtf') {
-console.log('attr:record task1: wtf');
-return;
-}
+// if (attr === 'wtf') {
+// console.log('attr:record task1: wtf');
+// return;
+// }
 // WHY IS $system being sent here???
 console.log('attr:record task1: attr=', attr, 'doc._dbg', doc._dbg, 'col._name', task1._col._name, 'doc._col._name', doc._col._name);
         if (attr.name === 'priority') { // receiving priority from server?
@@ -246,10 +246,10 @@ console.log('attr:record task1: attr=', attr, 'doc._dbg', doc._dbg, 'col._name',
       });
 
       task2.on('attr:record', function (attr, doc) {
-if (attr === 'wtf') {
-console.log('attr:record task2: wtf');
-return;
-}
+// if (attr === 'wtf') {
+// console.log('attr:record task2: wtf');
+// return;
+// }
 console.log('attr:record task2: attr=', attr, 'doc._dbg', doc._dbg, 'col._name', task2._col._name);
         if (attr.name === 'thing') { // receiving priority from server?
           err2 = false;
@@ -257,11 +257,11 @@ console.log('attr:record task2: attr=', attr, 'doc._dbg', doc._dbg, 'col._name',
         }
       });
 
-task1.emit('attr:record', 'wtf');
+// task1.emit('attr:record', 'wtf');
 
 // TODO: restore
-//      task1.save();
-//      task2.save();
+      task1.save();
+      task2.save();
     });
 
   });

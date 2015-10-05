@@ -105,15 +105,44 @@ Adapter.prototype._systemDB = function () {
   return this._sysDB;
 };
 
+Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDoc) {
+  return new Promise(function (resolve) {
+    // When creating a DB, the delta is id-less and so that cannot use an id to reconcile the
+    // local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to create the DB
+    // again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+    originatingDoc._col.on('doc:create', function (doc) {
+      var data = doc.get();
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName) {
+// console.log('^^^^^^^^^^^^^^Adapter.prototype._createDatabase4 ', dbName, 'doc=', doc.get());
+        resolve(originatingDoc._destroyLocally());
+      }
+    });
+  });
+};
+
 Adapter.prototype._createDatabase = function (dbName) {
   var self = this;
   return self._systemDB()._createDatabase(dbName).then(function (doc) {
-    return new Promise(function (resolve) {
-      doc.on('attr:record', function (attr) {
-        if (attr.value === dbName) { // db was created
-          resolve();
-        }
-      });
+    return self._resolveAfterDatabaseCreated(dbName, doc);
+  });
+};
+
+Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originatingDoc) {
+  return new Promise(function (resolve) {
+    // When creating a DB, the delta is id-less and so we cannot use an id to reconcile the
+    // local doc. Instead we listen for a doc:destroy event on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to destroy the DB
+    // again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the destroying delta id.
+    originatingDoc._col.on('doc:destroy', function (doc) {
+      var data = doc.get();
+// console.log('^^^^^^^^^^^^Adapter.prototype._resolveAfterDatabaseDestroyed, doc.get=', doc.get());
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName) {
+// console.log('^^^^^^^^^^^^^^Adapter.prototype._createDatabase4 ', dbName, 'doc=', doc.get());
+        resolve(originatingDoc._destroyLocally());
+      }
     });
   });
 };
@@ -134,16 +163,13 @@ Adapter.prototype._destroyDatabase = function (dbName) {
     promise = Promise.resolve();
   }
 
+// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase1, dbName=', dbName);
   return promise.then(function () {
+// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase2, dbName=', dbName);
     return self._systemDB()._destroyDatabase(dbName);
   }).then(function (doc) {
-    return new Promise(function (resolve) {
-      doc.on('attr:record', function (attr) {
-        if (attr.value === null) { // db was destroyed
-          resolve();
-        }
-      });
-    });
+// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase3, dbName=', dbName);
+    return self._resolveAfterDatabaseDestroyed(dbName, doc);
   });
 };
 

@@ -1,8 +1,7 @@
 'use strict';
 
 var utils = require('../../../utils'),
-//  EventEmitter = require('events').EventEmitter,
-EventEmitter = require('../../../../node_modules/events').EventEmitter,
+  EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   Promise = require('bluebird');
 

@@ -639,6 +639,8 @@ Process.prototype._getOrGenDocUUID = function (attr) {
       return this._partitions[constants.LATEST]._docs.findUUID(attr.attr_name, action.name)
         .then(function (docUUID) {
           attr.doc_uuid = docUUID;
+          // Note: we don't delete attr_name here as we need it later down the pipeline to determine
+          // that this is an id-less doc
         });
     }
   } else {
