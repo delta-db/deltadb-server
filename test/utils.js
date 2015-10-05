@@ -12,10 +12,11 @@ var Promise = require('bluebird'),
 
 var Utils = function () {};
 
-Utils.TIMEOUT = 8000;
+// Added to prototype so that it can be accessed outside this module
+Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.setUp = function (thisArg) {
-  thisArg.timeout(Utils.TIMEOUT); // increase timeout
+  thisArg.timeout(this.TIMEOUT); // increase timeout
 };
 
 Utils.prototype.toTime = function (rows) {

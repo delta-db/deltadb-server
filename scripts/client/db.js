@@ -22,6 +22,8 @@ var DB = function ( /* name, adapter */ ) {
 
 this._dbg = Math.random(); // TODO: remove
 
+  this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
+
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};
@@ -278,7 +280,7 @@ DB.prototype._emitInit = function () {
       db: self._name,
       since: self._props.since
     };
-    log.info('sending init ' + JSON.stringify(msg));
+    log.info(self._id + ' sending init ' + JSON.stringify(msg));
     self._socket.emit('init', msg);
   });
 };
@@ -287,7 +289,7 @@ DB.prototype._emitChanges = function (changes) {
   var msg = {
     changes: changes
   };
-  log.info('sending ' + JSON.stringify(msg));
+  log.info(this._id + ' sending ' + JSON.stringify(msg));
   this._socket.emit('changes', msg);
 };
 
@@ -314,7 +316,7 @@ DB.prototype._findAndEmitChanges = function () {
 DB.prototype._processChanges = function (msg) {
 console.log('DB.prototype._processChanges, db._dbg=', this._dbg, 'msg=', msg);
   var self = this;
-  log.info('received ' + JSON.stringify(msg));
+  log.info(self._id + ' received ' + JSON.stringify(msg));
   return self._ready().then(function () { // ensure props have been loaded/created first
     return self._setChanges(msg.changes); // Process the server's changes
   }).then(function () {
@@ -341,7 +343,7 @@ DB.prototype._registerSenderListener = function () {
 DB.prototype._registerDisconnectListener = function () {
   var self = this;
   self._socket.on('disconnect', function () {
-    log.info('server disconnected');
+    log.info(self._id + ' server disconnected');
     self.emit('disconnect');
   });
 };
@@ -356,10 +358,10 @@ DB.prototype._createDatabaseAndInit = function () {
 DB.prototype._registerErrorListener = function () {
   var self = this;
   self._socket.on('delta-error', function (err) {
-    log.warning('err=' + err.message);
+    log.warning(self._id + ' err=' + err.message);
 
     if (err.name === 'DBMissingError') {
-      log.info('creating DB ' + self._name);
+      log.info(self._id + ' creating DB ' + self._name);
       self._createDatabaseAndInit();
     } else {
       throw err;
@@ -374,7 +376,7 @@ DB.prototype._init = function () {
 
   // Server currently requires init-done before it will start listening to changes
   self._socket.on('init-done', function () {
-    log.info('received init-done');
+    log.info(self._id + ' received init-done');
     self._sender.send();
   });
 };

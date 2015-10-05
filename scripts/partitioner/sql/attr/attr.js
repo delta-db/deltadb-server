@@ -54,10 +54,6 @@ Attr.prototype.create = function () {
   // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
   latestNoDelRestore = latestNoRestore && self._params.name;
 
-// if (latestNoRestore) {
-// console.log('creating params=', self._params);
-// }
-
   return self._canCreate().then(function () {
     return self._canDestroyOrUpdateDoc();
   }).then(function () {
@@ -82,7 +78,7 @@ Attr.prototype.create = function () {
     // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
     // We can expect an SQLError if two clients try to create the DB at the same time
     if (err instanceof ForbiddenError || err instanceof SQLError) {
-      log.error('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
+      log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
       throw err;
     }
