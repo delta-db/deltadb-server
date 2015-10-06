@@ -155,7 +155,12 @@ Adapter.prototype._destroyDatabase = function (dbName) {
     // TODO: really need a get so that URL doesn't need to be specified here?
     var db = this.db({ db: dbName });
 
-    promise = db._disconnect();
+    promise = db._disconnect().then(function () {
+// TODO: remove as problem with process?
+// We sleep a little to make sure that the DB connection is closed. TODO: better way? E.G.
+// server could retry several times
+return clientUtils.timeout(5000);
+  });
   } else {
     promise = Promise.resolve();
   }

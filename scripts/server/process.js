@@ -44,7 +44,7 @@ Process.prototype._initSystemDB = function () {
 };
 
 Process.prototype._processDB = function (dbName) {
-  // TODO: use DeltaDB client to connect to $system and get list of DBs. Better to create a new
+  // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
   var part = new Partitioner(dbName);

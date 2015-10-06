@@ -167,7 +167,7 @@ Part.prototype.destroyDatabase = function () {
     promise = self.connect();
   }
   return promise.then(function () {
-    return self._sql.dropAndCloseDatabase();
+    return self._sql.dropAndCloseDatabase(true); // force close of all conns first
   });
 };
 

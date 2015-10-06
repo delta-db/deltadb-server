@@ -270,14 +270,34 @@ SQL.prototype.close = function () {
   });
 };
 
-SQL.prototype.dropAndCloseDatabase = function () {
+SQL.prototype._closeOtherConnections = function (db) {
+  return this._query('SELECT pg_terminate_backend (pid) FROM pg_stat_activity WHERE datname=$1',
+    [db]);
+};
+
+SQL.prototype._dropDatabase = function (db, force) {
+  // Postgres will not let you drop a DB if there are any other connections to the DB
+  var self = this, promise = null;
+  
+  if (force) {
+    promise = self._closeOtherConnections(db);
+  } else {
+    promise = Promise.resolve();
+  }
+
+  return promise.then(function () {
+    return self._query('DROP DATABASE ' + self.escape(db));
+  });
+};
+
+SQL.prototype.dropAndCloseDatabase = function (force) {
   // Note: Cannot drop current database
   var self = this,
     db = self._db;
   return self.close().then(function () {
     return self.connect('postgres', self._host, self._username, self._password, self._port);
   }).then(function () {
-    return self._query('DROP DATABASE ' + self.escape(db));
+    return self._dropDatabase(db, force);
   }).then(function () {
     return self.close();
   });

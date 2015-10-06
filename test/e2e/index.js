@@ -53,13 +53,10 @@ describe('e2e', function () {
   });
 
   afterEach(function () {
-    // TODO: we cannot destroy the DB if there is another client connected to it. Therefore, we need
-    // to disconnect the extra client and then sleep a little to make sure that the DB connection is
-    // closed. Is this a good safeguard to maintain?
+    // We cannot destroy the DB if there is another client connected to it. Therefore, we need to
+    // disconnect the extra client before trying to destroy the db.
     var promise = b ? b._disconnect() : Promise.resolve();
     return promise.then(function () {
-      return clientUtils.timeout(1000);
-    }).then(function () {
       return a.destroy();
     });
   });

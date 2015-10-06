@@ -80,7 +80,10 @@ Partitioners.prototype.unregister = function (dbName, socket) {
     // Delete before closing as the close is a promise and we don't want another cycle to use a
     // partitioner that is being closed.
     delete this._partitioners[dbName];
-    return part.closeDatabase();
+
+    return part.closeDatabase().then(function () {
+      log.info('closed ' + dbName);
+    });
   } else {
 
     return Promise.resolve();
@@ -96,7 +99,6 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
 
   // Loop through all associated conns and notify that sync is needed
   utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
-console.log('Partitioners.prototype._notifyAllPartitionerConnections, conn.socket.conn.id=', conn.socket.conn.id);    
     self.findAndEmitChanges(partitioner._dbName, conn.socket);
   });
 
@@ -123,9 +125,7 @@ Partitioners.prototype._hasChanges = function (partitioner, since) {
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
   var all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-// console.log('Partitioners.prototype._hasChanges1, ', partitioner._dbName, 'since=', since);
   return partitioner.changes(since, null, 1, null, all).then(function (changes) {
-// console.log('Partitioners.prototype._hasChanges2, ', partitioner._dbName, 'since=', since, 'changes.length=', changes.length);
     return changes.length > 0;
   });
 };
