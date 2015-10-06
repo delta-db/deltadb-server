@@ -9,7 +9,6 @@ var Doc = function (data, col, genDocStore) {
   MemDoc.apply(this, arguments); // apply parent constructor
   this._genDocStore = genDocStore; // TODO: is this really needed?
   this._initDat(data);
-this._dbg = Math.random(); // TODO: remove
 };
 
 inherits(Doc, MemDoc);
@@ -200,7 +199,6 @@ Doc.prototype._emit = function (evnt, name, value) {
       name: name,
       value: value
     };
-console.log('_emit, this._col._name=', this._col._name, 'name=', name, 'value=', value, 'doc._dbg=', this._dbg, 'db._dbg', this._col._db._dbg);
     this.emit(evnt, attr, this);
 
     this._col._emit(evnt, attr, this); // bubble up to collection layer    
@@ -213,7 +211,6 @@ Doc.prototype._emitDocCreate = function () {
 };
 
 Doc.prototype._saveRecording = function (name, value, recorded) {
-console.log('_saveRecording, name=', name, 'value=', value, 'doc._dbg=', this._dbg, 'db._dbg', this._col._db._dbg);
   if (name && this._dat.latest[name]) {
 
     this._emit('attr:record', name, value);
@@ -378,7 +375,6 @@ Doc.prototype._saveChange = function (change) {
 };
 
 Doc.prototype._setChange = function (change) {
-console.log('Doc.prototype._setChange, this._col._name=', this._col._name, 'change', change);
   // TODO: Is this ever needed?
   // if (!this.id()) { // no id?
   // this.id(change.id);
@@ -442,7 +438,6 @@ Doc.prototype._createDatabase = function (dbName) {
     action: clientUtils.ACTION_ADD,
     name: dbName
   };
-console.log('&&&&&&&&&&&&&&&&&&&Doc.prototype._createDatabase, ', dbName, 'this._dbg=', this._dbg);
   return this._setAndSave(data);
 };
 

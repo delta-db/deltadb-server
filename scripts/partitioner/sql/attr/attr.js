@@ -135,10 +135,6 @@ Attr.prototype._createOrDestroyDatabase = function () {
   }
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-// console.log('Attr.prototype._createOrDestroyDatabase destroying ' + this._params.value.name)
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
     return this._partitioner.destroyAnotherDatabase(this._params.value.name);
   } else {
     return this._partitioner.createAnotherDatabase(this._params.value.name);
@@ -220,13 +216,11 @@ Attr.prototype.setDestroyedOrUpdateDoc = function () {
 Attr.prototype._canDestroyOrUpdateDoc = function () {
   var self = this;
   if (self.destroyingDoc()) {
-// console.log('Attr.prototype._canDestroyOrUpdateDoc1, self._params', self._params);
     // TODO: all params needed?
     return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
       self._params.updatedAt, self._params.restore, self._params.docUUID,
       self._params.colId, self._params.userUUID);
   } else {
-// console.log('Attr.prototype._canDestroyOrUpdateDoc2, self._params', self._params);
     // TODO: remove new Date()
     var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
     return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);

@@ -115,7 +115,6 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
     originatingDoc._col.on('doc:create', function (doc) {
       var data = doc.get();
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName) {
-// console.log('^^^^^^^^^^^^^^Adapter.prototype._createDatabase4 ', dbName, 'doc=', doc.get());
         resolve(originatingDoc._destroyLocally());
       }
     });
@@ -138,9 +137,7 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
     // corresponds to the destroying delta id.
     originatingDoc._col.on('doc:destroy', function (doc) {
       var data = doc.get();
-// console.log('^^^^^^^^^^^^Adapter.prototype._resolveAfterDatabaseDestroyed, doc.get=', doc.get());
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName) {
-// console.log('^^^^^^^^^^^^^^Adapter.prototype._createDatabase4 ', dbName, 'doc=', doc.get());
         resolve(originatingDoc._destroyLocally());
       }
     });
@@ -163,12 +160,9 @@ Adapter.prototype._destroyDatabase = function (dbName) {
     promise = Promise.resolve();
   }
 
-// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase1, dbName=', dbName);
   return promise.then(function () {
-// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase2, dbName=', dbName);
     return self._systemDB()._destroyDatabase(dbName);
   }).then(function (doc) {
-// console.log('^^^^^^^^^^^^Adapter.prototype._destroyDatabase3, dbName=', dbName);
     return self._resolveAfterDatabaseDestroyed(dbName, doc);
   });
 };

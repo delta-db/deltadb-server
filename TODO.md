@@ -1,23 +1,22 @@
 Now
 ---
 - express (or better) server - use web socket
-	- need to deal with client reconciling ids for create/destroy db deltas
 	- remove _dbg code
-	- should send and receive partial changes - why is emit on one doc emitting on both??
 	- fix old tests
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
-	- event for connect. Disconnect even already exists, but add info about both to wiki
+	- event for connect. Disconnect event already exists, but add info about both to wiki
 	- adjust tests to launch server. Use spawn
 	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
-- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer--can it now?
-- add client tests to browser tests
+- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer--everything ok now?
+	- add client tests to browser tests
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
+- impl todomvc example
+- Admin UI, e.g. "Delta Admin"
 - impl deltadb-ng and modify todo example
 - use lie instead of bluebird
 - Roadmap
-- Admin UI, e.g. "Delta Admin"
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 - Doc for example use cases:
 	- Everyone can read and write
@@ -26,10 +25,9 @@ Now
 	- DB per user
 - ability for DB to sync from system layer so that all DBs are synced
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
-- create a debug mode that allows DeltaDB to write a lot of info to a log
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
-- investigate use of logger for both server and client
+- investigate use of logger package for both server and client--replace use of in-house log
 
 Next
 ---

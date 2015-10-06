@@ -38,7 +38,6 @@ SQL.prototype.connect = function (db, host, username, password, port) {
     self._execute = Promise.promisify(self._client.query, self._client);
   }).catch(function (err) {
     if (err.code === '3D000') {
-// console.log('!!!!!!!!!!!!!!!!!!!!!!!, err', err, 'stack=', (new Error()).stack);
       throw new DBMissingError(err.message);
     }
   });
@@ -272,10 +271,6 @@ SQL.prototype.close = function () {
 };
 
 SQL.prototype.dropAndCloseDatabase = function () {
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-// console.log('SQL.prototype.dropAndCloseDatabase ' + this._db)
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-// console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
   // Note: Cannot drop current database
   var self = this,
     db = self._db;

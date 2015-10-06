@@ -26,7 +26,6 @@ describe('e2e', function () {
     b = null,
     bTasks = null;
 
-utils.TIMEOUT = 10000; // TODO: remove
   // TODO: remove the following line? May need to at least set the timeOut
   partUtils.init(this, beforeEach, afterEach, false, before, after);
 
@@ -174,29 +173,24 @@ utils.TIMEOUT = 10000; // TODO: remove
 
     // Create spy to verify that changes sent only once
     a._emitChanges = function (changes) {
-console.log('%%%%%%%%%%%%%%%%%%%% a._emitChanges, changes=', changes);
       aEmitChanges = aEmitChanges.concat(changes);
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
     // Create spy to verify that changes received only once
     a._setChanges = function (changes) {
-console.log('%%%%%%%%%%%%%%%%%%%% a._setChanges, changes=', changes);
       aSetChanges = aSetChanges.concat(changes);
-console.log('%%%%%%%%%%%%%%%%%%%% a._setChanges, aSetChanges=', aSetChanges);
       return DB.prototype._setChanges.apply(this, arguments);
     };
 
     // Create spy to verify that changes sent only once
     b._emitChanges = function (changes) {
-console.log('%%%%%%%%%%%%%%%%%%%% b._emitChanges, changes=', changes);
       bEmitChanges = bEmitChanges.concat(changes);
       return DB.prototype._emitChanges.apply(this, arguments);
     };
 
     // Create spy to verify that changes received only once
     b._setChanges = function (changes) {
-console.log('%%%%%%%%%%%%%%%%%%%% b._setChanges, changes=', changes);
       bSetChanges = bSetChanges.concat(changes);
       return DB.prototype._setChanges.apply(this, arguments);
     };
@@ -228,116 +222,6 @@ console.log('%%%%%%%%%%%%%%%%%%%% b._setChanges, changes=', changes);
     });
 
   });
-
-// it('should send and receive partial changes', function () {
-//   createB();
-
-//   var err1 = true,
-//     err2 = true,
-//     aNumSends = 0,
-//     aNumReceives = 0,
-//     bNumSends = 0,
-//     bNumReceives = 0,
-//     docUUID = 'doc-uuid';
-
-//   var task1 = aTasks.doc({
-//     $id: docUUID,
-//     thing: 'write'
-//   });
-
-//   var task2 = bTasks.doc({
-//     $id: docUUID,
-//     priority: 'high'
-//   });
-
-//   // Create spy to verify that changes sent only once
-//   a._emitChanges = function (changes) {
-//     aNumSends++;
-//     utils.changesShouldEql([
-//       { name: '$id', val: '"' + docUUID + '"',
-//         col: 'tasks' },
-//       { name: 'thing', val: '"write"',
-//         col: 'tasks' }], changes);
-//     return DB.prototype._emitChanges.apply(this, arguments);
-//   };
-
-//   var setChangesShouldEql = function (changes) {
-//     utils.changesShouldEql([
-//       { name: 'thing', val: '"write"',
-//         col: 'tasks' },
-//       { name: 'priority', val: '"high"',
-//         col: 'tasks' }], changes);
-//   };
-
-//   // Create spy to verify that changes received only once
-//   a._setChanges = function (changes) {
-//     aNumReceives++;
-//     setChangesShouldEql(changes);
-//     return DB.prototype._setChanges.apply(this, arguments);
-//   };
-
-//   // Create spy to verify that changes sent only once
-//   b._emitChanges = function (changes) {
-//     bNumSends++;
-//     utils.changesShouldEql([
-//       { name: '$id', val: '"' + docUUID + '"',
-//         col: 'tasks' },
-//       { name: 'priority', val: '"high"',
-//         col: 'tasks' }], changes);
-//     return DB.prototype._emitChanges.apply(this, arguments);
-//   };
-
-//   // Create spy to verify that changes received only once
-//   b._setChanges = function (changes) {
-//     bNumReceives++;
-//     setChangesShouldEql(changes);
-//     return DB.prototype._setChanges.apply(this, arguments);
-//   };
-
-//   var shouldResolve = function (resolve, reject) {
-//     if (!err1 && !err2) {
-//       if (aNumSends !== 1) {
-//         reject(new Error('a did not send exactly once'));
-//       }
-
-//       if (aNumReceives !== 1) {
-//         reject(new Error('a did not receive exactly once'));
-//       }
-
-//       if (bNumSends !== 1) {
-//         reject(new Error('b did not send exactly once'));
-//       }
-
-//       if (bNumReceives !== 1) {
-//         reject(new Error('b did not receive exactly once'));
-//       }
-
-//       resolve();
-//     }
-//   };
-
-//   return new Promise(function (resolve, reject) {
-
-//     task1.on('attr:record', function (attr, doc) {
-//       if (attr.name === 'priority') { // receiving priority from server?
-//         err1 = false;
-//         shouldResolve(resolve, reject);
-//       }
-//     });
-
-//     task2.on('attr:record', function (attr, doc) {
-//       if (attr.name === 'thing') { // receiving priority from server?
-//         err2 = false;
-//         shouldResolve(resolve, reject);
-//       }
-//     });
-
-//     task1.save();
-//     task2.save();
-
-//   });
-
-// });
 
   // TODO: test changes made to client after it has already done the initial sync, i.e. client needs
   // to trigger sync. How to determine when initial sync done? Can do this with spy?

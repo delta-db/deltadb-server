@@ -19,9 +19,6 @@ var inherits = require('inherits'),
   DBMissingError = require('./db-missing-error');
 
 var DB = function ( /* name, adapter */ ) {
-
-this._dbg = Math.random(); // TODO: remove
-
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -31,6 +28,11 @@ this._dbg = Math.random(); // TODO: remove
   this._recorded = false;
   this._sender = new Sender(this);
   this._url = 'http://localhost:3000'; // TODO: make this configurable
+
+  this._prepInitDone();
+
+  // This is registered immediately so that do not listen for a change after a change has already
+  this._registerSenderListener();
 
   this._initStoreLoaded();
 
@@ -50,6 +52,11 @@ DB.VERSION = 1;
 
 DB.prototype._loadStore = function () {
   this._adapter._initDBStore(this);
+};
+
+DB.prototype._prepInitDone = function () {
+  // This promise ensures that the we have already received init-done from the server
+  this._initDone = utils.once(this, 'init-done');
 };
 
 DB.prototype._initStoreLoaded = function () {
@@ -176,7 +183,6 @@ DB.prototype._localChanges = function (retryAfter, returnSent) {
 
 DB.prototype._setChange = function (change) {
   var col = this.col(change.col);
-console.log('DB.prototype._setChange, col._name=', col._name);
   return col._setChange(change);
 };
 
@@ -314,7 +320,6 @@ DB.prototype._findAndEmitChanges = function () {
 };
 
 DB.prototype._processChanges = function (msg) {
-console.log('DB.prototype._processChanges, db._dbg=', this._dbg, 'msg=', msg);
   var self = this;
   log.info(self._id + ' received ' + JSON.stringify(msg));
   return self._ready().then(function () { // ensure props have been loaded/created first
@@ -336,7 +341,11 @@ DB.prototype._registerChangesListener = function () {
 DB.prototype._registerSenderListener = function () {
   var self = this;
   self.on('change', function () {
-    self._sender.send();
+    // This is registered immediately so that we don't listen for a change after a change has
+    // already been made; therefore, we need to make sure the _initDone promise has resolved first.
+    self._initDone.then(function () {
+      self._sender.send();
+    });
   });
 };
 
@@ -369,16 +378,19 @@ DB.prototype._registerErrorListener = function () {
   });
 };
 
-DB.prototype._init = function () {
+DB.prototype._registerInitDoneListener = function () {
   var self = this;
-
-  self._emitInit();
 
   // Server currently requires init-done before it will start listening to changes
   self._socket.on('init-done', function () {
     log.info(self._id + ' received init-done');
+    self.emit('init-done'); // notify listeners
     self._sender.send();
   });
+};
+
+DB.prototype._init = function () {
+  this._emitInit();
 };
 
 DB.prototype._connect = function () {
@@ -395,7 +407,7 @@ DB.prototype._connect = function () {
 
   self._registerChangesListener();
 
-  self._registerSenderListener();
+  self._registerInitDoneListener();
 
   self._socket.on('connect', function () {
     self._init();
