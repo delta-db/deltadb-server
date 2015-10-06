@@ -42,8 +42,16 @@ Partitioners.prototype.register = function (dbName, socket, since) {
     // Save promise so that any registrations for the same partitioner that happen back-to-back can
     // wait until the partitioner is ready
     container.ready = part.connect().then(function () {
-      self._partitioners[dbName] = container;
-      self._poll(part);
+
+      // Has a competing registration already set the dbName?
+      if (self._partitioners[dbName]) {
+        // Add connection
+        self._partitioners[dbName].conns[socket.conn.id] = conns[socket.conn.id];
+      } else {
+        self._partitioners[dbName] = container;
+        self._poll(part);
+      }
+
       return part;
     });
 
@@ -88,6 +96,7 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
 
   // Loop through all associated conns and notify that sync is needed
   utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
+console.log('Partitioners.prototype._notifyAllPartitionerConnections, conn.socket.conn.id=', conn.socket.conn.id);    
     self.findAndEmitChanges(partitioner._dbName, conn.socket);
   });
 
@@ -114,7 +123,9 @@ Partitioners.prototype._hasChanges = function (partitioner, since) {
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
   var all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+// console.log('Partitioners.prototype._hasChanges1, ', partitioner._dbName, 'since=', since);
   return partitioner.changes(since, null, 1, null, all).then(function (changes) {
+// console.log('Partitioners.prototype._hasChanges2, ', partitioner._dbName, 'since=', since, 'changes.length=', changes.length);
     return changes.length > 0;
   });
 };
