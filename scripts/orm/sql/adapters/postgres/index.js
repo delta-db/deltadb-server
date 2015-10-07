@@ -17,6 +17,12 @@ var SQL = function () {};
 
 inherits(SQL, AbstractSQL);
 
+pg.on('error', function (err) {
+  // Some errors, e.g. "terminating connection due to administrator command" caused from the server
+  // closing the connection will cause your app to crash unless we listen for them here.
+  // TODO: should we do anything here like write to a log?
+});
+
 SQL.prototype._template = function (i) {
   return '$' + i;
 };
