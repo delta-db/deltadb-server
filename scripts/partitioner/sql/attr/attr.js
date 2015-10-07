@@ -55,8 +55,6 @@ Attr.prototype.create = function () {
   latestNoDelRestore = latestNoRestore && self._params.name;
 
   return self._canCreate().then(function () {
-    return self._canDestroyOrUpdateDoc();
-  }).then(function () {
     if (latestNoRestore) {
       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
@@ -70,7 +68,7 @@ Attr.prototype.create = function () {
     return self.createIfPermitted();
   }).then(function () {
     return self.setDestroyedOrUpdateDoc();
-  }).then(function (updated) {
+  }).then(function (/* updated */) {
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
@@ -210,20 +208,6 @@ Attr.prototype.setDestroyedOrUpdateDoc = function () {
       .then(function (results) {
         return results && results.affected > 0;
       });
-  }
-};
-
-Attr.prototype._canDestroyOrUpdateDoc = function () {
-  var self = this;
-  if (self.destroyingDoc()) {
-    // TODO: all params needed?
-    return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
-      self._params.updatedAt, self._params.restore, self._params.docUUID,
-      self._params.colId, self._params.userUUID);
-  } else {
-    // TODO: remove new Date()
-    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
-    return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
   }
 };
 

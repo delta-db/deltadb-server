@@ -2,7 +2,7 @@ Now
 ---
 - express (or better) server - use web socket
 	- fix old tests
-	- adjust tests to launch server. Use spawn. Merge into master after fix ci tests
+	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 	- event for connect. Disconnect event already exists, but add info about both to wiki
@@ -17,6 +17,7 @@ Now
 - use lie instead of bluebird
 - Roadmap
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
+	- use Sequelize to abstract all adapters?
 - Doc for example use cases:
 	- Everyone can read and write
 	- Groups can read and write
@@ -64,7 +65,7 @@ Next
 - tool in admin UI or code that helps you unit test policies
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
 - create RESTful API in addition to socket API?
-- Currently, if we have two clients connected to the same DB and one client tries to destroy the DB then an error is reported. Is this a good safeguard or should the server force a closure of all client connections for this DB so that the DB can be destroyed? 
+- Currently, if we have two clients connected to the same DB and one client tries to destroy the DB then an error is reported. Is this a good safeguard or should the server force a closure of all client connections for this DB so that the DB can be destroyed?
 
 
 NoSQL support
