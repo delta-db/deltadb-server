@@ -40,8 +40,7 @@ describe('e2e', function () {
     bTasks = b.col('tasks');
   };
 
-  beforeEach(function () {
-
+  var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientA = new Client(storeA);
 
@@ -50,15 +49,23 @@ describe('e2e', function () {
     });
 
     aTasks = a.col('tasks');
-  });
+  };
 
-  afterEach(function () {
+  var destroyBoth = function () {
     // We cannot destroy the DB if there is another client connected to it. Therefore, we need to
     // disconnect the extra client before trying to destroy the db.
     var promise = b ? b._disconnect() : Promise.resolve();
     return promise.then(function () {
       return a.destroy();
     });
+  };
+
+  beforeEach(function () {
+    createA();
+  });
+
+  afterEach(function () {
+    return destroyBoth();
   });
 
   it('should send and receive changes', function () {
@@ -101,7 +108,7 @@ describe('e2e', function () {
       var err = true;
 
       task1.on('attr:record', function (attr) {
-        if (attr.name === 'thing') { // receiving priority from server?          
+        if (attr.name === 'thing') { // receiving priority from server?
 
           if (numSends !== 1) {
             throw new Error('sent more than once');
@@ -197,12 +204,12 @@ describe('e2e', function () {
       try {
         aEmitChangesShouldEql(aEmitChanges);
         setChangesShouldEql(aSetChanges);
-        bEmitChangesShouldEql(bEmitChanges);        
+        bEmitChangesShouldEql(bEmitChanges);
         setChangesShouldEql(bSetChanges);
       } catch (err) {
         reject(err);
       }
-        
+
       resolve();
 
     };
@@ -219,6 +226,8 @@ describe('e2e', function () {
     });
 
   });
+
+  require('./multiple.js');
 
   // TODO: test changes made to client after it has already done the initial sync, i.e. client needs
   // to trigger sync. How to determine when initial sync done? Can do this with spy?

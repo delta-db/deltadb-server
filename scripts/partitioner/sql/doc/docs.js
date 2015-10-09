@@ -73,6 +73,13 @@ Docs.prototype.destroy = function (partition, docId, changedByUserId, updatedAt,
     });
 };
 
+Docs.prototype.canDestroy = function (partition, docId, changedByUserId, updatedAt, restore, docUUID,
+  colId, userUUID) {
+  var self = this;
+  updatedAt = new Date(updatedAt);
+  return self._partitions[partition]._docs.canDestroyAt(docId, updatedAt);
+};
+
 Docs.prototype._canCreate = function (colId, docUUID, userId) {
   return this._policy.modPermitted(userId, constants.ACTION_CREATE, colId, docUUID);
 };

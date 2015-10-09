@@ -1198,6 +1198,7 @@ describe('client', function () {
         priority: {
           val: 'high',
           up: new Date('2014-01-01T06:00:00.000Z'),
+          re: new Date('2014-01-01T05:00:00.000Z'),
           seq: 0
         }
       };
@@ -1311,6 +1312,7 @@ describe('client', function () {
         priority: {
           val: null,
           up: new Date('2014-01-01T07:00:00.000Z'),
+          re: new Date('2014-01-01T05:00:00.000Z'),
           seq: 0
         }
       };

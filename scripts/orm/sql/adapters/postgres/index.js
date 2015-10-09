@@ -11,7 +11,8 @@ var Promise = require('bluebird'),
   pg = require('pg'),
   AbstractSQL = require('../../common'),
   SQLError = require('../../common/sql-error'),
-  DBMissingError = require('../../../../client/db-missing-error');
+  DBMissingError = require('../../../../client/db-missing-error'),
+  log = require('../../../../utils/log');
 
 var SQL = function () {};
 
@@ -20,8 +21,14 @@ inherits(SQL, AbstractSQL);
 pg.on('error', function (err) {
   // Some errors, e.g. "terminating connection due to administrator command" caused from the server
   // closing the connection will cause your app to crash unless we listen for them here.
-  // TODO: should we do anything here like write to a log?
+  log.warning('postgres err=' + err.message);
 });
+
+// TODO: causes a listener memory leak with as there is only one instance of pg. Should each ORM
+// have its own instance? Isn't that inefficient? Better to register error function instead?
+// SQL.prototype.on = function (event, callback) {
+//   pg.on(event, callback);
+// };
 
 SQL.prototype._template = function (i) {
   return '$' + i;

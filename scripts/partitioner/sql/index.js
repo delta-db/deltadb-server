@@ -64,7 +64,17 @@ var Part = function (dbName, sql) {
     this._colRoles, this._queueAttrRecs
     // this._sessions
   ];
+
+  // TODO: causes "listener memory leak" as there is only one pg instance
+  // this._addSqlErrorListener();
 };
+
+// TODO: causes "listener memory leak" as there is only one pg instance. Better way?
+// Part.prototype._addSqlErrorListener = function () {
+//   this._sql.on('error', function (err) {
+//     log.warning('partitioner sql err=' + err.message);
+//   });
+// };
 
 Part.prototype._initPartitions = function () {
   this._queued = new Partition(this._sql, constants.QUEUED, this._policy, this._userRoles, this);

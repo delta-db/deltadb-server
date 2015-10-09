@@ -26,6 +26,20 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
   this._partitioner = partitioner;
 };
 
+Attr.prototype._canDestroyOrUpdateDoc = function () {
+  var self = this;
+  if (self.destroyingDoc()) {
+    // TODO: all params needed?
+    return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
+      self._params.updatedAt, self._params.restore, self._params.docUUID,
+      self._params.colId, self._params.userUUID);
+  } else {
+    // TODO: remove new Date()
+    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
+    return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
+  }
+};
+
 // TODO: split up
 Attr.prototype.create = function () {
   // We want to make sure that we set the options before we create the attr as creating the attr
@@ -55,7 +69,9 @@ Attr.prototype.create = function () {
   latestNoDelRestore = latestNoRestore && self._params.name;
 
   return self._canCreate().then(function () {
-    if (latestNoRestore) {
+    return self._canDestroyOrUpdateDoc();
+  }).then(function (canUpdate) {
+    if (latestNoRestore && canUpdate) {
       // Only set the options if the doc was updated. We want to prevent back-to-back changes from
       // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
       // no guarantee of which order they will be received. This means that if we receive the
@@ -69,6 +85,7 @@ Attr.prototype.create = function () {
   }).then(function () {
     return self.setDestroyedOrUpdateDoc();
   }).then(function (/* updated */) {
+console.log('Attr.prototype.create after setDestroyedOrUpdateDoc');
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
@@ -78,6 +95,7 @@ Attr.prototype.create = function () {
     if (err instanceof ForbiddenError || err instanceof SQLError) {
       log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
+console.log('Attr.prototype.create, err=' + err);
       throw err;
     }
   });
@@ -103,18 +121,6 @@ Attr.prototype._canCreate = function () {
     }
   });
 };
-
-// Attr.prototype.createIfPermitted = function () {
-//   var self = this;
-//   var action = self._params.value ? constants.ACTION_UPDATE : constants.ACTION_DESTROY;
-//   var attrRec = self.newAttrRec(self._partitionName);
-//   return self.permitted(action).then(function (allowed) {
-//     if (!allowed) {
-//       throw new ForbiddenError(action + ' forbidden');
-//     }
-//     return attrRec.createOrReplace();
-//   });
-// };
 
 Attr.prototype.createIfPermitted = function () {
   var self = this;
@@ -168,16 +174,13 @@ Attr.prototype.setOptions = function () {
       }
 
     case System.DB_ATTR_NAME:
+// console.log('about to _createOrDestroyDatabase, partitionName=', this._partitionName, 'params=', this._params);
       return this._createOrDestroyDatabase();
 
     default:
       return Promise.resolve();
   }
 };
-
-// Attr.prototype.destroyingDoc = function () {
-//   return !this._params.name && !this._params.value;
-// };
 
 Attr.prototype.destroyingDoc = function () {
   // TODO: similar code exists in process, attr-rec and here => re-use??

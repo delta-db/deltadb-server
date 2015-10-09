@@ -162,7 +162,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     };
 
     if (recorded) {
-      this._dat.latest[name].re = recorded;
+      this._dat.latest[name].re = recorded; // TODO: is this needed?
       this._dat.recordedAt = recorded;
     }
 
@@ -216,7 +216,7 @@ Doc.prototype._saveRecording = function (name, value, recorded) {
     this._emit('attr:record', name, value);
     this._emit('doc:record', name, value);
 
-    this._dat.latest[name].re = recorded;
+    this._dat.latest[name].re = recorded; // TODO: is this needed?
     this._dat.recordedAt = recorded;
   }
 };
