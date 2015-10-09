@@ -36,6 +36,7 @@ var DB = function ( /* name, adapter */ ) {
 
   this._initStoreLoaded();
 
+console.log('DB, name=', this._name);
   this._connectWhenReady();
 
   this._loadStore();
@@ -360,6 +361,7 @@ DB.prototype._registerDisconnectListener = function () {
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
   return self._adapter._createDatabase(self._name).then(function () {
+console.log('_createDatabaseAndInit_init');
     return self._init();
   });
 };
@@ -410,6 +412,7 @@ DB.prototype._connect = function () {
   self._registerInitDoneListener();
 
   self._socket.on('connect', function () {
+console.log('connect_init ', self._name);
     self._init();
   });
 
@@ -422,6 +425,7 @@ DB.prototype._disconnect = function () {
 };
 
 DB.prototype._connectWhenReady = function () {
+console.log('DB.prototype._connectWhenReady, _name=', this._name);
   var self = this;
   return self._storeLoaded.then(function () {
     if (!self._adapter._localOnly) {

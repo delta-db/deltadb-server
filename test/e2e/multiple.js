@@ -10,11 +10,6 @@ var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
 
-// TMP - BEGIN
-var log = require('../../scripts/utils/log');
-log.setSilent(false);
-// TMP - END
-
 describe('multiple', function () {
 
   var self = this,
@@ -27,20 +22,7 @@ describe('multiple', function () {
     b = null,
     bTasks = null;
 
-  // TODO: remove the following line? May need to at least set the timeout
-  partUtils.init(this, beforeEach, afterEach, false, before, after);
   this.timeout(20000);
-
-  var createB = function () {
-    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientB = new Client(storeB);
-
-    b = clientB.db({
-      db: 'mydb'
-    });
-
-    bTasks = b.col('tasks');
-  };
 
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -51,6 +33,17 @@ describe('multiple', function () {
     });
 
     aTasks = a.col('tasks');
+  };
+
+  var createB = function () {
+    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
+    clientB = new Client(storeB);
+
+    b = clientB.db({
+      db: 'mydb'
+    });
+
+    bTasks = b.col('tasks');
   };
 
   var createBoth = function () {
@@ -88,8 +81,8 @@ describe('multiple', function () {
     });
 
     var task2 = bTasks.doc({
-      $id: docUUID,
-      priority: 'high'
+     $id: docUUID,
+     priority: 'high'
     });
 
     return Promise.all([
@@ -100,31 +93,34 @@ describe('multiple', function () {
 
   };
 
+  var createSendReceiveDestroy = function (i) {
+console.log('createSendReceiveDestroy, i=', i);
+    var promise = Promise.resolve();
+    if( i > 0) {
+      promise = destroyBoth().then(function () {
+        createBoth();
+      });
+    }
+    return promise.then(function () {
+      return sendAndReceivePartialChanges();
+    });
+  };
+
+  var createSendReceiveDestroyFactory = function (i) {
+console.log('%%%%%createSendReceiveDestroyFactory, i=', i);
+    return function () {
+      return createSendReceiveDestroy(i);
+    }
+  };
+
   it('should send and receive partial changes multiple times', function () {
 
     // This test has allowed us to detect a number of race conditions that could otherwise go
     // undetected
-    var createSendReceiveDestroy = function (i) {
-console.log('createSendReceiveDestroy, i=', i);
-      var promise = Promise.resolve();
-      if (i > 0) { // not 1st time?
-        promise = destroyBoth();
-      }
-      return promise.then(function () {
-        createBoth();
-        return sendAndReceivePartialChanges();
-      });
-    };
-
-    var createSendReceiveDestroyFactory = function (i) {
-console.log('createSendReceiveDestroyFactory, i=', i);
-      return function () {
-        return createSendReceiveDestroy(i);
-      }
-    };
 
     var chain = Promise.resolve();
-    for (var i = 0; i < 1; i++) {
+
+    for (var i = 0; i < 5; i++) {
         chain = chain.then(createSendReceiveDestroyFactory(i));
     }
 
