@@ -38,8 +38,4 @@ describe('deltadb', function () {
 
   require('./e2e-no-socket');
 
-  // TODO: have to spawn server for tests. Spawn on diff port. Prefix w/ namespace so doesn't
-  // conflict w/ production?
-  require('./e2e');
-
 });

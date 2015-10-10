@@ -7,7 +7,7 @@ log.setSilent(false);
 
 describe('e2e', function () {
 
-  // require('./basic.js');
+  require('./basic.js');
 
   require('./multiple.js');
 

@@ -22,7 +22,9 @@ describe('multiple', function () {
     b = null,
     bTasks = null;
 
-  this.timeout(20000);
+// TODO: restore
+//  this.timeout(20000);
+  this.timeout(utils.TIMEOUT);
 
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -52,9 +54,8 @@ describe('multiple', function () {
   };
 
   var destroyBoth = function () {
-    // We cannot destroy the DB if there is another client connected to it. Therefore, we need to
-    // disconnect the extra client before trying to destroy the db.
-    return b._disconnect().then(function () {
+    // TODO: make destroy disconnect so there aren't any more data exchanges?
+    return b.destroy().then(function () {
       return a.destroy();
     });
   };
@@ -120,7 +121,7 @@ console.log('%%%%%createSendReceiveDestroyFactory, i=', i);
 
     var chain = Promise.resolve();
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 1; i++) {
         chain = chain.then(createSendReceiveDestroyFactory(i));
     }
 

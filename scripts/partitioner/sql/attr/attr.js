@@ -9,7 +9,8 @@ var Promise = require('bluebird'),
   System = require('../../../system'),
   log = require('../../../utils/log'),
   SQLError = require('../../../orm/sql/common/sql-error'),
-  Docs = require('../doc/docs');
+  Docs = require('../doc/docs'),
+  DBMissingError = require('../../../client/db-missing-error');
 
 var Doc = require('../../../client/doc');
 
@@ -89,6 +90,10 @@ console.log('Attr.prototype.create after setDestroyedOrUpdateDoc');
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
+
+}).then(function () {
+console.log('Attr.prototype.create after restoreIfDestroyedBefore block');
+
   }).catch(function (err) {
     // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
     // We can expect an SQLError if two clients try to create the DB at the same time
@@ -139,7 +144,13 @@ Attr.prototype._createOrDestroyDatabase = function () {
   }
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-    return this._partitioner.destroyAnotherDatabase(this._params.value.name);
+    return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
+console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
+      // Ignore DBMissingErrors caused be race conditions on deleting the database
+      if (!(err instanceof DBMissingError)) {
+        throw err;
+      }
+    });
   } else {
     return this._partitioner.createAnotherDatabase(this._params.value.name);
   }
@@ -157,7 +168,7 @@ Attr.prototype.setOptions = function () {
         this._params.updatedAt, this._params.seq,
         this._params.restore, this._params.quorum,
         this._params.colId, this._params.userUUID);
-    
+
     case Doc._userName:
       // TODO: create fn for following
       return this._users.setUser(this._params.value, this._params.updatedAt,

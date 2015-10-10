@@ -25,7 +25,7 @@ Process.SLEEP_MS = 1000;
 Process.prototype._initSystemDB = function () {
   var self = this,
     store = new MemAdapter();
-  
+
   self._client = new Client(store);
 
   // TODO: doesn't url need to be set here?
@@ -52,36 +52,54 @@ console.log('doc:destroy, unregister', doc.id());
 
 Process.prototype._processDB = function (dbName) {
 // TODO: when the bug occurs, why does $system stop getting processed?
-console.log('_processDB1', (new Date()).toUTCString(), ', dbName=', dbName);
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB1', (new Date()).toUTCString(), ', dbName=', dbName);
   // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
   var part = new Partitioner(dbName);
   return part.connect().then(function () {
-console.log('_processDB2', (new Date()).toUTCString(), ', dbName=', dbName);
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB2', (new Date()).toUTCString(), ', dbName=', dbName);
 // TODO: appears to sometimes get caught during next line!!
-part._sql._debug = true;
+// part._sql._debug = true;
     return part.process();
   }).then(function () {
-part._sql._debug = false;
-console.log('_processDB3', (new Date()).toUTCString(), ', dbName=', dbName);
+// part._sql._debug = false;
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB3', (new Date()).toUTCString(), ', dbName=', dbName);
     return part.closeDatabase();
   }).catch(function (err) {
-console.log('processDB, err=', err);
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB, err=', err, err.stack);
     // Don't throw DBMissingError as the DB may have just been destroyed and not yet removed from
-    // _dbNames
+    // _dbNames.
     if (!(err instanceof DBMissingError)) {
       throw err;
     }
+// // Don't throw DBMissingError as the DB may have just been destroyed and not yet removed from
+// // _dbNames. The pg adapter appears to throw a AddressNotFoundError error when the DB has just
+// // been destroyed.
+// if (!(err instanceof DBMissingError) && !(err instanceof AddressNotFoundError)) {
+//   throw err;
+// }
   });
 };
 
+// TODO: restore
+// Process.prototype._process = function () {
+//   var self = this, promises = [];
+//   utils.each(self._dbNames, function (dbName) {
+//     promises.push(self._processDB(dbName));
+//   });
+//   return Promise.all(promises);
+// };
+
+// TODO: remove, chaining for debugging only
 Process.prototype._process = function () {
-  var self = this, promises = [];
+  var self = this, chain = Promise.resolve();
   utils.each(self._dbNames, function (dbName) {
-    promises.push(self._processDB(dbName));
+    chain = chain.then(function () {
+      return self._processDB(dbName);
+    });
   });
-  return Promise.all(promises);
+  return chain;
 };
 
 Process.prototype._loop = function () {

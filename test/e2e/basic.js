@@ -10,7 +10,7 @@ var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
 
-describe('e2e', function () {
+describe('basic', function () {
 
   var storeA = null,
     clientA = null,
@@ -21,8 +21,7 @@ describe('e2e', function () {
     b = null,
     bTasks = null;
 
-  // TODO: remove the following line? May need to at least set the timeOut
-  partUtils.init(this, beforeEach, afterEach, false, before, after);
+  this.timeout(utils.TIMEOUT);
 
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser

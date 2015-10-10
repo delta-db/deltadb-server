@@ -36,7 +36,7 @@ var Globals = require('./globals'),
 var Part = function (dbName, sql) {
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
-  this._connected = false;
+//  this._connected = false;
 
   this._globals = new Globals(this._sql);
   this._roles = new Roles(this._sql, this);
@@ -91,6 +91,7 @@ Part.prototype._initPartitions = function () {
 Part.prototype._host = config.POSTGRES_HOST;
 Part.prototype._dbUser = config.POSTGRES_USER;
 Part.prototype._dbPwd = config.POSTGRES_PWD;
+Part.prototype._port = null;
 
 Part.prototype._DB_NAME_PREFIX = 'delta_';
 
@@ -147,16 +148,30 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 };
 
 Part.prototype.connect = function () {
+console.log('Part.prototype.connect, dbName=' + this._dbName + ', host=' + this._host + ', dbUser=' + this._dbUser);
   // TODO: throw error if _dbName is reserved
-  var self = this;
-  return self._sql.connect(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
-    self._dbPwd).then(function () {
-      self._connected = true;
-    });
+  return this._sql.connect(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
+    this._dbPwd, this._port);
+
+// self._dbPwd).then(function () {
+//   self._connected = true;
+// });
 };
+
+// Part.prototype.connect = function () {
+//   // TODO: throw error if _dbName is reserved
+//   var self = this;
+//   return self._sql.connect(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
+//     self._dbPwd);
+//
+// // self._dbPwd).then(function () {
+// //   self._connected = true;
+// // });
+// };
 
 Part.prototype.createDatabase = function () {
   var self = this;
+console.log('Part.prototype.createDatabase, self._dbUser=', self._dbUser);
   return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
     self._dbPwd).then(function () {
     return self.createTables();
@@ -170,23 +185,31 @@ Part.prototype.truncateDatabase = function () {
 
 // TODO: rename to destroy?
 Part.prototype.destroyDatabase = function () {
-  var self = this, promise = null;
-  if (self._connected) {
-    promise = Promise.resolve();
-  } else {
-    promise = self.connect();
-  }
-  return promise.then(function () {
-    return self._sql.dropAndCloseDatabase(true); // force close of all conns first
-  });
+console.log('Part.prototype.destroyDatabase');
+// console.log('this._dbUser=', this._dbUser);
+// process.exit();
+// var self = this, promise = null;
+// if (self._connected) {
+//   promise = Promise.resolve();
+// } else {
+//   promise = self.connect();
+// }
+// return promise.then(function () {
+//   return self._sql.dropAndCloseDatabase(true); // force close of all conns first
+// });
+
+  // force close of all conns first
+  return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
+    this._dbUser, this._dbPwd, this._port, true);
 };
 
 // TODO: rename to disconnect?
 Part.prototype.closeDatabase = function () {
-  var self = this;
-  return self._sql.close().then(function () {
-    self._connected = false;
-  });
+  return this._sql.close();
+// var self = this;
+// return self._sql.close().then(function () {
+//   self._connected = false;
+// });
 };
 
 Part.prototype.createAnotherDatabase = function (dbName) {
@@ -209,9 +232,9 @@ Part.prototype.destroyAnotherDatabase = function (dbName) {
   log.info('destroying another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
-  return part.connect().then(function () {
-    return part.destroyDatabase();
-  });
+//  return part.connect().then(function () {
+  return part.destroyDatabase();
+//  });
 };
 
 module.exports = Part;

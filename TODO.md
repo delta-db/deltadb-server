@@ -1,6 +1,7 @@
 Now
 ---
 - express (or better) server - use web socket
+	- race conditions when sending and receiving changes multiple times
 	- fix old tests
 	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
@@ -31,6 +32,7 @@ Now
 
 Next
 ---
+- semver pkg
 - codeclimate.com
 - there are two "Servers" in the server code -- one should be renamed
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
@@ -51,7 +53,7 @@ Next
 	- have 2 servers syncing with each other
 	- dump ALL from both servers and make sure that when sort by updated_at that all data is the same
 	- run test over many hours to test for randomness and log every queued change
-- CouchDB adapter to make sure nosql orm is generalized properly 
+- CouchDB adapter to make sure nosql orm is generalized properly
 - ability to query historical data
 - create compaction routine that removes historical data (ALL)
 - DDOS/bruteforce protection:
@@ -115,4 +117,3 @@ Misc
 ---
 - Use BaaS (Backend as a Service) phrase?
 - Create a repo with vagrant that benchmarks deltadb, pouchdb, delta-pouch, firebase & meteor
-

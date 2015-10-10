@@ -161,13 +161,17 @@ Utils.prototype.promisify = function (fn, thisArg) {
     return new Promise(function (resolve, reject) {
 
       // Define a callback and add it to the arguments
-      var callback = function (err, param) {
+      var callback = function (err) {
         if (err) {
           reject(err);
-        } else {
-          resolve(param);
+        } else if (arguments.length === 2) { // single param?
+          resolve(arguments[1]);
+        } else { // multiple params?
+          var cbArgsArray = self.toArgsArray(arguments);
+          resolve(cbArgsArray.slice(1)); // remove err arg
         }
       };
+
       argsArray.push(callback);
       fn.apply(thisArg, argsArray);
     });
