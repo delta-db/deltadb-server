@@ -1,7 +1,5 @@
 var pg = require('pg'), promise = require('bluebird');
 
-// var conString = "postgres://postgres:secret@localhost/postgres";
-
 var utils = require('../scripts/utils');
 
 // -----

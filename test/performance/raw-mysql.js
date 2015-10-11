@@ -50,7 +50,7 @@ describe('raw-mysql', function () {
   };
 
   before(function () {
-    return sql.connectAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
+    return sql.createAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
       config.POSTGRES_PWD).then(function () {
       return createTable();
     });

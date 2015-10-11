@@ -118,7 +118,7 @@ SQL.prototype.dropTable = function (table) {
 
 // SQL.prototype._query = function ( /* sql, replacements */ ) {};
 
-// e.g. var joins = { 
+// e.g. var joins = {
 //   joins: {
 //     docs: [ ['docs.obj_id', '=', 'objs.id'], 'or' , ['doc.user_id', '=', '?'] ],
 //     users: [ ['users.user_id', '=', 'docs.id'], 'and' , ['doc.user_id', '=', '?'] ]
@@ -171,7 +171,7 @@ SQL.prototype._escapeAndJoinForSelect = function (obj) {
   utils.each(obj, function (val, key) {
     if (isArray) {
       val = self.escape(val);
-      values += delim + val + ' AS "' + val + '"'; // use alias to prevent dups      
+      values += delim + val + ' AS "' + val + '"'; // use alias to prevent dups
     } else {
       values += delim + self.escape(key) + ' AS "' + self.escape(val) + '"';
     }

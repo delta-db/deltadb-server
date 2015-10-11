@@ -13,7 +13,7 @@ var testORM = function (name, Adapter) {
     testUtils.setUp(this);
 
     var createDatabase = function () {
-      return sql.connectAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+      return sql.createAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
         config.POSTGRES_PWD).then(
         function () {
           return sql.createTable('attrs', {
@@ -85,7 +85,8 @@ var testORM = function (name, Adapter) {
     });
 
     afterEach(function () {
-      return sql.dropAndCloseDatabase();
+      return sql.dropAndCloseDatabase('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+        config.POSTGRES_PWD);
     });
 
     var shouldEqlDefault = function (results) {

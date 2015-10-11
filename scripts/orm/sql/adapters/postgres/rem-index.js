@@ -2,6 +2,8 @@
 
 // TODO: make sure all timestamps in UTC
 
+// TODO: client pooling? See pg README
+
 // TODO: replace new Error() with new QueryError()
 
 var Promise = require('bluebird'),
@@ -12,12 +14,10 @@ var Promise = require('bluebird'),
 //  AddressNotFoundError = require('../../common/address-not-found-error'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
-  log = require('../../../../utils/log'),
-  connections = require('./connections');
+  log = require('../../../../utils/log');
 
 var SQL = function () {
   this._connected = false;
-  this._connection = null;
 };
 
 inherits(SQL, AbstractSQL);
@@ -40,9 +40,9 @@ SQL.prototype._template = function (i) {
 
 SQL.prototype._createDatabase = function (db) {
   // Note: IF NOT EXISTS doesn't work in Postgres
-//  var self = this;
-  // return this._query('CREATE DATABASE $1', [db]); // TODO: why doesn't this work?
-  return this._query('CREATE DATABASE ' + this.escape(db));
+  var self = this;
+  db = self.escape(db);
+  return self._query('CREATE DATABASE ' + db);
 };
 
 // SQL.prototype.connect = function (db, host, username, password, port) {
@@ -67,122 +67,102 @@ SQL.prototype._createDatabase = function (db) {
 //   });
 // };
 
-var utils = require('../../../../utils'); // TODO: remove?
+var utils = require('../../../../utils');
 
-// // TODO: have to use a custom promisify here as need to include done when err or could create callback for error case. Probably best to make custom and just eliminate anything that is not needed
-// var promisify = function (fn, thisArg) {
-//   var self = this;
-// console.log((new Date()).toUTCString(), 'promisify1');
-//   return function () {
-// console.log('promisify2');
-//     var argsArray = utils.toArgsArray(arguments);
-// console.log('promisify3');
-//     return new Promise(function (resolve, reject) {
-// console.log('promisify4');
-//
-//       // Define a callback and add it to the arguments
-//       var callback = function (err) {
-// console.log('promisify5');
-//         if (err) {
-// console.log('promisify5a');
-// console.log('err=', err);
-// console.log('arguments=', arguments);
-// err._done = arguments[2]; // TODO: set done for class instead!
-//           reject(err);
-//         } else if (arguments.length === 2) { // single param?
-// console.log('promisify5b');
-//           resolve(arguments[1]);
-//         } else { // multiple params?
-// console.log('promisify5c');
-//           var cbArgsArray = utils.toArgsArray(arguments);
-//           resolve(cbArgsArray.slice(1)); // remove err arg
-//         }
-//       };
-//
-// console.log('promisify6');
-//       argsArray.push(callback);
-// console.log('promisify7, argsArray=', argsArray);
-// // TODO: why is it not getting past here???
-//       fn.apply(thisArg, argsArray);
-// console.log((new Date()).toUTCString(), 'promisify8');
+// TODO: have to use a custom promisify here as need to include done when err or could create callback for error case. Probably best to make custom and just eliminate anything that is not needed
+var promisify = function (fn, thisArg) {
+  var self = this;
+console.log((new Date()).toUTCString(), 'promisify1');
+  return function () {
+console.log('promisify2');
+    var argsArray = utils.toArgsArray(arguments);
+console.log('promisify3');
+    return new Promise(function (resolve, reject) {
+console.log('promisify4');
+
+      // Define a callback and add it to the arguments
+      var callback = function (err) {
+console.log('promisify5');
+        if (err) {
+console.log('promisify5a');
+console.log('err=', err);
+console.log('arguments=', arguments);
+err._done = arguments[2]; // TODO: set done for class instead!
+          reject(err);
+        } else if (arguments.length === 2) { // single param?
+console.log('promisify5b');
+          resolve(arguments[1]);
+        } else { // multiple params?
+console.log('promisify5c');
+          var cbArgsArray = utils.toArgsArray(arguments);
+          resolve(cbArgsArray.slice(1)); // remove err arg
+        }
+      };
+
+console.log('promisify6');
+      argsArray.push(callback);
+console.log('promisify7, argsArray=', argsArray);
+// TODO: why is it not getting past here???
+      fn.apply(thisArg, argsArray);
+console.log((new Date()).toUTCString(), 'promisify8');
+    });
+  };
+};
+
+SQL.prototype.connect = function (db, host, username, password, port) {
+  var self = this,
+    connect = promisify(pg.connect, pg);
+
+//  var self = this;
+
+// var self = this,
+//   connect = Promise.promisify(pg.connect, pg);
+  var con = 'postgres://' + username + ':' + password + '@' + host + '/' + self.escape(db);
+  self._config(db, host, username, password, port);
+console.log('SQL.prototype.connect, con=', con);
+// throw new Error('who is calling this?');
+
+// var connect = function (con) {
+// console.log('############connect1');
+//   return new Promise(function (resolve, reject) {
+// console.log('############connect2');
+//     pg.connect(con, function (err, client, done) {
+// console.log('############connect3');
+//       if (err) {
+// console.log('############connect4, err=', err.code);
+//         reject(err);
+//       }
+// // TODO: need to call done for some errors?
+//       return [client, done];
 //     });
-//   };
-// };
-
-// SQL.prototype.connect = function (db, host, username, password, port) {
-//   var self = this,
-//     connect = promisify(pg.connect, pg);
-//
-// //  var self = this;
-//
-// // var self = this,
-// //   connect = Promise.promisify(pg.connect, pg);
-//   var con = 'postgres://' + username + ':' + password + '@' + host + '/' + self.escape(db);
-//   self._config(db, host, username, password, port);
-// console.log('SQL.prototype.connect, con=', con);
-// // throw new Error('who is calling this?');
-//
-// // var connect = function (con) {
-// // console.log('############connect1');
-// //   return new Promise(function (resolve, reject) {
-// // console.log('############connect2');
-// //     pg.connect(con, function (err, client, done) {
-// // console.log('############connect3');
-// //       if (err) {
-// // console.log('############connect4, err=', err.code);
-// //         reject(err);
-// //       }
-// // // TODO: need to call done for some errors?
-// //       return [client, done];
-// //     });
-// //   });
-// // };
-//
-// console.log('SQL.prototype.connect1');
-//   return connect(con).then(function (args) {
-// console.log('SQL.prototype.connect2');
-//     self._connected = true;
-//     self._client = args[0];
-//     self._done = args[1];
-// console.log('SQL.prototype.connect3');
-//     self._execute = Promise.promisify(self._client.query, self._client);
-// console.log('SQL.prototype.connect4');
-//   }).catch(function (err) {
-// self._done = err._done; // TODO: use done for class instead!
-// console.log('SQL.prototype.connect5, err=', err, '_done=', self._done);
-//
-//     if (self._done) {
-//       // Release the client back to the pool. Without this a drop db could cause a client to hang
-//       self._done();
-//     }
-//     if (err.code === '3D000') {
-//       throw new DBMissingError(err.message);
-// //     } else if (err.code === 'ENOTFOUND') {
-// // throw err;
-// // // TODO: should only do once?
-// // // return self.connect(db, host, username, password, port);
-// //
-// // //        throw new AddressNotFoundError(err.message);
-//     } else {
-//       throw err;
-//     }
 //   });
 // };
 
-SQL.prototype.connect = function (db, host, username, password, port) {
-console.log('SQL.prototype.connect, db=', db, 'host=', host);
-if (!host) {
-throw new Error('REMOVE: no host!');
-}
-  var self = this;
-  self._config(db, host, username, password, port);
-  return connections.connect(db, host, username, password, port).then(function (connection) {
-    self._connection = connection;
+console.log('SQL.prototype.connect1');
+  return connect(con).then(function (args) {
+console.log('SQL.prototype.connect2');
     self._connected = true;
+    self._client = args[0];
+    self._done = args[1];
+console.log('SQL.prototype.connect3');
+    self._execute = Promise.promisify(self._client.query, self._client);
+console.log('SQL.prototype.connect4');
   }).catch(function (err) {
-console.log('SQL.prototype.connect5, err=', err);
+self._done = err._done; // TODO: use done for class instead!
+console.log('SQL.prototype.connect5, err=', err, '_done=', self._done);
+
+    if (self._done) {
+      // Release the client back to the pool. Without this a drop db could cause a client to hang
+      self._done();
+    }
     if (err.code === '3D000') {
       throw new DBMissingError(err.message);
+//     } else if (err.code === 'ENOTFOUND') {
+// throw err;
+// // TODO: should only do once?
+// // return self.connect(db, host, username, password, port);
+//
+// //        throw new AddressNotFoundError(err.message);
     } else {
       throw err;
     }
@@ -206,14 +186,14 @@ console.log('SQL.prototype.createAndUse4, db=', db);
   });
 };
 
-// // TODO: remove?
-// SQL.prototype.connectAndUse = function (db, host, username, password, port) {
-//   // Note: need to specify a DB when connecting
-//   var self = this;
-//   return self.connect(db, host, username, password, port).catch(function () {
-//     return self.createAndUse(db, host, username, password, port);
-//   });
-// };
+// TODO: remove?
+SQL.prototype.connectAndUse = function (db, host, username, password, port) {
+  // Note: need to specify a DB when connecting
+  var self = this
+  return self.connect(db, host, username, password, port).catch(function () {
+    return self.createAndUse(db, host, username, password, port);
+  });
+};
 
 SQL.prototype._isDBMissingError = function (err) {
 // var is = err.message.match(/^database ".*" does not exist$/);
@@ -222,40 +202,16 @@ SQL.prototype._isDBMissingError = function (err) {
 };
 
 SQL.prototype._isDBExistsError = function (err) {
-var is = err.message.match(/^duplicate key value violates unique constraint "pg_database_datname_index"$/) || err.message.match(/^database ".*" already exists$/);
+var is = err.message.match(/^duplicate key value violates unique constraint "pg_database_datname_index"$/);
 console.log('------------------------SQL.prototype._isDBExistsError, is=', is, 'err=', err.message);
   return err.message.match(
-      /^duplicate key value violates unique constraint "pg_database_datname_index"$/)
-    || err.message.match(
-      /^database ".*" already exists$/);
+    /^duplicate key value violates unique constraint "pg_database_datname_index"$/);
 };
-
-// SQL.prototype._query = function (sql, replacements) {
-//   var self = this;
-//   self._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
-//   return self._execute(sql, replacements).then(function (results) {
-//     return {
-//       rows: results.rows.length > 0 ? results.rows : null,
-//       affected: results.rowCount
-//     };
-//   }).catch(function (err) {
-//     if (self._isDBMissingError(err)) {
-//       throw new DBMissingError(err.message);
-//    } else if (self._isDBExistsError(err)) {
-// // console.log('here you go!');
-// // process.exit(1);
-//      throw new DBExistsError(err.message);
-//     } else {
-//       // TODO: a wrapper should be created in sql/sql.js and this should be moved there
-//       throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));
-//     }
-//   });
-// };
 
 SQL.prototype._query = function (sql, replacements) {
   var self = this;
   self._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
-  return self._connection.connection.query(sql, replacements).then(function (results) {
+  return self._execute(sql, replacements).then(function (results) {
     return {
       rows: results.rows.length > 0 ? results.rows : null,
       affected: results.rowCount
@@ -458,29 +414,19 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
   return this._query(prefixSql + sql + suffixSql + this._uniqueSql(table, unique) + priStartSql);
 };
 
-// TODO: rename to disconnect?
 SQL.prototype.close = function () {
   var self = this;
-  return connections.disconnect(self._connection.id, self._db, self._host, self._username,
-    self._password, self._port)
-      .then(function () {
-        self._connected = false;
-      });
-};
+  return new Promise(function (resolve) {
+    // The following causes errors like "This socket has been ended by the other party"
+    // if (self._done) {
+    //   self._done();
+    // }
 
-// SQL.prototype.close = function () {
-//   var self = this;
-//   return new Promise(function (resolve) {
-//     // The following causes errors like "This socket has been ended by the other party"
-//     // if (self._done) {
-//     //   self._done();
-//     // }
-//
-//     self._client.end(); // not async!
-//     self._connected = false;
-//     resolve();
-//   });
-// };
+    self._client.end(); // not async!
+    self._connected = false;
+    resolve();
+  });
+};
 
 SQL.prototype._closeOtherConnections = function (db) {
   return this._query('SELECT pg_terminate_backend (pid) FROM pg_stat_activity WHERE datname=$1',
@@ -502,7 +448,6 @@ console.log('SQL.prototype._dropDatabase, db=', db, 'force=', force);
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('DROP ', db);
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-    // return self._query('DROP DATABASE $1', [db]); // TODO: why doesn't this work?
     return self._query('DROP DATABASE ' + self.escape(db));
 //   }).catch(function (err) {
 // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
