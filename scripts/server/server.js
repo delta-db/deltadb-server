@@ -74,6 +74,10 @@ Server.prototype._registerChangesListener = function (socket, partitioner) {
   socket.on('changes', function (msg) {
     // TODO: error checking if msg not in correct format
     self._partitioners._queueChanges(partitioner._dbName, socket, msg);
+// partitioner._sql._debug = true;
+//     self._partitioners._queueChanges(partitioner._dbName, socket, msg).then(function () {
+// partitioner._sql._debug = false;
+//     });
   });
 };
 

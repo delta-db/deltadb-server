@@ -171,9 +171,10 @@ console.log('Part.prototype.connect, dbName=' + this._dbName + ', host=' + this.
 
 Part.prototype.createDatabase = function () {
   var self = this;
-console.log('Part.prototype.createDatabase, self._dbUser=', self._dbUser);
+console.log('Part.prototype.createDatabase1, self._dbUser=', self._dbUser);
   return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
     self._dbPwd).then(function () {
+console.log('Part.prototype.createDatabase2, self._dbUser=', self._dbUser);
     return self.createTables();
   });
 };
@@ -217,13 +218,21 @@ Part.prototype.createAnotherDatabase = function (dbName) {
   log.info('creating another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
+console.log('createAnotherDatabase1');
   return this._users.getSuperUser().then(function (user) {
+console.log('createAnotherDatabase2');
     // Default other DB's super user salt and pwd so that it matches "ours"
     Users.SUPER_SALT = user.salt;
     Users.SUPER_PWD = user.password;
     return part.createDatabase();
   }).then(function () {
+console.log('createAnotherDatabase3');
+
     return part.closeDatabase();
+
+}).then(function () {
+console.log('createAnotherDatabase4');
+
   });
 };
 

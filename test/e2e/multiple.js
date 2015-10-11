@@ -23,8 +23,8 @@ describe('multiple', function () {
     bTasks = null;
 
 // TODO: restore
-//  this.timeout(20000);
-  this.timeout(utils.TIMEOUT);
+this.timeout(20000);
+// this.timeout(utils.TIMEOUT);
 
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser

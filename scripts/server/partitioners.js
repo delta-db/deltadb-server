@@ -113,6 +113,7 @@ Partitioners.prototype._doPoll = function (partitioner) {
     newSince = new Date(); // save timestamp before to prevent race condition
 
   // Check for changes
+console.log('checking for changes after ', self._partitioners[partitioner._dbName].since);
   return self._hasChanges(partitioner, self._partitioners[partitioner._dbName].since)
     .then(function (has) {
       if (has) {

@@ -10,7 +10,8 @@ var Promise = require('bluebird'),
   log = require('../../../utils/log'),
   SQLError = require('../../../orm/sql/common/sql-error'),
   Docs = require('../doc/docs'),
-  DBMissingError = require('../../../client/db-missing-error');
+  DBMissingError = require('../../../client/db-missing-error'),
+  DBExistsError = require('../../../client/db-exists-error');
 
 var Doc = require('../../../client/doc');
 
@@ -146,15 +147,55 @@ Attr.prototype._createOrDestroyDatabase = function () {
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
     return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
 console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
-      // Ignore DBMissingErrors caused be race conditions on deleting the database
+      // Ignore DBMissingErrors caused be race conditions when destroying the database
       if (!(err instanceof DBMissingError)) {
         throw err;
       }
     });
   } else {
-    return this._partitioner.createAnotherDatabase(this._params.value.name);
+    return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
+console.log('*************Attr.prototype._createOrDestroyDatabase, err=', err);
+
+      // Ignore DBMissingErrors caused be race conditions when creating the database
+      if (!(err instanceof DBExistsError)) {
+process.exit(1); // TODO: remove!
+        throw err;
+      }
+    });
   }
 };
+
+// Attr.prototype._createOrDestroyDatabase = function () {
+//
+//   // Only create DB if this the system partitioner
+//   if (this._partitioner._dbName !== System.DB_NAME) {
+//     // TODO: log?
+//     return Promise.resolve();
+//   }
+//
+//   var promise = null;
+//
+//   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
+//     promise = this._partitioner.destroyAnotherDatabase(this._params.value.name);
+// //     return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
+// // console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
+// //       // Ignore DBMissingErrors caused be race conditions on deleting the database
+// //       if (!(err instanceof DBMissingError)) {
+// //         throw err;
+// //       }
+// //     });
+//   } else {
+//     promise = this._partitioner.createAnotherDatabase(this._params.value.name);
+//   }
+//
+//   return promise.catch(function (err) {
+// console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
+//     // Ignore DBMissingErrors caused be race conditions when creating or destroying the database
+//     if (!(err instanceof DBMissingError)) {
+//       throw err;
+//     }
+//   });
+// };
 
 Attr.prototype.setOptions = function () {
   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??

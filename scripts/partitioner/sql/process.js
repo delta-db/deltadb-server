@@ -740,6 +740,11 @@ console.log('Process.prototype.process4');
       self._deltas = deltas;
       return self._prepareAndProcessAttrs();
     }
+
+}).then(function () {
+console.log('Process.prototype.process5');
+
+
   });
 };
 

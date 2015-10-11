@@ -1,9 +1,16 @@
 Now
 ---
 - express (or better) server - use web socket
+	- what was the problem with old dbs with same name??
+	- add to notes.md: difficulty with diff models for id-less reconcilation:
+		- store entire action as value, which prevents use using native delete functions
+		- create extra db attr which creates extra docs in DB and still wouldn't solve the problem of destroys being related to the db being destroyed
+	- clean up promisfy in postgres adapter
 	- race conditions when sending and receiving changes multiple times
+	- restore promise.all(), instead of chaining when processing
 	- fix old tests
 	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
+	- test where db already exists and then start server and make sure server processes the db
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 	- event for connect. Disconnect event already exists, but add info about both to wiki
@@ -68,6 +75,7 @@ Next
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?
 - create RESTful API in addition to socket API?
 - Currently, if we have two clients connected to the same DB and one client tries to destroy the DB then an error is reported. Is this a good safeguard or should the server force a closure of all client connections for this DB so that the DB can be destroyed?
+- Use local sockets so that can have 1 server process and multiple process processes that are all talking to each other
 
 
 NoSQL support

@@ -45,10 +45,17 @@ describe('basic', function () {
     aTasks = a.col('tasks');
   };
 
+// var destroyBoth = function () {
+//   // We cannot destroy the DB if there is another client connected to it. Therefore, we need to
+//   // disconnect the extra client before trying to destroy the db.
+//   var promise = b ? b._disconnect() : Promise.resolve();
+//   return promise.then(function () {
+//     return a.destroy();
+//   });
+// };
+
   var destroyBoth = function () {
-    // We cannot destroy the DB if there is another client connected to it. Therefore, we need to
-    // disconnect the extra client before trying to destroy the db.
-    var promise = b ? b._disconnect() : Promise.resolve();
+    var promise = b ? b._destroy() : Promise.resolve();
     return promise.then(function () {
       return a.destroy();
     });

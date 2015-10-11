@@ -36,7 +36,9 @@ Process.prototype._initSystemDB = function () {
   self._dbs.on('doc:create', function (doc) {
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // new db? Ignore policy deltas
+console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('doc:create, register', doc.id(), dbName);
+console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
       self._dbNames[doc.id()] = dbName; // register new db
     }
   });
@@ -44,7 +46,9 @@ console.log('doc:create, register', doc.id(), dbName);
   self._dbs.on('doc:destroy', function (doc) {
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // destroying db? Ignore policy deltas
+console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('doc:destroy, unregister', doc.id());
+console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
       delete self._dbNames[doc.id()]; // unregister db
     }
   });

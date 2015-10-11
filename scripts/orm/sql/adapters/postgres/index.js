@@ -13,6 +13,7 @@ var Promise = require('bluebird'),
   SQLError = require('../../common/sql-error'),
 //  AddressNotFoundError = require('../../common/address-not-found-error'),
   DBMissingError = require('../../../../client/db-missing-error'),
+  DBExistsError = require('../../../../client/db-exists-error'),
   log = require('../../../../utils/log');
 
 var SQL = function () {
@@ -172,11 +173,15 @@ SQL.prototype.createAndUse = function (db, host, username, password, port) {
   // Note: need to specify a DB when connecting
   var self = this;
   // Connect to postgres db, create db and then connect to new db
+console.log('SQL.prototype.createAndUse1, db=', db);
   return self.connect('postgres', host, username, password, port).then(function () {
+console.log('SQL.prototype.createAndUse2, db=', db);
     return self._createDatabase(db);
   }).then(function () {
+console.log('SQL.prototype.createAndUse3, db=', db);
     return self.close();
   }).then(function () {
+console.log('SQL.prototype.createAndUse4, db=', db);
     return self.connect(db, host, username, password, port);
   });
 };
@@ -191,9 +196,16 @@ SQL.prototype.connectAndUse = function (db, host, username, password, port) {
 };
 
 SQL.prototype._isDBMissingError = function (err) {
-var is = err.message.match(/^database "delta_mydb" does not exist$/);
-console.log('SQL.prototype._isDBMissingError, is=', is, 'err=', err.message);
-  return err.message.match(/^database "delta_mydb" does not exist$/);
+// var is = err.message.match(/^database ".*" does not exist$/);
+// console.log('SQL.prototype._isDBMissingError, is=', is, 'err=', err.message);
+  return err.message.match(/^database ".*" does not exist$/);
+};
+
+SQL.prototype._isDBExistsError = function (err) {
+var is = err.message.match(/^duplicate key value violates unique constraint "pg_database_datname_index"$/);
+console.log('------------------------SQL.prototype._isDBExistsError, is=', is, 'err=', err.message);
+  return err.message.match(
+    /^duplicate key value violates unique constraint "pg_database_datname_index"$/);
 };
 
 SQL.prototype._query = function (sql, replacements) {
@@ -207,6 +219,10 @@ SQL.prototype._query = function (sql, replacements) {
   }).catch(function (err) {
     if (self._isDBMissingError(err)) {
       throw new DBMissingError(err.message);
+   } else if (self._isDBExistsError(err)) {
+// console.log('here you go!');
+// process.exit(1);
+     throw new DBExistsError(err.message);
     } else {
       // TODO: a wrapper should be created in sql/sql.js and this should be moved there
       throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));
@@ -401,6 +417,11 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
 SQL.prototype.close = function () {
   var self = this;
   return new Promise(function (resolve) {
+    // The following causes errors like "This socket has been ended by the other party"
+    // if (self._done) {
+    //   self._done();
+    // }
+
     self._client.end(); // not async!
     self._connected = false;
     resolve();
