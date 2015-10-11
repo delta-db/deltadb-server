@@ -18,16 +18,19 @@ Connections.prototype._nextId = function () {
   return this._id++;
 };
 
+// TODO: how to fix so that subsequent conn requests can succeed if DB then created??
 Connections.prototype.connect = function (db, host, username, password, port) {
   var self = this, id = self._nextId(),
     connString = self._connString(db, host, username, password, port);
-  if (!self._connections[connString]) {
+
+  if (self._connections[connString]) { // conn exists?
+    self._connections[connString].ids[id] = true;
+  } else {
     var ids = {};
     ids[id] = true;
     self._connections[connString] = { connection: new Connection(connString), ids: ids };
-  } else {
-    self._connections[connString].ids[id] = true;
   }
+
   return self._connections[connString].connection._connected.then(function () {
     return { connection: self._connections[connString].connection, id: id };
   });
