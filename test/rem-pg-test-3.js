@@ -1,28 +1,23 @@
 var pg = require('pg'), promise = require('bluebird');
 
-var conString = "postgres://postgres:secret@localhost/postgres";
+// var conString = "postgres://postgres:secret@localhost/postgres";
 
 var utils = require('../scripts/utils');
 
 // -----
 
-var Connection = function (/* TODO: db, host, etc... */) {
-  this._connected = this._connect();
+var Connection = function (connString) {
+  this._connected = this._connect(connString);
 };
 
-Connection.prototype._connect = function () {
-console.log('Connection.prototype._connect1');
+Connection.prototype._connect = function (connString) {
   var self = this;
   return new Promise(function (resolve, reject) {
-console.log('Connection.prototype._connect2');
     // get a pg client from the connection pool
-    pg.connect(conString, function(err, client, done) {
-console.log('Connection.prototype._connect3');
+    pg.connect(connString, function(err, client, done) {
       if (err) {
-console.log('Connection.prototype._connect4');
         reject(err);
       } else {
-console.log('Connection.prototype._connect5');
         // An error occurred, remove the client from the connection pool. A truthy value passed to
         // done will remove the connection from the pool instead of simply returning it to be
         // reused. In this case, if we have successfully received a client (truthy) then it will be
@@ -40,17 +35,12 @@ console.log('Connection.prototype._connect5');
 };
 
 Connection.prototype._query = function (sql) {
-console.log('Connection.prototype._query1');
   var self = this;
   return new Promise(function (resolve, reject) {
-console.log('Connection.prototype._query2');
     self._client.query(sql, function(err, result) {
-console.log('Connection.prototype._query3');
       if (err) {
-console.log('Connection.prototype._query4, err=', err);
         reject(err);
       } else {
-console.log('Connection.prototype._query5');
         resolve(result);
       }
     });
@@ -58,16 +48,9 @@ console.log('Connection.prototype._query5');
 };
 
 Connection.prototype.query = function (sql) {
-console.log('Connection.prototype.query1');
   var self = this;
-console.log('Connection.prototype.query2');
   return self._connected.then(function () { // don't execute query until connected
-console.log('Connection.prototype.query3');
     return self._query(sql);
-
-// }).then(function () {
-// console.log('Connection.prototype.query4');
-
   });
 };
 
@@ -85,41 +68,37 @@ var Connections = function () {
   this._id = 1;
 };
 
+Connections.prototype._connString = function (db, host, username, password, port) {
+  return 'postgres://' + username + ':' + password + '@' + host + '/' + db;
+};
+
 Connections.prototype._nextId = function () {
   return this._id++;
 };
 
-Connections.prototype.connect = function (/* TODO: db, host, etc... */) {
-console.log('Connections.prototype.connect1');
-  var self = this, id = self._nextId();
-console.log('Connections.prototype.connect2');
-  if (!self._connections[conString]) {
-console.log('Connections.prototype.connect3');
+Connections.prototype.connect = function (db, host, username, password, port) {
+  var self = this, id = self._nextId(),
+    connString = self._connString(db, host, username, password, port);
+  if (!self._connections[connString]) {
     var ids = {};
     ids[id] = true;
-    self._connections[conString] = { connection: new Connection(), ids: ids };
+    self._connections[connString] = { connection: new Connection(connString), ids: ids };
   } else {
-console.log('Connections.prototype.connect4');
-    self._connections[conString].ids[id] = true;
+    self._connections[connString].ids[id] = true;
   }
-console.log('Connections.prototype.connect5');
-  return self._connections[conString].connection._connected.then(function () {
-console.log('Connections.prototype.connect6');
-    return { connection: self._connections[conString].connection, id: id };
+  return self._connections[connString].connection._connected.then(function () {
+    return { connection: self._connections[connString].connection, id: id };
   });
 };
 
-Connections.prototype.disconnect = function (id /* TODO: db, host, etc... */) {
-console.log('Connections.prototype.disconnect1, id=', id);
-  delete this._connections[conString].ids[id];
-  if (utils.empty(this._connections[conString].ids)) { // last connection?
-console.log('Connections.prototype.disconnect2');
-    var con = this._connections[conString];
-    delete this._connections[conString];
+Connections.prototype.disconnect = function (id, db, host, username, password, port) {
+  var connString = this._connString(db, host, username, password, port);
+  delete this._connections[connString].ids[id];
+  if (utils.empty(this._connections[connString].ids)) { // last connection?
+    var con = this._connections[connString];
+    delete this._connections[connString];
     return con.connection.disconnect();
   } else { // remove id as still being used by others
-console.log('Connections.prototype.disconnect3');
-console.log('ids=', this._connections[conString].ids);
     return Promise.resolve();
   }
 };
@@ -132,17 +111,15 @@ var ORM = function () {
   this._connection = null;
 };
 
-ORM.prototype.connect = function () {
+ORM.prototype.connect = function (db, host, username, password, port) {
   console.log('ORM.prototype.connect');
   var self = this;
-  return connections.connect().then(function (connection) {
-console.log('ORM.prototype.connect2, connection.id=', connection.id);
+  return connections.connect(db, host, username, password, port).then(function (connection) {
     self._connection = connection;
   });
 };
 
 ORM.prototype.query = function (sql) {
-console.log('ORM.prototype.query');
   return this._connection.connection.query(sql);
 };
 
@@ -151,26 +128,27 @@ ORM.prototype.success = function () {
   return this.query('SELECT NOW()');
 };
 
-ORM.prototype.disconnect = function () {
+ORM.prototype.disconnect = function (db, host, username, password, port) {
   console.log('ORM.prototype.disconnect');
-  return connections.disconnect(this._connection.id);
+  return connections.disconnect(this._connection.id, db, host, username, password, port);
 };
 
 // -----
 
+var db = 'postgres', host = 'localhost', username = 'postgres', password = 'secret', port = null;
+
 var race = function () {
   var orm1 = new ORM(), orm2 = new ORM();
-  return orm1.connect().then(function () {
-    return orm2.connect();
+  return orm1.connect(db, host, username, password, port).then(function () {
+    return orm2.connect(db, host, username, password, port);
   }).then(function () {
     return orm1.success();
   }).then(function () {
-console.log('after 1st success');
     return orm2.success();
   }).then(function () {
-    return orm1.disconnect();
+    return orm1.disconnect(db, host, username, password, port);
   }).then(function () {
-    return orm2.disconnect();
+    return orm2.disconnect(db, host, username, password, port);
   }).catch(function (err) {
     console.log('err=', err);
   });
