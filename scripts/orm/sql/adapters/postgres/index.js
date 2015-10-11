@@ -42,6 +42,7 @@ SQL.prototype._createDatabase = function (db) {
   // Note: IF NOT EXISTS doesn't work in Postgres
 //  var self = this;
   // return this._query('CREATE DATABASE $1', [db]); // TODO: why doesn't this work?
+console.log('SQL.prototype._createDatabase, CREATE DATABASE ' + this.escape(db));
   return this._query('CREATE DATABASE ' + this.escape(db));
 };
 
@@ -171,9 +172,6 @@ var utils = require('../../../../utils'); // TODO: remove?
 
 SQL.prototype.connect = function (db, host, username, password, port) {
 console.log('SQL.prototype.connect, db=', db, 'host=', host);
-if (!host) {
-throw new Error('REMOVE: no host!');
-}
   var self = this;
   self._config(db, host, username, password, port);
   return connections.connect(db, host, username, password, port).then(function (connection) {
@@ -201,7 +199,11 @@ console.log('SQL.prototype.createAndUse2, db=', db);
 console.log('SQL.prototype.createAndUse3, db=', db);
     return self.close();
   }).then(function () {
-console.log('SQL.prototype.createAndUse4, db=', db);
+console.log('SQL.prototype.createAndUse4, db=', db, 'host=', host, 'username=', username, 'password=', password);
+// if (db === 'delta_mydb') {
+// console.log('exiting, shouldnt mydb exist?');
+// process.exit(1); // TODO: remove
+// }
     return self.connect(db, host, username, password, port);
   });
 };
@@ -216,8 +218,8 @@ console.log('SQL.prototype.createAndUse4, db=', db);
 // };
 
 SQL.prototype._isDBMissingError = function (err) {
-// var is = err.message.match(/^database ".*" does not exist$/);
-// console.log('SQL.prototype._isDBMissingError, is=', is, 'err=', err.message);
+var is = err.message.match(/^database ".*" does not exist$/);
+console.log('SQL.prototype._isDBMissingError, is=', is, 'err=', err.message);
   return err.message.match(/^database ".*" does not exist$/);
 };
 
@@ -503,6 +505,7 @@ console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('DROP ', db);
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
     // return self._query('DROP DATABASE $1', [db]); // TODO: why doesn't this work?
+console.log('SQL.prototype._dropDatabase, DROP DATABASE ' + self.escape(db));
     return self._query('DROP DATABASE ' + self.escape(db));
 //   }).catch(function (err) {
 // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');

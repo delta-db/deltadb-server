@@ -14,13 +14,15 @@ var ensureDBCreated = function () {
   var manager = new Manager(partitioner);
   var system = new System(manager);
   var adminParty = true;
+console.log('ensureDBCreated1');
   return system.destroy().then(function () {
+console.log('ensureDBCreated2');
     return system.create(adminParty);
   }).catch(function (err) {
-console.log('ensureDBCreated1, err=', err);
+console.log('ensureDBCreated3, err=', err);
     // Assume the error is because it doesn't already exist
     return system.create(adminParty).catch(function (err) {
-console.log('ensureDBCreated2, err=', err);
+console.log('ensureDBCreated4, err=', err);
     });
   });
 };

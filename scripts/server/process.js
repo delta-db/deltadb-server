@@ -35,6 +35,9 @@ Process.prototype._initSystemDB = function () {
 
   self._dbs.on('doc:create', function (doc) {
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
+// console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+// console.log('doc=', doc);
+// console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
     if (dbName) { // new db? Ignore policy deltas
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('doc:create, register', doc.id(), dbName);

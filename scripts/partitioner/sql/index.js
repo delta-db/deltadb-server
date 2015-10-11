@@ -96,7 +96,8 @@ Part.prototype._port = null;
 Part.prototype._DB_NAME_PREFIX = 'delta_';
 
 Part.prototype._toUniqueDBName = function (dbName) {
-  return this._DB_NAME_PREFIX + dbName;
+  // Also remove '$' in the case of the system DB
+  return this._DB_NAME_PREFIX + dbName.replace(/\$/, '');
 };
 
 // Part.prototype.batch = 100;
@@ -171,11 +172,15 @@ console.log('Part.prototype.connect, dbName=' + this._dbName + ', host=' + this.
 
 Part.prototype.createDatabase = function () {
   var self = this;
-console.log('Part.prototype.createDatabase1, self._dbUser=', self._dbUser);
+console.log('Part.prototype.createDatabase1, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
   return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
     self._dbPwd).then(function () {
-console.log('Part.prototype.createDatabase2, self._dbUser=', self._dbUser);
+console.log('Part.prototype.createDatabase2, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
     return self.createTables();
+
+}).then(function () {
+console.log('Part.prototype.createDatabase3, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
+
   });
 };
 
