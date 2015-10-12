@@ -1,0 +1,69 @@
+'use strict';
+
+// TODO: better organize
+
+var testUtils = require('../../../utils'),
+  config = require('../../../../config'),
+  chai = require('chai'),
+  expect = chai.expect,
+  MissingError = require('../../../../scripts/orm/sql/common/missing-error');
+
+/**
+ * Sharing one connection between multiple ticks is complicated and is tested here.
+ */
+var testORM = function (name, Adapter) {
+
+  describe(name, function () {
+
+    testUtils.setUp(this);
+
+    var postgres = null, dbPostgres = 'postgres', dbTest = 'testdb', host = 'localhost',
+      username = 'postgres', password = 'secret', port = null;
+
+    beforeEach(function () {
+      postgres = new Adapter();
+    });
+
+    it('should allow simulatenous queries', function () {
+      var orm1 = new Adapter(), orm2 = new Adapter();
+      return orm1.connect(dbPostgres, host, username, password, port).then(function () {
+        return orm2.connect(dbPostgres, host, username, password, port);
+      }).then(function () {
+        return orm1._query('SELECT NOW()');
+      }).then(function () {
+        return orm2._query('SELECT NOW()');
+      }).then(function () {
+        return orm1.close(dbPostgres, host, username, password, port);
+      }).then(function () {
+        return orm2.close(dbPostgres, host, username, password, port);
+      });
+    });
+
+    it('should retry connections', function () {
+      var test1 = new Adapter(), test2 = new Adapter();
+      return postgres.connect(dbPostgres, host, username, password, port).then(function () {
+        return test1.connect(dbTest, host, username, password, port).catch(function (err) {
+          // console.log('failed and is ok as db doesnt exist, err=', err);
+        });
+      }).then(function () {
+        return postgres._createDatabase(dbTest);
+      }).then(function () {
+        return test2.connect(dbTest, host, username, password, port);
+      }).then(function () {
+        // console.log('test2 connect succeeded!');
+      }).then(function () {
+        // return test1.close(dbTest, host, username, password, port);
+      }).then(function () {
+        return test2.close(dbTest, host, username, password, port);
+      }).then(function () {
+        return postgres._dropDatabase(dbTest);
+      }).then(function () {
+        return postgres.close(dbPostgres, host, username, password, port);
+      });
+    });
+
+  });
+
+};
+
+module.exports = testORM;

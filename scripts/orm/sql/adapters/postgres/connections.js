@@ -31,21 +31,33 @@ Connections.prototype.connect = function (db, host, username, password, port) {
     self._connections[connString] = { connection: new Connection(connString), ids: ids };
   }
 
-  return self._connections[connString].connection._connected.then(function () {
-    return { connection: self._connections[connString].connection, id: id };
+  return self._connections[connString].connection.connect().then(function () {
+    return Promise.resolve({ connection: self._connections[connString].connection, id: id });
+  }).catch(function (err) {
+    return self._unregister(id, db, host, username, password, port).then(function () {
+      throw err;
+    });
   });
 };
 
-Connections.prototype.disconnect = function (id, db, host, username, password, port) {
+Connections.prototype._unregister = function (id, db, host, username, password, port) {
   var connString = this._connString(db, host, username, password, port);
   delete this._connections[connString].ids[id];
   if (utils.empty(this._connections[connString].ids)) { // last connection?
-    var con = this._connections[connString];
+    var conn = this._connections[connString];
     delete this._connections[connString];
-    return con.connection.disconnect();
+    return Promise.resolve(conn);
   } else { // remove id as still being used by others
     return Promise.resolve();
   }
+};
+
+Connections.prototype.disconnect = function (id, db, host, username, password, port) {
+  return this._unregister(id, db, host, username, password, port).then(function (conn) {
+    if (conn) {
+      return conn.connection.disconnect();
+    }
+  });
 };
 
 module.exports = new Connections();

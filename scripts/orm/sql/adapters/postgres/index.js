@@ -178,7 +178,7 @@ console.log('SQL.prototype.connect, db=', db, 'host=', host);
     self._connection = connection;
     self._connected = true;
   }).catch(function (err) {
-console.log('SQL.prototype.connect5, err=', err);
+console.log('SQL.prototype.connect5, err=', err, 'err.stack', err.stack);
     if (err.code === '3D000') {
       throw new DBMissingError(err.message);
     } else {
