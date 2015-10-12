@@ -201,7 +201,7 @@ Doc.prototype._emit = function (evnt, name, value) {
     };
     this.emit(evnt, attr, this);
 
-    this._col._emit(evnt, attr, this); // bubble up to collection layer    
+    this._col._emit(evnt, attr, this); // bubble up to collection layer
   }
 };
 

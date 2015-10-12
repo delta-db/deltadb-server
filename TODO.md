@@ -2,7 +2,8 @@ Now
 ---
 - sockets:
 	- fix old tests
-	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
+	- code coverage on old tests
+	- for test-e2e use spawn to launch server - add to CI and make sure complete coverage
 	- test where db already exists and then start server and make sure server processes the db
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
