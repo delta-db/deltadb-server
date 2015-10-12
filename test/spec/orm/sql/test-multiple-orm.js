@@ -70,10 +70,10 @@ var testORM = function (name, Adapter) {
       }).then(function () {
         return test1.connect(dbTest, host, username, password, port);
       }).then(function () {
-        return test2.connect(dbTest, host, username, password, port);
-      }).then(function () {
         // Destroy even if being used by other clients
         return postgres._dropDatabase(dbTest, true);
+      }).then(function () {
+        return test2.connect(dbTest, host, username, password, port);
       }).then(function () {
         return test1._query('SELECT NOW()').catch(function (err) {
           // Ignore error as just want to make sure nothing blocks

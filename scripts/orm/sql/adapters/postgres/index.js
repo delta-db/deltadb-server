@@ -28,6 +28,7 @@ inherits(SQL, AbstractSQL);
 pg.on('error', function (err) {
   // Some errors, e.g. "terminating connection due to administrator command" caused from the server
   // closing the connection will cause your app to crash unless we listen for them here.
+console.log('pg.on err=', err);
   log.warning('postgres err=' + err.message);
 });
 
