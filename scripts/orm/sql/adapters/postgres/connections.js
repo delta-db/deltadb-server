@@ -44,14 +44,23 @@ console.log('##########################################');
   });
 };
 
+Connections.prototype._unregisterAll = function (db, host, username, password, port) {
+  var connString = this._connString(db, host, username, password, port);
+console.log('Connections.prototype._unregisterAll, db=', db);
+  var conn = this._connections[connString];
+  delete this._connections[connString];
+  return Promise.resolve(conn);
+};
+
 Connections.prototype._unregister = function (id, db, host, username, password, port) {
   var connString = this._connString(db, host, username, password, port);
 console.log('Connections.prototype._unregister, db=', db, 'id=', id, 'ids=', this._connections[connString].ids);
   delete this._connections[connString].ids[id];
   if (utils.empty(this._connections[connString].ids)) { // last connection?
-    var conn = this._connections[connString];
-    delete this._connections[connString];
-    return Promise.resolve(conn);
+    return this._unregisterAll(db, host, username, password, port);
+// var conn = this._connections[connString];
+// delete this._connections[connString];
+// return Promise.resolve(conn);
   } else { // remove id as still being used by others
     return Promise.resolve();
   }
@@ -63,6 +72,15 @@ console.log('Connections.prototype.disconnect1, db=', db);
 console.log('Connections.prototype.disconnect2, db=', db);
     if (conn) {
 console.log('Connections.prototype.disconnect3, db=', db);
+      return conn.connection.disconnect();
+    }
+  });
+};
+
+Connections.prototype.disconnectAll = function (db, host, username, password, port) {
+  return this._unregisterAll(db, host, username, password, port).then(function (conn) {
+console.log('Connections.prototype.disconnectAll, db=', db);
+    if (conn) { // is there a connection to close?
       return conn.connection.disconnect();
     }
   });

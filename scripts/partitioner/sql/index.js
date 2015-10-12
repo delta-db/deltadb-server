@@ -226,6 +226,9 @@ console.log('Part.prototype.destroyDatabase');
   // force close of all conns first
   return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
     this._dbUser, this._dbPwd, this._port, true);
+
+// return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
+//   this._dbUser, this._dbPwd, this._port);
 };
 
 // TODO: rename to disconnect?

@@ -614,6 +614,11 @@ console.log('SQL.prototype.dropAndCloseDatabase1b');
 
 console.log('SQL.prototype.dropAndCloseDatabase2');
   return promise.then(function () {
+    if (force) {
+      // Close all connections to this DB to prevent the DROP from failing
+      return connections.disconnectAll(db, host, username, password, port, force);
+    }
+  }).then(function () {    
 console.log('SQL.prototype.dropAndCloseDatabase3');
 // console.log('SQL.prototype.dropAndCloseDatabase3, self._username=', self._username);
     return self.connect('postgres', host, username, password, port);
