@@ -233,11 +233,11 @@ console.log('------------------------SQL.prototype._isDBExistsError, is=', is, '
       /^database ".*" already exists$/);
 };
 
-SQL.prototype._isSocketClosedError = function (err) {
-var is = err.message === 'This socket has been ended by the other party';
-console.log('SQL.prototype._isSocketClosedError, is=', is, 'err=', err.message);
-  return err.message === 'This socket has been ended by the other party';
-};
+// SQL.prototype._isSocketClosedError = function (err) {
+// var is = err.message === 'This socket has been ended by the other party';
+// console.log('SQL.prototype._isSocketClosedError, is=', is, 'err=', err.message);
+//   return err.message === 'This socket has been ended by the other party';
+// };
 
 // SQL.prototype._query = function (sql, replacements) {
 //   var self = this;
@@ -272,10 +272,12 @@ SQL.prototype._query = function (sql, replacements) {
   }).catch(function (err) {
     if (self._isDBMissingError(err)) {
       throw new DBMissingError(err.message);
-   } else if (self._isDBExistsError(err)) {
-     throw new DBExistsError(err.message);
-   } else if (self._isSocketClosedError(err)) {
-     throw new SocketClosedError(err.message);
+    } else if (self._isDBExistsError(err)) {
+      throw new DBExistsError(err.message);
+    } else if (err instanceof SocketClosedError) {
+      throw err;
+// } else if self._isSocketClosedError(err)) {
+//  throw new SocketClosedError(err.message);
     } else {
       // TODO: a wrapper should be created in sql/sql.js and this should be moved there
       throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));

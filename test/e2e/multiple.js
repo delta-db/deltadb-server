@@ -108,8 +108,9 @@ console.log('createSendReceiveDestroy, i=', i);
   };
 
   var createSendReceiveDestroyFactory = function (i) {
-console.log('%%%%%createSendReceiveDestroyFactory, i=', i);
+console.log('%%%%%createSendReceiveDestroyFactory1, i=', i);
     return function () {
+console.log('%%%%%createSendReceiveDestroyFactory2, i=', i);
       return createSendReceiveDestroy(i);
     }
   };
@@ -121,7 +122,7 @@ console.log('%%%%%createSendReceiveDestroyFactory, i=', i);
 
     var chain = Promise.resolve();
 
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 3; i++) {
         chain = chain.then(createSendReceiveDestroyFactory(i));
     }
 
