@@ -87,6 +87,43 @@ var testORM = function (name, Adapter) {
       });
     });
 
+// it('should reconnect', function () {
+//   var test1 = new Adapter(), test2 = new Adapter();
+//   return postgres.connect(dbPostgres, host, username, password, port).then(function () {
+//     return postgres._createDatabase(dbTest);
+//   }).then(function () {
+//     return test1.connect(dbTest, host, username, password, port);
+//   }).then(function () {
+//     return test2.connect(dbTest, host, username, password, port);
+//   }).then(function () {
+//     // Destroy even if being used by other clients
+//     return postgres._dropDatabase(dbTest, true);
+//   }).then(function () {
+//     return test1._query('SELECT NOW()').catch(function (err) {
+//       // Ignore error as just want to make sure nothing blocks
+//     });
+//   }).then(function () {
+//     return test2._query('SELECT NOW()').catch(function (err) {
+//       // Ignore error as just want to make sure nothing blocks
+//     });
+//   }).then(function () {
+//     return postgres.close(dbPostgres, host, username, password, port);
+//   });
+// });
+
+// it('should reconnect', function () {
+//   var orm1 = new Adapter(), orm2 = new Adapter();
+//   return orm1.connect(dbPostgres, host, username, password, port).then(function () {
+//     return orm1.close(dbPostgres, host, username, password, port);
+//   }).then(function () {
+//     return orm2.connect(dbPostgres, host, username, password, port);
+//   }).then(function () {
+//     return orm2._query('SELECT NOW()');
+//   }).then(function () {
+//     return orm2.close(dbPostgres, host, username, password, port);
+//   });
+// });
+
   });
 
 };

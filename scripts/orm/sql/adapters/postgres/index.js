@@ -14,9 +14,11 @@ var Promise = require('bluebird'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
   log = require('../../../../utils/log'),
-  connections = require('./connections');
+  connections = require('./connections'),
+  EventEmitter = require('events').EventEmitter;
 
 var SQL = function () {
+  AbstractSQL.apply(this, arguments); // apply parent constructor
   this._connected = false;
   this._connection = null;
 };
@@ -178,6 +180,10 @@ console.log('SQL.prototype.connect, db=', db, 'host=', host);
   return connections.connect(db, host, username, password, port).then(function (connection) {
     self._connection = connection;
     self._connected = true;
+
+    self._connection.connection.on('disconnect', function () {
+      self.emit('disconnect');
+    });
   }).catch(function (err) {
 console.log('SQL.prototype.connect5, err=', err, 'err.stack', err.stack);
     if (err.code === '3D000') {
@@ -270,12 +276,12 @@ SQL.prototype._query = function (sql, replacements) {
       affected: results.rowCount
     };
   }).catch(function (err) {
-    if (self._isDBMissingError(err)) {
+    if (err instanceof SocketClosedError) {
+      throw err;
+    } else if (self._isDBMissingError(err)) {
       throw new DBMissingError(err.message);
     } else if (self._isDBExistsError(err)) {
       throw new DBExistsError(err.message);
-    } else if (err instanceof SocketClosedError) {
-      throw err;
 // } else if self._isSocketClosedError(err)) {
 //  throw new SocketClosedError(err.message);
     } else {
@@ -476,6 +482,7 @@ SQL.prototype.close = function () {
     self._password, self._port)
       .then(function () {
         self._connected = false;
+        self._connection.connection.removeAllListeners(); // prevent listener leak
       });
 };
 

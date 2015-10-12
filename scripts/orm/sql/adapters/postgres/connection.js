@@ -1,12 +1,17 @@
 var pg = require('pg'),
   Promise = require('bluebird'),
-  SocketClosedError = require('../../common/socket-closed-error');
+  SocketClosedError = require('../../common/socket-closed-error'),
+  inherits = require('inherits'),
+  EventEmitter = require('events').EventEmitter;
 
 var Connection = function (connString) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
   this._connString = connString;
   this._connected = false;
   this._connecting = null;
 };
+
+inherits(Connection, EventEmitter);
 
 Connection.prototype._connect = function () {
   var self = this;
@@ -48,7 +53,7 @@ Connection.prototype.connect = function () {
 };
 
 Connection.prototype._ready = function () {
-  if (this.connected || !this._connecting) {
+  if (this._connected || !this._connecting) {
     return Promise.resolve();
   } else {
     return this._connecting;
@@ -60,8 +65,9 @@ Connection.prototype._query = function (sql, replacements) {
   return new Promise(function (resolve, reject) {
     if (!self._connected) {
       // self._client.query doesn't always throw an error if the connection was closed
-//      throw new SocketClosedError('socket was closed');
-      reject(new SocketClosedError('socket was closed'));
+      self._close();
+      throw new SocketClosedError('socket was closed');
+//      reject(new SocketClosedError('socket was closed'));
     }
 
     self._client.query(sql, replacements, function(err, result) {
@@ -69,8 +75,8 @@ Connection.prototype._query = function (sql, replacements) {
         if (err.code === 'EPIPE' || err.message === 'This socket is closed.' ||
           err.message === 'This socket has been ended by the other party') {
           self._close();
-//          throw new SocketClosedError(err.message);
-          reject(new SocketClosedError(err.message));
+          throw new SocketClosedError(err.message);
+//          reject(new SocketClosedError(err.message));
         } else {
           reject(err);
         }
@@ -84,6 +90,7 @@ Connection.prototype._query = function (sql, replacements) {
 Connection.prototype._close = function () {
   this._client.end(); // async
   this._connected = false;
+  this.emit('disconnect');
 };
 
 Connection.prototype.query = function (sql, replacements) {

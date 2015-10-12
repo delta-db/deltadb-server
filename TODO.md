@@ -23,6 +23,7 @@ Now
 - Admin UI, e.g. "Delta Admin"
 - impl deltadb-ng and modify todo example
 - use lie instead of bluebird
+- how to make it so that you don't have to download all dbs to client in order to create new db? Only want to get updates for db created by this client and during this session
 - Roadmap
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 	- use Sequelize to abstract all adapters?

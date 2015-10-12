@@ -30,10 +30,14 @@ var Globals = require('./globals'),
   Partition = require('./partition'),
   QueueAttrRecs = require('./queue/queue-attr-recs'),
   config = require('../../../config'),
-  log = require('../../utils/log');
+  log = require('../../utils/log'),
+  EventEmitter = require('events').EventEmitter,
+  inherits = require('inherits');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
+
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
 //  this._connected = false;
@@ -68,6 +72,8 @@ var Part = function (dbName, sql) {
   // TODO: causes "listener memory leak" as there is only one pg instance
   // this._addSqlErrorListener();
 };
+
+inherits(Part, EventEmitter);
 
 // TODO: causes "listener memory leak" as there is only one pg instance. Better way?
 // Part.prototype._addSqlErrorListener = function () {

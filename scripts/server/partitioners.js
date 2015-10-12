@@ -6,7 +6,8 @@ var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
   log = require('../utils/log'),
   utils = require('../utils'),
-  clientUtils = require('../client/utils');
+  clientUtils = require('../client/utils'),
+  SocketClosedError = require('../orm/sql/common/socket-closed-error');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -59,6 +60,22 @@ Partitioners.prototype.register = function (dbName, socket, since) {
   }
 };
 
+Partitioners.prototype._unregisterPartitioner = function (dbName) {
+  // This needs to be kept here and not nested in another fn so that the process of removing the
+  // socket and stopping the polling is atomic
+  this._partitioners[dbName].poll = false; // stop polling
+
+  var part = this._partitioners[dbName].part;
+
+  // Delete before closing as the close is a promise and we don't want another cycle to use a
+  // partitioner that is being closed.
+  delete this._partitioners[dbName];
+
+  return part.closeDatabase().then(function () {
+    log.info('closed ' + dbName);
+  });
+};
+
 Partitioners.prototype.unregister = function (dbName, socket) {
   // Remove the connection
 
@@ -71,21 +88,8 @@ Partitioners.prototype.unregister = function (dbName, socket) {
 
   // Delete partitioner if no more connections for this partition
   if (utils.empty(this._partitioners[dbName].conns)) {
-    // This needs to be kept here and not nested in another fn so that the process of removing the
-    // socket and stopping the polling is atomic
-    this._partitioners[dbName].poll = false; // stop polling
-
-    var part = this._partitioners[dbName].part;
-
-    // Delete before closing as the close is a promise and we don't want another cycle to use a
-    // partitioner that is being closed.
-    delete this._partitioners[dbName];
-
-    return part.closeDatabase().then(function () {
-      log.info('closed ' + dbName);
-    });
+    return this._unregisterPartitioner(dbName);
   } else {
-
     return Promise.resolve();
   }
 };
@@ -119,6 +123,15 @@ console.log('checking for changes after ', self._partitioners[partitioner._dbNam
       if (has) {
         return self._notifyAllPartitionerConnections(partitioner, newSince);
       }
+    }).catch(function (err) {
+//      log.error('doPoll error=' + err);
+console.log('Partitioners.prototype._doPoll1, dbName=', partitioner._dbName, 'err=', err);
+      // Ignore SocketClosedError error as socket may have been closed when destroying db
+      if (!(err instanceof SocketClosedError)) {
+console.log('Partitioners.prototype._doPoll2, err=', err);
+        throw err;
+      }
+console.log('Partitioners.prototype._doPoll3, err=', err);
     });
 };
 
@@ -180,6 +193,12 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   return part.changes(since, null, null, null, all).then(function (changes) {
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);
+    }
+  }).catch(function (err) {
+console.log('Partitioners.prototype.findAndEmitChanges, dbName=', dbName, 'err=', err);
+    // Ignore SocketClosedError as it could have been caused when a db was destroyed
+    if (!(err instanceof SocketClosedError)) {
+      throw err;
     }
   });
 };

@@ -14,6 +14,7 @@ Connections.prototype._connString = function (db, host, username, password, port
   return 'postgres://' + username + ':' + password + '@' + host + '/' + db;
 };
 
+// TODO: what happens when this loops? Is that even something to worry about in a lifetime?
 Connections.prototype._nextId = function () {
   return this._id++;
 };

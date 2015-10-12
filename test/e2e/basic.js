@@ -55,7 +55,7 @@ describe('basic', function () {
 // };
 
   var destroyBoth = function () {
-    var promise = b ? b._destroy() : Promise.resolve();
+    var promise = b ? b.destroy() : Promise.resolve();
     return promise.then(function () {
       return a.destroy();
     });
