@@ -1,13 +1,8 @@
 Now
 ---
 - express (or better) server - use web socket
-	- what was the problem with old dbs with same name??
-	- add to notes.md: difficulty with diff models for id-less reconcilation:
-		- store entire action as value, which prevents use using native delete functions
-		- create extra db attr which creates extra docs in DB and still wouldn't solve the problem of destroys being related to the db being destroyed
-	- clean up promisfy in postgres adapter
-	- race conditions when sending and receiving changes multiple times
 	- restore promise.all(), instead of chaining when processing
+	- remove console.logs
 	- fix old tests
 	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
 	- test where db already exists and then start server and make sure server processes the db

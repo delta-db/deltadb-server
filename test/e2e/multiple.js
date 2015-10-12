@@ -122,7 +122,7 @@ console.log('%%%%%createSendReceiveDestroyFactory2, i=', i);
 
     var chain = Promise.resolve();
 
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 5; i++) {
         chain = chain.then(createSendReceiveDestroyFactory(i));
     }
 

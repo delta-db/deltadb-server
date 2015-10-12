@@ -97,7 +97,7 @@ e. Make .set(), replace if timestamp matches - this then requires parsing throug
 Data is eventually consistent (and deterministic)
 ==========
 
-TSV (Timestamp Sequence Value) Conflict Resolution 
+TSV (Timestamp Sequence Value) Conflict Resolution
 1. Latest updated_at wins
 2. If updated_at the same then highest seq wins
 3. If updated_at the same and seq the same then highest value wins
@@ -262,6 +262,10 @@ ID-Less Deltas
 ==========
 
 Some data like the $db collection is best managed w/o a doc uuid, i.e. you don't need to know the doc uuid to delete a database. To accomplish this we us ID-Less deltas that take a value like { action: 'remove', name: 'my-db' } which results in a look up of the doc uuid and then transfers the value to null so that we reuse the attr destroy function native to the DB.
+
+ID-Less deltas pose a slight problem in that the originating doc becomes orphaned as there is currently no construct to associate the originating doc with the generated doc. For now, this association can be determined as the value is considered unique, e.g. DB names are unique and therefore we can remove the originating doc based on a match on the DB name. There are alternatives, but they also lead to other issues:
+- We can instead store the entire action, e.g. { action: 'remove', name: 'my-db' } as the value of the delta, but this prevents us from reusing all the destroy logic native to the DB that requires the value to be falsy.
+- We can add the originating doc to the DB and make it reference the generated doc. This unfortunately creates a problem when the generated doc is destroyed and there is no construct to remove the originating doc.
 
 
 Data Loss
