@@ -96,24 +96,12 @@ process.exit(1);
   });
 };
 
-// TODO: restore
-// Process.prototype._process = function () {
-//   var self = this, promises = [];
-//   utils.each(self._dbNames, function (dbName) {
-//     promises.push(self._processDB(dbName));
-//   });
-//   return Promise.all(promises);
-// };
-
-// TODO: remove, chaining for debugging only
 Process.prototype._process = function () {
-  var self = this, chain = Promise.resolve();
+  var self = this, promises = [];
   utils.each(self._dbNames, function (dbName) {
-    chain = chain.then(function () {
-      return self._processDB(dbName);
-    });
+    promises.push(self._processDB(dbName));
   });
-  return chain;
+  return Promise.all(promises);
 };
 
 Process.prototype._loop = function () {
