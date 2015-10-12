@@ -147,7 +147,7 @@ Attr.prototype._createOrDestroyDatabase = function () {
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
     return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
 console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
-      // Ignore DBMissingErrors caused be race conditions when destroying the database
+      // Ignore DBMissingErrors caused by race conditions when destroying the database
       if (!(err instanceof DBMissingError)) {
         throw err;
       }
@@ -156,7 +156,7 @@ console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
     return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
 console.log('*************Attr.prototype._createOrDestroyDatabase, err=', err);
 
-      // Ignore DBMissingErrors caused be race conditions when creating the database
+      // Ignore DBMissingErrors caused by race conditions when creating the database
       if (!(err instanceof DBExistsError)) {
 process.exit(1); // TODO: remove!
         throw err;

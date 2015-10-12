@@ -78,6 +78,7 @@ Next
 - Currently, if we have two clients connected to the same DB and one client tries to destroy the DB then an error is reported. Is this a good safeguard or should the server force a closure of all client connections for this DB so that the DB can be destroyed?
 - Use local sockets so that can have 1 server process and multiple process processes that are all talking to each other
 - Make sure cannot create a DB that conflicts with the System DB
+- What if lose connection to underlying DB when doing things like creating tables? Need a way of wiping out tables and retrying?
 
 NoSQL support
 ---

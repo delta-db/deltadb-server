@@ -7,11 +7,85 @@ var Promise = require('bluebird'),
   log = require('../utils/log'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
-  SocketClosedError = require('../orm/sql/common/socket-closed-error');
+  SocketClosedError = require('../orm/sql/common/socket-closed-error'),
+  DBMissingError = require('../client/db-missing-error');
 
 var Partitioners = function () {
   this._partitioners = {};
+  this._systemPartitioner = new Partitioner(clientUtils.SYSTEM_DB_NAME);
 };
+
+Partitioners.prototype.dbExists = function (dbName) {
+  return this._systemPartitioner.dbExists(dbName).then(function (exists) {
+    if (!exists) {
+      throw new DBMissingError(dbName + ' missing');
+    }
+  });
+};
+
+// ----
+
+// Partitioners.RECONNECT_SLEEP_MS = 1000;
+//
+// Partitioners.prototype._connect = function (dbName) {
+// // TODO: what are the errors? Make this try to reconnect after RECONNECT_SLEEP_MS??
+//   return self._partitioners[dbName].part.connect().catch(function (err) {
+// console.log('Partitioners.prototype._connect, err=', err);
+//   });
+// };
+//
+// Partitioners.prototype.register = function (dbName, socket, since) {
+// console.log('Partitioners.prototype.register1');
+//   var self = this;
+//   if (self._partitioners[dbName]) { // exists?
+// console.log('Partitioners.prototype.register1a');
+//     self._partitioners[dbName].conns[socket.conn.id] = {
+//       socket: socket,
+//       since: since
+//     };
+//   } else { // missing
+// console.log('Partitioners.prototype.register2');
+//
+//     // First conn for this partitioner
+//     var part = new Partitioner(dbName),
+//       conns = {};
+//
+//     part.on('disconnect', function () {
+// console.log('@@@@@@@@@@@@@@@@@@@DISCONNECT dbName=', dbName);
+//       self._connect(dbName); // reconnect
+//     });
+//
+//     conns[socket.conn.id] = {
+//       socket: socket,
+//       since: since
+//     };
+//
+//     self._partitioners[dbName] = {
+//       part: part,
+//       conns: conns,
+//       poll: true,
+//       since: null
+//     };
+//
+//     self._connect(dbName);
+//
+// // TODO: make _poll care about whether connected or not
+//     self._poll(part); // TODO: pass dbName instead
+//
+//   }
+// };
+//
+// Partitioners.prototype.unregister = function (dbName, socket, since) {
+//
+// };
+//
+// Partitioners.prototype.partitioner = function (dbName) {
+//   // Use promise to make sure ready
+//   // Reconnect if disconnected
+//
+// };
+
+// ----
 
 Partitioners.POLL_SLEEP_MS = 1000;
 
@@ -47,24 +121,31 @@ Partitioners.POLL_SLEEP_MS = 1000;
 //   });
 // };
 
-Partitioners.prototype._checkConnectionAndReregister = function (part, socket, since) {
-console.log('Partitioners.prototype._checkConnectionAndReregister1');
+// Partitioners.prototype._checkConnectionAndReregister = function (part, socket, since) {
+// console.log('Partitioners.prototype._checkConnectionAndReregister1');
+//   var self = this;
+//   return part._sql.ping().then(function () {
+// console.log('Partitioners.prototype._checkConnectionAndReregister1a');
+//     return part;
+//   }).catch(function (err) {
+// console.log('Partitioners.prototype._checkConnectionAndReregister2');
+//     if (err instanceof SocketClosedError) {
+// console.log('Partitioners.prototype._checkConnectionAndReregister3');
+//       return self._unregisterPartitioner(part._dbName).then(function () {
+// console.log('Partitioners.prototype._checkConnectionAndReregister4');
+//         return self.register(part._dbName, socket, since);
+//       });
+//     } else {
+// console.log('Partitioners.prototype._checkConnectionAndReregister5');
+//       throw err;
+//     }
+//   });
+// };
+
+Partitioners.prototype.existsThenRegister = function (dbName, socket, since) {
   var self = this;
-  return part._sql.ping().then(function () {
-console.log('Partitioners.prototype._checkConnectionAndReregister1a');
-    return part;
-  }).catch(function (err) {
-console.log('Partitioners.prototype._checkConnectionAndReregister2');
-    if (err instanceof SocketClosedError) {
-console.log('Partitioners.prototype._checkConnectionAndReregister3');
-      return self._unregisterPartitioner(part._dbName).then(function () {
-console.log('Partitioners.prototype._checkConnectionAndReregister4');
-        return self.register(part._dbName, socket, since);
-      });
-    } else {
-console.log('Partitioners.prototype._checkConnectionAndReregister5');
-      throw err;
-    }
+  return self.dbExists(dbName).then(function () {
+    return self.register(dbName, socket, since);
   });
 };
 
@@ -78,10 +159,10 @@ console.log('Partitioners.prototype.register2');
       socket: socket,
       since: since
     };
-//    return self._partitioners[dbName].ready;
-    return self._partitioners[dbName].ready.then(function () {
-      return self._checkConnectionAndReregister(self._partitioners[dbName].part, socket, since);
-    });
+   return self._partitioners[dbName].ready;
+// return self._partitioners[dbName].ready.then(function () {
+//   return self._checkConnectionAndReregister(self._partitioners[dbName].part, socket, since);
+// });
   } else {
 console.log('Partitioners.prototype.register3');
 
@@ -124,8 +205,8 @@ console.log('Partitioners.prototype.register3');
       }
 
       return part;
-    }).then(function () {
-      return self._checkConnectionAndReregister(part, socket, since);
+//    }).then(function () {
+//      return self._checkConnectionAndReregister(part, socket, since);
     });
 
     return container.ready;
@@ -196,14 +277,16 @@ console.log('checking for changes after ', self._partitioners[partitioner._dbNam
         return self._notifyAllPartitionerConnections(partitioner, newSince);
       }
     }).catch(function (err) {
-//      log.error('doPoll error=' + err);
+      // TODO: create mechanism to gracefully alert poll that a DB has been destroyed so that it
+      // doesn't generate unexpected errors due to missing tables, socket connections, etc...
+      log.error('doPoll error=' + err);
 console.log('Partitioners.prototype._doPoll1, dbName=', partitioner._dbName, 'err=', err);
-      // Ignore SocketClosedError error as socket may have been closed when destroying db
-      if (!(err instanceof SocketClosedError)) {
-console.log('Partitioners.prototype._doPoll2, err=', err);
-        throw err;
-      }
-console.log('Partitioners.prototype._doPoll3, err=', err);
+//       // Ignore SocketClosedError error as socket may have been closed when destroying db
+//       if (!(err instanceof SocketClosedError)) {
+// console.log('Partitioners.prototype._doPoll2, err=', err);
+//         throw err;
+//       }
+// console.log('Partitioners.prototype._doPoll3, err=', err);
     });
 };
 

@@ -65,6 +65,7 @@ Connection.prototype._query = function (sql, replacements) {
   return new Promise(function (resolve, reject) {
     if (!self._connected) {
       // self._client.query doesn't always throw an error if the connection was closed
+console.log('Connection.prototype._query1, sql=', sql);
       self._close();
 //      throw new SocketClosedError('socket was closed');
       reject(new SocketClosedError('socket was closed'));
@@ -73,7 +74,9 @@ Connection.prototype._query = function (sql, replacements) {
     self._client.query(sql, replacements, function(err, result) {
       if (err) {
         if (err.code === 'EPIPE' || err.message === 'This socket is closed.' ||
-          err.message === 'This socket has been ended by the other party') {
+          err.message === 'This socket has been ended by the other party' ||
+          err.message === 'terminating connection due to administrator command') {
+console.log('Connection.prototype._query2, err=', err);
           self._close();
 //          throw new SocketClosedError(err.message);
           reject(new SocketClosedError(err.message));
@@ -88,9 +91,12 @@ Connection.prototype._query = function (sql, replacements) {
 };
 
 Connection.prototype._close = function () {
-  this._client.end(); // async
-  this._connected = false;
-  this.emit('disconnect');
+  if (this._connected) { // ignore race conditions
+console.log('ending ', this._connString);
+    this._client.end(); // async
+    this._connected = false;
+    this.emit('disconnect');
+  }
 };
 
 Connection.prototype.query = function (sql, replacements) {

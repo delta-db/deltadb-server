@@ -194,6 +194,35 @@ console.log('SQL.prototype.connect5, err=', err, 'err.stack', err.stack);
   });
 };
 
+// SQL.prototype.dbExists = function (db, host, username, password, port) {
+//   var sql = new SQL();
+//   return sql.connect(db, host, username, password, port).then(function () {
+//     return sql.close();
+//   }).then(function () {
+// console.log('SQL.prototype.dbExists, db=', db, 'EXISTS');
+//     return true;
+//   }).catch(function (err) {
+//     if (err instanceof DBMissingError) {
+// console.log('SQL.prototype.dbExists, db=', db, 'DOES NOT EXIST');
+//       return false;
+//     } else {
+//       throw err;
+//     }
+//   });
+// };
+
+SQL.prototype.dbExists = function (db, host, username, password, port) {
+  var sql = new SQL(), exists = false;
+  return sql.connect('postgres', host, username, password, port).then(function () {
+    return sql._query('SELECT 1 FROM pg_database WHERE datname=$1', [db]);
+  }).then(function (results) {
+    exists = results.rows ? true : false;
+    return sql.close();
+  }).then(function () {
+    return exists;
+  });
+};
+
 SQL.prototype.createAndUse = function (db, host, username, password, port) {
   // Note: need to specify a DB when connecting
   var self = this;

@@ -58,11 +58,11 @@ console.log('Connections.prototype._unregister, db=', db, 'id=', id, 'ids=', thi
 };
 
 Connections.prototype.disconnect = function (id, db, host, username, password, port) {
-console.log('Connections.prototype.disconnect1');
+console.log('Connections.prototype.disconnect1, db=', db);
   return this._unregister(id, db, host, username, password, port).then(function (conn) {
-console.log('Connections.prototype.disconnect2');
+console.log('Connections.prototype.disconnect2, db=', db);
     if (conn) {
-console.log('Connections.prototype.disconnect3');
+console.log('Connections.prototype.disconnect3, db=', db);
       return conn.connection.disconnect();
     }
   });

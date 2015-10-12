@@ -87,6 +87,24 @@ var testORM = function (name, Adapter) {
       });
     });
 
+    it('should identify when db exists', function () {
+      var test1 = new Adapter(), test2 = new Adapter();
+      return postgres.connect(dbPostgres, host, username, password, port).then(function () {
+        return postgres._createDatabase(dbTest);
+      }).then(function () {
+        return test1.connect(dbTest, host, username, password, port);
+      }).then(function () {
+        // Destroy even if being used by other clients
+        return postgres._dropDatabase(dbTest, true);
+      }).then(function () {
+        return test2.dbExists(dbTest, host, username, password, port);
+      }).then(function (exists) {
+        exists.should.eql(false);
+      }).then(function () {
+        return postgres.close(dbPostgres, host, username, password, port);
+      });
+    });
+
   });
 
 };

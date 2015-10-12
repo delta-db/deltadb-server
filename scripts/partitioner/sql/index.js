@@ -173,6 +173,11 @@ console.log('Part.prototype.connect, dbName=' + this._dbName + ', host=' + this.
 // });
 };
 
+Part.prototype.dbExists = function (dbName) {
+  return this._sql.dbExists(this._toUniqueDBName(dbName), this._host, this._dbUser,
+    this._dbPwd, this._port);
+};
+
 // Part.prototype.connect = function () {
 //   // TODO: throw error if _dbName is reserved
 //   var self = this;
