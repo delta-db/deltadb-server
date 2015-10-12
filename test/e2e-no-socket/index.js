@@ -20,7 +20,7 @@ describe('e2e-no-socket', function () {
 
   beforeEach(function () {
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
 
     a = client.db({
       db: 'mydb'

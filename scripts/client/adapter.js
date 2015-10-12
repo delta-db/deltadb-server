@@ -159,7 +159,7 @@ Adapter.prototype._destroyDatabase = function (dbName) {
   // where the client re-creates this DB while trying to destroy as the destroy will just fail as
   // the db is in use and will be retried later.
   var promise = null;
-  if (this.exists(dbName)) {
+  if (this.exists(dbName) && !self._localOnly) {
     // TODO: really need a get so that URL doesn't need to be specified here?
     var db = this.db({ db: dbName });
     promise = db._disconnect();

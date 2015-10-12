@@ -21,7 +21,7 @@ describe('client', function () {
     // between tests. In the future we want an event that is emitted when the loading of the store
     // has completed and we can then use this event in an afterEach().
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
 
     db = client.db({
       db: 'mydb'
@@ -1580,18 +1580,12 @@ describe('client', function () {
 
     var dbName = 'mydb';
 
-    return client._destroyDatabase(dbName).then(function (savedDoc) {
-      var db = client.db({
-        db: '$system'
-      });
-      db.all(function (col) {
-        col.all(function (doc) {
-          var data = doc.get();
-          data.$db.name.should.eql(dbName);
-          doc.should.eql(savedDoc);
-        });
-      });
-    });
+    client._resolveAfterDatabaseDestroyed = function () {
+      return Promise.resolve();
+      // TODO: actually simulate syncing
+    };
+
+    return client._destroyDatabase(dbName);
 
   });
 

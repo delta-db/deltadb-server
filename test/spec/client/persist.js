@@ -16,7 +16,7 @@ describe('client', function () {
 
   beforeEach(function () {
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
     propsReady = utils.once(client, 'load');
     db = client.db({
       db: 'mydb'
@@ -85,7 +85,7 @@ describe('client', function () {
       return task.save();
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by reloading the store
-      client2 = new Client(store);
+      client2 = new Client(store, true);
       db2 = client2.db({
         db: 'mydb'
       });
@@ -121,7 +121,7 @@ describe('client', function () {
       task2 = null;
 
     var setUpClient2 = function () {
-      client2 = new Client(store);
+      client2 = new Client(store, true);
       db2 = client2.db({
         db: 'mydb'
       });

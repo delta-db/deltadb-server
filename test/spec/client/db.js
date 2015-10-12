@@ -27,7 +27,7 @@ describe('db', function () {
   it('should reload db', function () {
 
     var store = new MemAdapter();
-    var client = new Client(store);
+    var client = new Client(store, true);
 
     // Wait for load after next tick to ensure there is no race condition. The following code was
     // failing when the DB store loading was triggered at the adapter layer.
