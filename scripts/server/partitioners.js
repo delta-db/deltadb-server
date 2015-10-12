@@ -15,24 +15,94 @@ var Partitioners = function () {
 
 Partitioners.POLL_SLEEP_MS = 1000;
 
+// Partitioners.prototype._checkConnection = function (part, socket, since) {
+// console.log('Partitioners.prototype._checkConnection1');
+//   var self = this;
+// console.log('Partitioners.prototype._checkConnection2');
+//   return part._sql.alive().then(function () {
+// console.log('Partitioners.prototype._checkConnection2a');
+//     return part;
+//   }).catch(function (err) {
+// console.log('Partitioners.prototype._checkConnection3, err=', err);
+//     if (err instanceof SocketClosedError) {
+// console.log('Partitioners.prototype._checkConnection4, err=', err);
+//       return part._sql.connect();
+//       // return self._unregisterPartitioner(part._dbName).then(function () {
+//       //   return self.register(part._dbName, socket, since);
+//       // });
+//     }
+//   });
+// };
+
+// Partitioners.prototype._checkConnection = function (part) {
+// console.log('Partitioners.prototype._checkConnection1');
+//   return part._sql.ping().catch(function (err) {
+// console.log('Partitioners.prototype._checkConnection2');
+//     // If we receive a SocketClosedError the connection will automatically be flagged as closed
+//     if (!(err instanceof SocketClosedError)) {
+// console.log('Partitioners.prototype._checkConnection3');
+//       throw err;
+//     }
+// console.log('Partitioners.prototype._checkConnection4');
+//   });
+// };
+
+Partitioners.prototype._checkConnectionAndReregister = function (part, socket, since) {
+console.log('Partitioners.prototype._checkConnectionAndReregister1');
+  var self = this;
+  return part._sql.ping().then(function () {
+console.log('Partitioners.prototype._checkConnectionAndReregister1a');
+    return part;
+  }).catch(function (err) {
+console.log('Partitioners.prototype._checkConnectionAndReregister2');
+    if (err instanceof SocketClosedError) {
+console.log('Partitioners.prototype._checkConnectionAndReregister3');
+      return self._unregisterPartitioner(part._dbName).then(function () {
+console.log('Partitioners.prototype._checkConnectionAndReregister4');
+        return self.register(part._dbName, socket, since);
+      });
+    } else {
+console.log('Partitioners.prototype._checkConnectionAndReregister5');
+      throw err;
+    }
+  });
+};
+
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since) {
+console.log('Partitioners.prototype.register1');
   var self = this;
   if (self._partitioners[dbName]) { // exists?
+console.log('Partitioners.prototype.register2');
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
       since: since
     };
-    return self._partitioners[dbName].ready;
+//    return self._partitioners[dbName].ready;
+    return self._partitioners[dbName].ready.then(function () {
+      return self._checkConnectionAndReregister(self._partitioners[dbName].part, socket, since);
+    });
   } else {
+console.log('Partitioners.prototype.register3');
 
     // First conn for this partitioner
     var part = new Partitioner(dbName),
       conns = {};
+
+//     part.on('disconnect', function () {
+// console.log('@@@@@@@@@@@@@@@@@@@DISCONNECT dbName=', dbName);
+//       // Remote party closed socket so remove partitioner
+//       self._unregisterPartitioner(dbName).catch(function (err) {
+// console.log('disconnect err=', err);
+// process.exit(1);
+//       });
+//     });
+
     conns[socket.conn.id] = {
       socket: socket,
       since: since
     };
+
     var container = {
       part: part,
       conns: conns,
@@ -54,6 +124,8 @@ Partitioners.prototype.register = function (dbName, socket, since) {
       }
 
       return part;
+    }).then(function () {
+      return self._checkConnectionAndReregister(part, socket, since);
     });
 
     return container.ready;

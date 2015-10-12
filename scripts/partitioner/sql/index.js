@@ -41,6 +41,7 @@ var Part = function (dbName, sql) {
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
 //  this._connected = false;
+  this._registerDisconnectListener();
 
   this._globals = new Globals(this._sql);
   this._roles = new Roles(this._sql, this);
@@ -81,6 +82,13 @@ inherits(Part, EventEmitter);
 //     log.warning('partitioner sql err=' + err.message);
 //   });
 // };
+
+Part.prototype._registerDisconnectListener = function () {
+  var self = this;
+  self._sql.on('disconnect', function () {
+    self.emit('disconnect');
+  });
+};
 
 Part.prototype._initPartitions = function () {
   this._queued = new Partition(this._sql, constants.QUEUED, this._policy, this._userRoles, this);

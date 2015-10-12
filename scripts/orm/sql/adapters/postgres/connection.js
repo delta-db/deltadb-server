@@ -66,8 +66,8 @@ Connection.prototype._query = function (sql, replacements) {
     if (!self._connected) {
       // self._client.query doesn't always throw an error if the connection was closed
       self._close();
-      throw new SocketClosedError('socket was closed');
-//      reject(new SocketClosedError('socket was closed'));
+//      throw new SocketClosedError('socket was closed');
+      reject(new SocketClosedError('socket was closed'));
     }
 
     self._client.query(sql, replacements, function(err, result) {
@@ -75,8 +75,8 @@ Connection.prototype._query = function (sql, replacements) {
         if (err.code === 'EPIPE' || err.message === 'This socket is closed.' ||
           err.message === 'This socket has been ended by the other party') {
           self._close();
-          throw new SocketClosedError(err.message);
-//          reject(new SocketClosedError(err.message));
+//          throw new SocketClosedError(err.message);
+          reject(new SocketClosedError(err.message));
         } else {
           reject(err);
         }

@@ -22,6 +22,10 @@ describe('multiple', function () {
     b = null,
     bTasks = null;
 
+// TODO: restore
+this.timeout(40000);
+// this.timeout(utils.TIMEOUT);
+
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientA = new Client(storeA);
@@ -63,10 +67,6 @@ describe('multiple', function () {
   afterEach(function () {
     return destroyBoth();
   });
-
-  before(function () {
-this.timeout(40000);
-  })
 
   after(function () {
     self.timeout(utils.TIMEOUT);

@@ -291,6 +291,40 @@ SQL.prototype._query = function (sql, replacements) {
   });
 };
 
+// // TODO: move to common?
+// SQL.prototype.ping = function () {
+// console.log('SQL.prototype.ping1');
+//   if (this._connected) {
+// console.log('SQL.prototype.ping2');
+//     return this._query('SELECT NOW()').catch(function (err) {
+//       // If the following query generates a SocketClosedError then the connection will automatically
+//       // be flagged as closed
+// console.log('SQL.prototype.ping3');
+//       if (!(err instanceof SocketClosedError)) {
+// console.log('SQL.prototype.ping4');
+//         throw err;
+//       }
+//     });
+//   } else {
+// console.log('SQL.prototype.ping5');
+//     return Promise.resolve();
+//   }
+// };
+
+// TODO: move to common?
+SQL.prototype.ping = function () {
+console.log('SQL.prototype.ping1');
+  if (this._connected) {
+console.log('SQL.prototype.ping2');
+    // If the following query generates a SocketClosedError then the connection will automatically
+    // be flagged as closed
+    return this._query('SELECT NOW()');
+  } else {
+console.log('SQL.prototype.ping3');
+    return Promise.resolve();
+  }
+};
+
 SQL.prototype.insert = function (record, table, id, raw) {
   var self = this,
     joined = self._escapeAndJoin(record, raw);
