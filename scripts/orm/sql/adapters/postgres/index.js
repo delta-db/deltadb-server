@@ -9,6 +9,7 @@ var Promise = require('bluebird'),
   pg = require('pg'),
   AbstractSQL = require('../../common'),
   SQLError = require('../../common/sql-error'),
+  SocketClosedError = require('../../common/socket-closed-error'),
 //  AddressNotFoundError = require('../../common/address-not-found-error'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
@@ -232,6 +233,12 @@ console.log('------------------------SQL.prototype._isDBExistsError, is=', is, '
       /^database ".*" already exists$/);
 };
 
+SQL.prototype._isSocketClosedError = function (err) {
+var is = err.message === 'This socket has been ended by the other party';
+console.log('SQL.prototype._isSocketClosedError, is=', is, 'err=', err.message);
+  return err.message === 'This socket has been ended by the other party';
+};
+
 // SQL.prototype._query = function (sql, replacements) {
 //   var self = this;
 //   self._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
@@ -266,9 +273,9 @@ SQL.prototype._query = function (sql, replacements) {
     if (self._isDBMissingError(err)) {
       throw new DBMissingError(err.message);
    } else if (self._isDBExistsError(err)) {
-// console.log('here you go!');
-// process.exit(1);
      throw new DBExistsError(err.message);
+   } else if (self._isSocketClosedError(err)) {
+     throw new SocketClosedError(err.message);
     } else {
       // TODO: a wrapper should be created in sql/sql.js and this should be moved there
       throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));

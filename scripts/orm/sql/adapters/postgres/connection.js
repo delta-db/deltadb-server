@@ -1,5 +1,6 @@
 var pg = require('pg'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  SocketClosedError = require('../../common/socket-closed-error');
 
 var Connection = function (connString) {
   this._connString = connString;
@@ -57,14 +58,27 @@ Connection.prototype._ready = function () {
 Connection.prototype._query = function (sql, replacements) {
   var self = this;
   return new Promise(function (resolve, reject) {
+    if (!self._connected) {
+      // self._client.query doesn't always throw an error if the connection was closed
+      throw new SocketClosedError('socket was closed');
+    }
+
     self._client.query(sql, replacements, function(err, result) {
       if (err) {
+        if (err.code === 'EPIPE' || err.message === 'This socket is closed.') {
+          self._close();
+        }
         reject(err);
       } else {
         resolve(result);
       }
     });
   });
+};
+
+Connection.prototype._close = function () {
+  this._client.end(); // async
+  this._connected = false;
 };
 
 Connection.prototype.query = function (sql, replacements) {
@@ -77,8 +91,7 @@ Connection.prototype.query = function (sql, replacements) {
 Connection.prototype.disconnect = function () {
   var self = this;
   return self._ready().then(function () { // don't end until connected
-    self._client.end(); // async
-    self._connected = false;
+    self._close();
   });
 };
 

@@ -18,7 +18,6 @@ Connections.prototype._nextId = function () {
   return this._id++;
 };
 
-// TODO: how to fix so that subsequent conn requests can succeed if DB then created??
 Connections.prototype.connect = function (db, host, username, password, port) {
   var self = this, id = self._nextId(),
     connString = self._connString(db, host, username, password, port);
@@ -31,6 +30,10 @@ Connections.prototype.connect = function (db, host, username, password, port) {
     self._connections[connString] = { connection: new Connection(connString), ids: ids };
   }
 
+console.log('##########################################');
+console.log('Connections.prototype.connect, db=', db, 'id=', id, 'ids=', self._connections[connString].ids);
+console.log('##########################################');
+
   return self._connections[connString].connection.connect().then(function () {
     return Promise.resolve({ connection: self._connections[connString].connection, id: id });
   }).catch(function (err) {
@@ -42,6 +45,7 @@ Connections.prototype.connect = function (db, host, username, password, port) {
 
 Connections.prototype._unregister = function (id, db, host, username, password, port) {
   var connString = this._connString(db, host, username, password, port);
+console.log('Connections.prototype._unregister, db=', db, 'id=', id, 'ids=', this._connections[connString].ids);
   delete this._connections[connString].ids[id];
   if (utils.empty(this._connections[connString].ids)) { // last connection?
     var conn = this._connections[connString];
@@ -53,8 +57,11 @@ Connections.prototype._unregister = function (id, db, host, username, password, 
 };
 
 Connections.prototype.disconnect = function (id, db, host, username, password, port) {
+console.log('Connections.prototype.disconnect1');
   return this._unregister(id, db, host, username, password, port).then(function (conn) {
+console.log('Connections.prototype.disconnect2');
     if (conn) {
+console.log('Connections.prototype.disconnect3');
       return conn.connection.disconnect();
     }
   });

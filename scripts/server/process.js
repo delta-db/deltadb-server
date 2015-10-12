@@ -10,12 +10,12 @@ var Partitioner = require('../partitioner/sql'),
   clientUtils = require('../client/utils'),
   utils = require('../utils'),
   Promise = require('bluebird'),
-  DBMissingError = require('../client/db-missing-error');
+  DBMissingError = require('../client/db-missing-error'),
+  SocketClosedError = require('../orm/sql/common/socket-closed-error');
 
 var Process = function () {
   this._initSystemDB();
   this._dbNames = { system: clientUtils.SYSTEM_DB_NAME };
-//  this._dbNames = {};
 };
 
 Process.SLEEP_MS = 1000;
@@ -42,7 +42,8 @@ Process.prototype._initSystemDB = function () {
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
 console.log('doc:create, register', doc.id(), dbName);
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-      self._dbNames[doc.id()] = dbName; // register new db
+      self._dbNames[dbName] = dbName;
+//      self._dbNames[doc.id()] = dbName; // register new db
     }
   });
 
@@ -50,10 +51,20 @@ console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // destroying db? Ignore policy deltas
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-console.log('doc:destroy, unregister', doc.id());
+console.log('doc:destroy, unregister', doc.id(), 'dbName=', dbName, data);
 console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-      delete self._dbNames[doc.id()]; // unregister db
+      delete self._dbNames[dbName];
+//      delete self._dbNames[doc.id()]; // unregister db
     }
+  });
+};
+
+Process.prototype._processAndCatch = function (part) {
+  return part.process().catch(function (err) {
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&Process.prototype._processAndCatch', (new Date()).toUTCString());
+    return part.closeDatabase().then(function () {
+      throw err;
+    })
   });
 };
 
@@ -63,29 +74,25 @@ console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB1', (new Date()).toUTCString(), 
   // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
-  var part = new Partitioner(dbName);
+  var self = this, part = new Partitioner(dbName);
   return part.connect().then(function () {
 console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB2', (new Date()).toUTCString(), ', dbName=', dbName);
 // TODO: appears to sometimes get caught during next line!!
 // part._sql._debug = true;
-    return part.process();
+    return self._processAndCatch(part);
   }).then(function () {
 // part._sql._debug = false;
 console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB3', (new Date()).toUTCString(), ', dbName=', dbName);
     return part.closeDatabase();
   }).catch(function (err) {
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB, err=', err, err.stack);
-    // Don't throw DBMissingError as the DB may have just been destroyed and not yet removed from
-    // _dbNames.
-    if (!(err instanceof DBMissingError)) {
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB4, err=', err, err.stack);
+    // Don't throw DBMissingError or SocketClosedError as the DB may have just been destroyed and
+    // not yet removed from _dbNames.
+    if (!(err instanceof DBMissingError) && !(err instanceof SocketClosedError)) {
+console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB5, err=', err, err.stack);
+process.exit(1);
       throw err;
     }
-// // Don't throw DBMissingError as the DB may have just been destroyed and not yet removed from
-// // _dbNames. The pg adapter appears to throw a AddressNotFoundError error when the DB has just
-// // been destroyed.
-// if (!(err instanceof DBMissingError) && !(err instanceof AddressNotFoundError)) {
-//   throw err;
-// }
   });
 };
 

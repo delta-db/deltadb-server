@@ -62,6 +62,31 @@ var testORM = function (name, Adapter) {
       });
     });
 
+    it('should destroy connections', function () {
+      // Make sure that destroying a database doesn't tie up the connections
+      var test1 = new Adapter(), test2 = new Adapter();
+      return postgres.connect(dbPostgres, host, username, password, port).then(function () {
+        return postgres._createDatabase(dbTest);
+      }).then(function () {
+        return test1.connect(dbTest, host, username, password, port);
+      }).then(function () {
+        return test2.connect(dbTest, host, username, password, port);
+      }).then(function () {
+        // Destroy even if being used by other clients
+        return postgres._dropDatabase(dbTest, true);
+      }).then(function () {
+        return test1._query('SELECT NOW()').catch(function (err) {
+          // Ignore error as just want to make sure nothing blocks
+        });
+      }).then(function () {
+        return test2._query('SELECT NOW()').catch(function (err) {
+          // Ignore error as just want to make sure nothing blocks
+        });
+      }).then(function () {
+        return postgres.close(dbPostgres, host, username, password, port);
+      });
+    });
+
   });
 
 };

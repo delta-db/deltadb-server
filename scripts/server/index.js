@@ -24,6 +24,8 @@ console.log('ensureDBCreated3, err=', err);
     return system.create(adminParty).catch(function (err) {
 console.log('ensureDBCreated4, err=', err);
     });
+  }).then(function () {
+    return partitioner.closeDatabase();
   });
 };
 
