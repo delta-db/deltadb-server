@@ -87,21 +87,15 @@ Attr.prototype.create = function () {
   }).then(function () {
     return self.setDestroyedOrUpdateDoc();
   }).then(function (/* updated */) {
-console.log('Attr.prototype.create after setDestroyedOrUpdateDoc');
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
-
-}).then(function () {
-console.log('Attr.prototype.create after restoreIfDestroyedBefore block');
-
   }).catch(function (err) {
     // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
     // We can expect an SQLError if two clients try to create the DB at the same time
     if (err instanceof ForbiddenError || err instanceof SQLError) {
       log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
-console.log('Attr.prototype.create, err=' + err);
       throw err;
     }
   });
@@ -146,7 +140,6 @@ Attr.prototype._createOrDestroyDatabase = function () {
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
     return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
-console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
       // Ignore DBMissingErrors caused by race conditions when destroying the database
       if (!(err instanceof DBMissingError)) {
         throw err;
@@ -154,48 +147,13 @@ console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
     });
   } else {
     return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
-console.log('*************Attr.prototype._createOrDestroyDatabase, err=', err);
-
       // Ignore DBMissingErrors caused by race conditions when creating the database
       if (!(err instanceof DBExistsError)) {
-process.exit(1); // TODO: remove!
         throw err;
       }
     });
   }
 };
-
-// Attr.prototype._createOrDestroyDatabase = function () {
-//
-//   // Only create DB if this the system partitioner
-//   if (this._partitioner._dbName !== System.DB_NAME) {
-//     // TODO: log?
-//     return Promise.resolve();
-//   }
-//
-//   var promise = null;
-//
-//   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-//     promise = this._partitioner.destroyAnotherDatabase(this._params.value.name);
-// //     return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
-// // console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
-// //       // Ignore DBMissingErrors caused be race conditions on deleting the database
-// //       if (!(err instanceof DBMissingError)) {
-// //         throw err;
-// //       }
-// //     });
-//   } else {
-//     promise = this._partitioner.createAnotherDatabase(this._params.value.name);
-//   }
-//
-//   return promise.catch(function (err) {
-// console.log('Attr.prototype._createOrDestroyDatabase, err=', err);
-//     // Ignore DBMissingErrors caused be race conditions when creating or destroying the database
-//     if (!(err instanceof DBMissingError)) {
-//       throw err;
-//     }
-//   });
-// };
 
 Attr.prototype.setOptions = function () {
   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
@@ -226,7 +184,6 @@ Attr.prototype.setOptions = function () {
       }
 
     case System.DB_ATTR_NAME:
-// console.log('about to _createOrDestroyDatabase, partitionName=', this._partitionName, 'params=', this._params);
       return this._createOrDestroyDatabase();
 
     default:

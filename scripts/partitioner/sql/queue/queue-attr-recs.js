@@ -74,9 +74,7 @@ QueueAttrRecs.prototype.truncateTable = function () {
 
 // TODO: make caller limit by pages
 QueueAttrRecs.prototype.get = function () {
-console.log('QueueAttrRecs.prototype.get1');
   return this._sql.find(null, QueueAttrRecs.NAME).then(function (results) {
-console.log('QueueAttrRecs.prototype.get2');
     return results.rows ? results.rows : null;
   });
 };

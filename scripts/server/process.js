@@ -35,33 +35,21 @@ Process.prototype._initSystemDB = function () {
 
   self._dbs.on('doc:create', function (doc) {
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
-// console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-// console.log('doc=', doc);
-// console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
     if (dbName) { // new db? Ignore policy deltas
-console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-console.log('doc:create, register', doc.id(), dbName);
-console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
       self._dbNames[dbName] = dbName;
-//      self._dbNames[doc.id()] = dbName; // register new db
     }
   });
 
   self._dbs.on('doc:destroy', function (doc) {
     var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // destroying db? Ignore policy deltas
-console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-console.log('doc:destroy, unregister', doc.id(), 'dbName=', dbName, data);
-console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
       delete self._dbNames[dbName];
-//      delete self._dbNames[doc.id()]; // unregister db
     }
   });
 };
 
 Process.prototype._processAndCatch = function (part) {
   return part.process().catch(function (err) {
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&Process.prototype._processAndCatch', (new Date()).toUTCString());
     return part.closeDatabase().then(function () {
       throw err;
     })
@@ -69,28 +57,18 @@ console.log('&&&&&&&&&&&&&&&&&&&&&&&&&Process.prototype._processAndCatch', (new 
 };
 
 Process.prototype._processDB = function (dbName) {
-// TODO: when the bug occurs, why does $system stop getting processed?
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB1', (new Date()).toUTCString(), ', dbName=', dbName);
   // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
   var self = this, part = new Partitioner(dbName);
   return part.connect().then(function () {
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB2', (new Date()).toUTCString(), ', dbName=', dbName);
-// TODO: appears to sometimes get caught during next line!!
-// part._sql._debug = true;
     return self._processAndCatch(part);
   }).then(function () {
-// part._sql._debug = false;
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB3', (new Date()).toUTCString(), ', dbName=', dbName);
     return part.closeDatabase();
   }).catch(function (err) {
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB4, err=', err, err.stack);
     // Don't throw DBMissingError or SocketClosedError as the DB may have just been destroyed and
     // not yet removed from _dbNames.
     if (!(err instanceof DBMissingError) && !(err instanceof SocketClosedError)) {
-console.log('&&&&&&&&&&&&&&&&&&&&&&&&&_processDB5, err=', err, err.stack);
-process.exit(1);
       throw err;
     }
   });
@@ -105,20 +83,11 @@ Process.prototype._process = function () {
 };
 
 Process.prototype._loop = function () {
-// TODO: why is this not repeating???
-console.log('Process.prototype._loop1', (new Date()).toUTCString());
   var self = this;
   self._process().then(function () {
-console.log('Process.prototype._loop2', (new Date()).toUTCString());
     setTimeout(function () {
-console.log('Process.prototype._loop3', (new Date()).toUTCString());
       self._loop();
     }, Process.SLEEP_MS);
-
-}).catch(function (err) {
-console.log('loop err=', err);
-
-
   });
 };
 

@@ -23,124 +23,7 @@ Partitioners.prototype.dbExists = function (dbName) {
   });
 };
 
-// ----
-
-// Partitioners.RECONNECT_SLEEP_MS = 1000;
-//
-// Partitioners.prototype._connect = function (dbName) {
-// // TODO: what are the errors? Make this try to reconnect after RECONNECT_SLEEP_MS??
-//   return self._partitioners[dbName].part.connect().catch(function (err) {
-// console.log('Partitioners.prototype._connect, err=', err);
-//   });
-// };
-//
-// Partitioners.prototype.register = function (dbName, socket, since) {
-// console.log('Partitioners.prototype.register1');
-//   var self = this;
-//   if (self._partitioners[dbName]) { // exists?
-// console.log('Partitioners.prototype.register1a');
-//     self._partitioners[dbName].conns[socket.conn.id] = {
-//       socket: socket,
-//       since: since
-//     };
-//   } else { // missing
-// console.log('Partitioners.prototype.register2');
-//
-//     // First conn for this partitioner
-//     var part = new Partitioner(dbName),
-//       conns = {};
-//
-//     part.on('disconnect', function () {
-// console.log('@@@@@@@@@@@@@@@@@@@DISCONNECT dbName=', dbName);
-//       self._connect(dbName); // reconnect
-//     });
-//
-//     conns[socket.conn.id] = {
-//       socket: socket,
-//       since: since
-//     };
-//
-//     self._partitioners[dbName] = {
-//       part: part,
-//       conns: conns,
-//       poll: true,
-//       since: null
-//     };
-//
-//     self._connect(dbName);
-//
-// // TODO: make _poll care about whether connected or not
-//     self._poll(part); // TODO: pass dbName instead
-//
-//   }
-// };
-//
-// Partitioners.prototype.unregister = function (dbName, socket, since) {
-//
-// };
-//
-// Partitioners.prototype.partitioner = function (dbName) {
-//   // Use promise to make sure ready
-//   // Reconnect if disconnected
-//
-// };
-
-// ----
-
 Partitioners.POLL_SLEEP_MS = 1000;
-
-// Partitioners.prototype._checkConnection = function (part, socket, since) {
-// console.log('Partitioners.prototype._checkConnection1');
-//   var self = this;
-// console.log('Partitioners.prototype._checkConnection2');
-//   return part._sql.alive().then(function () {
-// console.log('Partitioners.prototype._checkConnection2a');
-//     return part;
-//   }).catch(function (err) {
-// console.log('Partitioners.prototype._checkConnection3, err=', err);
-//     if (err instanceof SocketClosedError) {
-// console.log('Partitioners.prototype._checkConnection4, err=', err);
-//       return part._sql.connect();
-//       // return self._unregisterPartitioner(part._dbName).then(function () {
-//       //   return self.register(part._dbName, socket, since);
-//       // });
-//     }
-//   });
-// };
-
-// Partitioners.prototype._checkConnection = function (part) {
-// console.log('Partitioners.prototype._checkConnection1');
-//   return part._sql.ping().catch(function (err) {
-// console.log('Partitioners.prototype._checkConnection2');
-//     // If we receive a SocketClosedError the connection will automatically be flagged as closed
-//     if (!(err instanceof SocketClosedError)) {
-// console.log('Partitioners.prototype._checkConnection3');
-//       throw err;
-//     }
-// console.log('Partitioners.prototype._checkConnection4');
-//   });
-// };
-
-// Partitioners.prototype._checkConnectionAndReregister = function (part, socket, since) {
-// console.log('Partitioners.prototype._checkConnectionAndReregister1');
-//   var self = this;
-//   return part._sql.ping().then(function () {
-// console.log('Partitioners.prototype._checkConnectionAndReregister1a');
-//     return part;
-//   }).catch(function (err) {
-// console.log('Partitioners.prototype._checkConnectionAndReregister2');
-//     if (err instanceof SocketClosedError) {
-// console.log('Partitioners.prototype._checkConnectionAndReregister3');
-//       return self._unregisterPartitioner(part._dbName).then(function () {
-// console.log('Partitioners.prototype._checkConnectionAndReregister4');
-//         return self.register(part._dbName, socket, since);
-//       });
-//     } else {
-// console.log('Partitioners.prototype._checkConnectionAndReregister5');
-//       throw err;
-//     }
-//   });
-// };
 
 Partitioners.prototype.existsThenRegister = function (dbName, socket, since) {
   var self = this;
@@ -151,33 +34,18 @@ Partitioners.prototype.existsThenRegister = function (dbName, socket, since) {
 
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since) {
-console.log('Partitioners.prototype.register1');
   var self = this;
   if (self._partitioners[dbName]) { // exists?
-console.log('Partitioners.prototype.register2');
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
       since: since
     };
    return self._partitioners[dbName].ready;
-// return self._partitioners[dbName].ready.then(function () {
-//   return self._checkConnectionAndReregister(self._partitioners[dbName].part, socket, since);
-// });
   } else {
-console.log('Partitioners.prototype.register3');
 
     // First conn for this partitioner
     var part = new Partitioner(dbName),
       conns = {};
-
-//     part.on('disconnect', function () {
-// console.log('@@@@@@@@@@@@@@@@@@@DISCONNECT dbName=', dbName);
-//       // Remote party closed socket so remove partitioner
-//       self._unregisterPartitioner(dbName).catch(function (err) {
-// console.log('disconnect err=', err);
-// process.exit(1);
-//       });
-//     });
 
     conns[socket.conn.id] = {
       socket: socket,
@@ -205,8 +73,6 @@ console.log('Partitioners.prototype.register3');
       }
 
       return part;
-//    }).then(function () {
-//      return self._checkConnectionAndReregister(part, socket, since);
     });
 
     return container.ready;
@@ -270,7 +136,6 @@ Partitioners.prototype._doPoll = function (partitioner) {
     newSince = new Date(); // save timestamp before to prevent race condition
 
   // Check for changes
-console.log('checking for changes after ', self._partitioners[partitioner._dbName].since);
   return self._hasChanges(partitioner, self._partitioners[partitioner._dbName].since)
     .then(function (has) {
       if (has) {
@@ -280,13 +145,6 @@ console.log('checking for changes after ', self._partitioners[partitioner._dbNam
       // TODO: create mechanism to gracefully alert poll that a DB has been destroyed so that it
       // doesn't generate unexpected errors due to missing tables, socket connections, etc...
       log.error('doPoll error=' + err);
-console.log('Partitioners.prototype._doPoll1, dbName=', partitioner._dbName, 'err=', err);
-//       // Ignore SocketClosedError error as socket may have been closed when destroying db
-//       if (!(err instanceof SocketClosedError)) {
-// console.log('Partitioners.prototype._doPoll2, err=', err);
-//         throw err;
-//       }
-// console.log('Partitioners.prototype._doPoll3, err=', err);
     });
 };
 
@@ -350,7 +208,6 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
       self._emitChanges(socket, changes, newSince);
     }
   }).catch(function (err) {
-console.log('Partitioners.prototype.findAndEmitChanges, dbName=', dbName, 'err=', err);
     // Ignore SocketClosedError as it could have been caused when a db was destroyed
     if (!(err instanceof SocketClosedError)) {
       throw err;

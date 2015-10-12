@@ -47,11 +47,6 @@ Server.prototype._registerInitListener = function (socket) {
       self._findAndEmitChanges(socket, partitioner);
     }).catch(function (err) {
       log.warning('err=' + err.message);
-console.log('err=', err, err.stack);
-if (err.name !== 'DBMissingError') {
-console.log('EXIT');
-process.exit(1);
-}
       socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
     });
     // TODO: also handle authentication here?

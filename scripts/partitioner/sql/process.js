@@ -730,21 +730,12 @@ Process.prototype._prepareAndProcessAttrs = function () {
 Process.prototype.process = function () {
   var self = this;
   // Clear cache so that we don't run out of mem. TODO: only clear if larger than YYY
-console.log('Process.prototype.process1');
   self._clearCache();
-console.log('Process.prototype.process2');
   return self._queueAttrRecs.get().then(function (deltas) {
-console.log('Process.prototype.process3');
     if (deltas) {
-console.log('Process.prototype.process4');
       self._deltas = deltas;
       return self._prepareAndProcessAttrs();
     }
-
-}).then(function () {
-console.log('Process.prototype.process5');
-
-
   });
 };
 

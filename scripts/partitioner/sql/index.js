@@ -40,7 +40,6 @@ var Part = function (dbName, sql) {
 
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
-//  this._connected = false;
   this._registerDisconnectListener();
 
   this._globals = new Globals(this._sql);
@@ -114,8 +113,6 @@ Part.prototype._toUniqueDBName = function (dbName) {
   return this._DB_NAME_PREFIX + dbName.replace(/\$/, '');
 };
 
-// Part.prototype.batch = 100;
-
 Part.prototype.createTables = function () {
 
   var promises = [];
@@ -163,14 +160,9 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 };
 
 Part.prototype.connect = function () {
-console.log('Part.prototype.connect, dbName=' + this._dbName + ', host=' + this._host + ', dbUser=' + this._dbUser);
   // TODO: throw error if _dbName is reserved
   return this._sql.connect(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
     this._dbPwd, this._port);
-
-// self._dbPwd).then(function () {
-//   self._connected = true;
-// });
 };
 
 Part.prototype.dbExists = function (dbName) {
@@ -178,28 +170,11 @@ Part.prototype.dbExists = function (dbName) {
     this._dbPwd, this._port);
 };
 
-// Part.prototype.connect = function () {
-//   // TODO: throw error if _dbName is reserved
-//   var self = this;
-//   return self._sql.connect(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
-//     self._dbPwd);
-//
-// // self._dbPwd).then(function () {
-// //   self._connected = true;
-// // });
-// };
-
 Part.prototype.createDatabase = function () {
   var self = this;
-console.log('Part.prototype.createDatabase1, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
   return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
     self._dbPwd).then(function () {
-console.log('Part.prototype.createDatabase2, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
     return self.createTables();
-
-}).then(function () {
-console.log('Part.prototype.createDatabase3, self._dbUser=', self._dbUser, 'self._dbName=', self._dbName);
-
   });
 };
 
@@ -210,34 +185,15 @@ Part.prototype.truncateDatabase = function () {
 
 // TODO: rename to destroy?
 Part.prototype.destroyDatabase = function () {
-console.log('Part.prototype.destroyDatabase');
-// console.log('this._dbUser=', this._dbUser);
-// process.exit();
-// var self = this, promise = null;
-// if (self._connected) {
-//   promise = Promise.resolve();
-// } else {
-//   promise = self.connect();
-// }
-// return promise.then(function () {
-//   return self._sql.dropAndCloseDatabase(true); // force close of all conns first
-// });
-
   // force close of all conns first
   return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
     this._dbUser, this._dbPwd, this._port, true);
 
-// return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
-//   this._dbUser, this._dbPwd, this._port);
 };
 
 // TODO: rename to disconnect?
 Part.prototype.closeDatabase = function () {
   return this._sql.close();
-// var self = this;
-// return self._sql.close().then(function () {
-//   self._connected = false;
-// });
 };
 
 Part.prototype.createAnotherDatabase = function (dbName) {
@@ -245,21 +201,13 @@ Part.prototype.createAnotherDatabase = function (dbName) {
   log.info('creating another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
-console.log('createAnotherDatabase1');
   return this._users.getSuperUser().then(function (user) {
-console.log('createAnotherDatabase2');
     // Default other DB's super user salt and pwd so that it matches "ours"
     Users.SUPER_SALT = user.salt;
     Users.SUPER_PWD = user.password;
     return part.createDatabase();
   }).then(function () {
-console.log('createAnotherDatabase3');
-
     return part.closeDatabase();
-
-}).then(function () {
-console.log('createAnotherDatabase4');
-
   });
 };
 
@@ -268,9 +216,7 @@ Part.prototype.destroyAnotherDatabase = function (dbName) {
   log.info('destroying another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
   var part = new Part(dbName, sql);
-//  return part.connect().then(function () {
   return part.destroyDatabase();
-//  });
 };
 
 module.exports = Part;

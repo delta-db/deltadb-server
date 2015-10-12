@@ -1,7 +1,6 @@
 Now
 ---
 - express (or better) server - use web socket
-	- remove console.logs
 	- jshint
 	- fix old tests
 	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests

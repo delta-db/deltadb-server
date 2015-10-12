@@ -95,7 +95,6 @@ this.timeout(40000);
   };
 
   var createSendReceiveDestroy = function (i) {
-console.log('createSendReceiveDestroy, i=', i);
     var promise = Promise.resolve();
     if( i > 0) {
       promise = destroyBoth().then(function () {
@@ -108,9 +107,7 @@ console.log('createSendReceiveDestroy, i=', i);
   };
 
   var createSendReceiveDestroyFactory = function (i) {
-console.log('%%%%%createSendReceiveDestroyFactory1, i=', i);
     return function () {
-console.log('%%%%%createSendReceiveDestroyFactory2, i=', i);
       return createSendReceiveDestroy(i);
     }
   };

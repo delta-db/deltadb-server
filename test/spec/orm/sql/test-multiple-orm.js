@@ -43,14 +43,14 @@ var testORM = function (name, Adapter) {
       var test1 = new Adapter(), test2 = new Adapter();
       return postgres.connect(dbPostgres, host, username, password, port).then(function () {
         return test1.connect(dbTest, host, username, password, port).catch(function (err) {
-          // console.log('failed and is ok as db doesnt exist, err=', err);
+          // failed and is ok as db doesnt exist
         });
       }).then(function () {
         return postgres._createDatabase(dbTest);
       }).then(function () {
         return test2.connect(dbTest, host, username, password, port);
       }).then(function () {
-        // console.log('test2 connect succeeded!');
+        // test2 connect succeeded!
       }).then(function () {
         // return test1.close(dbTest, host, username, password, port);
       }).then(function () {
