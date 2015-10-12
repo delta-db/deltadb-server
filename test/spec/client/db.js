@@ -3,7 +3,6 @@
 var DB = require('../../../scripts/client/db'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  utils = require('../../../scripts/utils'),
   clientUtils = require('../../../scripts/client/utils');
 
 describe('db', function () {

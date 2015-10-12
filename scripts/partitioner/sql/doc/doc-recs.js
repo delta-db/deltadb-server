@@ -12,8 +12,7 @@
 // TODO: separate DB specific logic to doc-rec & doc-recs and use doc and docs for layer above
 
 var constants = require('../constants'),
-  SQLError = require('../../../orm/sql/common/sql-error'),
-  ForbiddenError = require('../forbidden-error');
+  SQLError = require('../../../orm/sql/common/sql-error');
 
 var DocRecs = function (sql, partition, policy, attrRecs, userRoles) {
   this._sql = sql;
@@ -232,7 +231,8 @@ DocRecs.prototype.canDestroyAt = function (docId, destroyedAt) {
   var where = ['id', '=', '"' + docId + '"'];
   // Use <= so that we trigger an update to docs that can be used to determine whether we need to
   // update
-  return this._sql.find(['id'], this._name, null, [where, 'and', ['updated_at', '<=', '"' + destroyedAt.toISOString() + '"'],
+  return this._sql.find(['id'], this._name, null, [where, 'and',
+    ['updated_at', '<=', '"' + destroyedAt.toISOString() + '"'],
     'and', [
       ['destroyed_at', '<=', '"' + destroyedAt.toISOString() + '"'], 'or', ['destroyed_at',
         '=', 'null'

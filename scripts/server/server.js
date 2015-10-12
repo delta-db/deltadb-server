@@ -40,15 +40,16 @@ Server.prototype._registerInitListener = function (socket) {
 
     // Lookup/create partitioner for DB name
     var since = msg.since ? new Date(msg.since) : null;
-    return self._partitioners.existsThenRegister(msg.db, socket, since).then(function (partitioner) {
-      self._registerDisconnectListener(socket, partitioner);
-      self._registerChangesListener(socket, partitioner);
-      self._emitInitDone(socket);
-      self._findAndEmitChanges(socket, partitioner);
-    }).catch(function (err) {
-      log.warning('err=' + err.message);
-      socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
-    });
+    return self._partitioners.existsThenRegister(msg.db, socket, since)
+      .then(function (partitioner) {
+        self._registerDisconnectListener(socket, partitioner);
+        self._registerChangesListener(socket, partitioner);
+        self._emitInitDone(socket);
+        self._findAndEmitChanges(socket, partitioner);
+      }).catch(function (err) {
+        log.warning('err=' + err.message);
+        socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
+      });
     // TODO: also handle authentication here?
   });
 };

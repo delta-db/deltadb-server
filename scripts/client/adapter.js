@@ -67,7 +67,8 @@ Adapter.prototype._initDBStore = function (db) {
 //     });
 
 //     return Promise.all(promises).then(function () {
-//       // Create missing stores after all the existing stores have been loaded so that we don't have
+//       // Create missing stores after all the existing stores have been loaded so that we don't
+//       // have
 //       // a race condition where we are trying to create a store that is also being reloaded
 //       return self._createMissingStores();
 //     }).then(function () {
@@ -117,8 +118,8 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
       // There could have been DBs with the same name created before so we need to check the
       // timestamp
 
-      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName
-        && doc._dat.recordedAt.getTime() >= ts.getTime()) {
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
         resolve(originatingDoc._destroyLocally());
       }
     });
@@ -134,15 +135,15 @@ Adapter.prototype._createDatabase = function (dbName) {
 
 Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originatingDoc, ts) {
   return new Promise(function (resolve) {
-    // When creating a DB, the delta is id-less and so we cannot use an id to reconcile the
-    // local doc. Instead we listen for a doc:destroy event on the parent collection and then delete the
+    // When creating a DB, the delta is id-less and so we cannot use an id to reconcile the local
+    // doc. Instead we listen for a doc:destroy event on the parent collection and then delete the
     // local doc that was used to originate the delta so that we don't attempt to destroy the DB
     // again. TODO: Another option for the future could be to create an id in the doc that
     // corresponds to the destroying delta id.
     originatingDoc._col.on('doc:destroy', function (doc) {
       var data = doc.get();
-      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName
-        && doc._dat.destroyedAt.getTime() >= ts.getTime()) {
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
+        doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
         // timestamp
         resolve(originatingDoc._destroyLocally());

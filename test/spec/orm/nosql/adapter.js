@@ -1,7 +1,6 @@
 'use strict';
 
-var utils = require('../../../new-utils'),
-  testUtils = require('../../../utils');
+var utils = require('../../../new-utils');
 
 // TODO: split into separate tests
 
@@ -12,8 +11,7 @@ var Adapter = function (Adapter) {
 
 Adapter.prototype.test = function () {
 
-  var Adapter = this._Adapter,
-    adapter = this._adapter; // for convenience
+  var adapter = this._adapter; // for convenience
 
   describe('adapter ' + adapter.constructor.name, function () {
 

@@ -1,3 +1,5 @@
+'use strict';
+
 var pg = require('pg'),
   Promise = require('bluebird'),
   SocketClosedError = require('../../common/socket-closed-error'),

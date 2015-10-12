@@ -1,11 +1,9 @@
 'use strict';
 
-/* global before, after */
+/* global after */
 
 var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
-  partUtils = require('../spec/partitioner/sql/utils'),
-  DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
   clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
@@ -22,9 +20,8 @@ describe('multiple', function () {
     b = null,
     bTasks = null;
 
-// TODO: restore
-this.timeout(40000);
-// this.timeout(utils.TIMEOUT);
+  // A lot of time is needed as we destroy and create the dbs several times
+  this.timeout(40000);
 
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
@@ -109,7 +106,7 @@ this.timeout(40000);
   var createSendReceiveDestroyFactory = function (i) {
     return function () {
       return createSendReceiveDestroy(i);
-    }
+    };
   };
 
   it('should send and receive partial changes multiple times', function () {

@@ -1,7 +1,6 @@
 Now
 ---
-- express (or better) server - use web socket
-	- jshint
+- sockets:
 	- fix old tests
 	- restore new socket tests & adjust tests to launch server. Use spawn. Merge into master after fix ci tests
 	- test where db already exists and then start server and make sure server processes the db

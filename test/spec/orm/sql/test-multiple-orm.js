@@ -2,11 +2,7 @@
 
 // TODO: better organize
 
-var testUtils = require('../../../utils'),
-  config = require('../../../../config'),
-  chai = require('chai'),
-  expect = chai.expect,
-  MissingError = require('../../../../scripts/orm/sql/common/missing-error');
+var testUtils = require('../../../utils');
 
 /**
  * Sharing one connection between multiple ticks is complicated and is tested here.
@@ -42,7 +38,7 @@ var testORM = function (name, Adapter) {
     it('should retry connections', function () {
       var test1 = new Adapter(), test2 = new Adapter();
       return postgres.connect(dbPostgres, host, username, password, port).then(function () {
-        return test1.connect(dbTest, host, username, password, port).catch(function (err) {
+        return test1.connect(dbTest, host, username, password, port).catch(function () {
           // failed and is ok as db doesnt exist
         });
       }).then(function () {
@@ -75,11 +71,11 @@ var testORM = function (name, Adapter) {
       }).then(function () {
         return test2.connect(dbTest, host, username, password, port);
       }).then(function () {
-        return test1._query('SELECT NOW()').catch(function (err) {
+        return test1._query('SELECT NOW()').catch(function () {
           // Ignore error as just want to make sure nothing blocks
         });
       }).then(function () {
-        return test2._query('SELECT NOW()').catch(function (err) {
+        return test2._query('SELECT NOW()').catch(function () {
           // Ignore error as just want to make sure nothing blocks
         });
       }).then(function () {

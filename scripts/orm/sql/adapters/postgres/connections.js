@@ -1,3 +1,5 @@
+'use strict';
+
 var Promise = require('bluebird'),
   Connection = require('./connection'),
   utils = require('../../../../utils');
@@ -10,7 +12,7 @@ var Connections = function () {
   this._id = 1;
 };
 
-Connections.prototype._connString = function (db, host, username, password, port) {
+Connections.prototype._connString = function (db, host, username, password /*, port */) {
   return 'postgres://' + username + ':' + password + '@' + host + '/' + db;
 };
 

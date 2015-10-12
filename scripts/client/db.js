@@ -15,8 +15,7 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   io = require('socket.io-client'),
   Sender = require('./sender'),
-  log = require('../utils/log'),
-  DBMissingError = require('./db-missing-error');
+  log = require('../utils/log');
 
 var DB = function ( /* name, adapter */ ) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections

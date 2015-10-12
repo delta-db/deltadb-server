@@ -7,8 +7,7 @@ chai.use(require('chai-as-promised'));
 chai.should(); // var should = chai.should();
 
 var Partitioner = require('../scripts/partitioner/sql'),
-  utils = require('./utils'),
-  DBMissingError = require('../scripts/client/db-missing-error');
+  utils = require('./utils');
 
 describe('deltadb', function () {
 

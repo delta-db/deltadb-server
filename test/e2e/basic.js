@@ -1,13 +1,9 @@
 'use strict';
 
-/* global before, after */
-
 var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
-  partUtils = require('../spec/partitioner/sql/utils'),
   DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
-  clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
 
 describe('basic', function () {
@@ -123,11 +119,7 @@ describe('basic', function () {
   it('should send and receive partial changes', function () {
     createB();
 
-    var aRcvThing = false,
-      aRcvPriority = false,
-      bRcvThing = false,
-      bRcvPriority = false,
-      aEmitChanges = [],
+    var aEmitChanges = [],
       bEmitChanges = [],
       aSetChanges = [],
       bSetChanges = [],
@@ -212,7 +204,7 @@ describe('basic', function () {
     return new Promise(function (resolve, reject) {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
-        shouldResolve(resolve, reject)
+        shouldResolve(resolve, reject);
       }, utils.TIMEOUT - 1000);
 
     });

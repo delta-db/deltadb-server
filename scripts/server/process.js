@@ -52,7 +52,7 @@ Process.prototype._processAndCatch = function (part) {
   return part.process().catch(function (err) {
     return part.closeDatabase().then(function () {
       throw err;
-    })
+    });
   });
 };
 

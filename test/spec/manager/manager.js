@@ -8,8 +8,7 @@ var testUtils = require('../../utils'),
   Doc = require('../../../scripts/client/doc'),
   partUtils = require('../../../scripts/utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
-  SQL = require('../../../scripts/orm/sql/adapters/postgres'), // needs to be dynamic
-  UserUtils = require('../../user-utils');
+  SQL = require('../../../scripts/orm/sql/adapters/postgres'); // needs to be dynamic
 
 describe('manager', function () {
 
@@ -17,8 +16,7 @@ describe('manager', function () {
 
   var partitioner = null,
     manager = null,
-    args = {},
-    userUtils = new UserUtils(args);
+    args = {};
 
   beforeEach(function () {
     partitioner = new Partitioner('testdb', new SQL());

@@ -1,11 +1,9 @@
 'use strict';
 
-var Promise = require('bluebird'),
-  utils = require('../../../utils'),
+var utils = require('../../../utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  System = require('../../../system'),
   Docs = require('../doc/docs'),
   SQLError = require('../../../orm/sql/common/sql-error');
 

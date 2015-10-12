@@ -13,8 +13,7 @@ var Promise = require('bluebird'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
   log = require('../../../../utils/log'),
-  connections = require('./connections'),
-  EventEmitter = require('events').EventEmitter;
+  connections = require('./connections');
 
 var SQL = function () {
   AbstractSQL.apply(this, arguments); // apply parent constructor
@@ -96,8 +95,8 @@ SQL.prototype._isDBMissingError = function (err) {
 
 SQL.prototype._isDBExistsError = function (err) {
   return err.message ===
-      'duplicate key value violates unique constraint "pg_database_datname_index"'
-    || err.message.match(/^database ".*" already exists$/);
+      'duplicate key value violates unique constraint "pg_database_datname_index"' ||
+      err.message.match(/^database ".*" already exists$/);
 };
 
 SQL.prototype._query = function (sql, replacements) {

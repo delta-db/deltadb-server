@@ -32,9 +32,9 @@ Attr.prototype._canDestroyOrUpdateDoc = function () {
   var self = this;
   if (self.destroyingDoc()) {
     // TODO: all params needed?
-    return self._docs.canDestroy(self._partitionName, self._params.docId, self._params.changedByUserId,
-      self._params.updatedAt, self._params.restore, self._params.docUUID,
-      self._params.colId, self._params.userUUID);
+    return self._docs.canDestroy(self._partitionName, self._params.docId,
+      self._params.changedByUserId, self._params.updatedAt, self._params.restore,
+      self._params.docUUID, self._params.colId, self._params.userUUID);
   } else {
     // TODO: remove new Date()
     var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
@@ -56,7 +56,6 @@ Attr.prototype.create = function () {
   // 5. Auto restore if the attr was previously deleted
 
   var self = this,
-    up = null,
     latestNoRestore = null,
     latestNoDelRestore = null;
 
@@ -182,6 +181,7 @@ Attr.prototype.setOptions = function () {
           this._params.changedByUserId, this._params.changedByUUID,
           this._params.updatedAt, this._params.docId);
       }
+      break;
 
     case System.DB_ATTR_NAME:
       return this._createOrDestroyDatabase();

@@ -1,8 +1,6 @@
 'use strict';
 
-var Doc = require('../../../../../scripts/orm/nosql/common/doc'),
-  utils = require('../../../../utils'),
-  Promise = require('bluebird');
+var Doc = require('../../../../../scripts/orm/nosql/common/doc');
 
 describe('doc', function () {
 

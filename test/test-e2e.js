@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should(); // var should = chai.should();
