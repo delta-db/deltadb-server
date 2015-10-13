@@ -17,10 +17,10 @@ describe('client', function () {
   beforeEach(function () {
     store = new MemAdapter();
     client = new Client(store, true);
-    propsReady = utils.once(client, 'load');
     db = client.db({
       db: 'mydb'
     });
+    propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
     task = tasks.doc();
   });
@@ -91,7 +91,7 @@ describe('client', function () {
       });
 
       // Wait until all the docs have been loaded from the store
-      return utils.once(client2, 'load');
+      return utils.once(db2, 'load');
     }).then(function () {
       // Verify restoration of since
       var props = db2._props.get();
@@ -135,8 +135,9 @@ describe('client', function () {
       return setUpClient2();
     }).then(function () {
       // Simulate initializing of store after client was setup
+// TODO: need to initStore at db level instead?
       client2._initStore();
-      return utils.once(client2, 'load');
+      return utils.once(db2, 'load');
     }).then(function () {
       // We need to wait to get the task as the doc isn't registered until save() is called.
       // Alternatively, we could call task2.save() above in setUpClient2().
