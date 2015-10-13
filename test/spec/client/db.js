@@ -8,7 +8,10 @@ var DB = require('../../../scripts/client/db'),
 describe('db', function () {
 
   it('should reload properties', function () {
-    var dbStore = (new MemAdapter()).db({
+    var store = new MemAdapter();
+    var client = new Client(store, true);
+
+    var dbStore = store.db({
       db: 'mydb'
     });
 
@@ -20,7 +23,7 @@ describe('db', function () {
     return doc.set({
       since: null
     }).then(function () {
-      new DB(null, null, dbStore);
+      client.db({ db: 'mydb '});
     });
   });
 
