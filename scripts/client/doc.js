@@ -5,10 +5,15 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data, col, genDocStore) {
+var Doc = function (data, col) {
   MemDoc.apply(this, arguments); // apply parent constructor
-  this._genDocStore = genDocStore; // TODO: is this really needed?
   this._initDat(data);
+
+  this._loaded = utils.once(this, 'load');
+
+  this._createStoreIfStoresImported();
+
+  this._changeDoc(data);
 };
 
 inherits(Doc, MemDoc);
@@ -26,12 +31,25 @@ Doc.prototype._import = function (store) {
   this._initStore();
 };
 
-Doc.prototype._pointToData = function () {
-  this._data = this._dat.data; // point to wrapped location
+Doc.prototype._createStore = function () {
+  this._import(this._col._store.doc(this._dat));
 };
 
-Doc._createDocStore = function (data, colStore) {
-  return colStore.doc(data);
+Doc.prototype._createStoreIfStoresImported = function () {
+  // If the stores have already been imported then create a store for this doc now
+  if (this._col._db.storesImported) {
+    this._createStore();
+  }
+};
+
+Doc.prototype._createMissingStore = function () {
+  if (!this._store) { // store was imported?
+    this._createStore();
+  }
+};
+
+Doc.prototype._pointToData = function () {
+  this._data = this._dat.data; // point to wrapped location
 };
 
 Doc.prototype._initDat = function (data) {
@@ -60,40 +78,23 @@ Doc.prototype._loadFromStore = function () {
 Doc.prototype._initStore = function () {
   var self = this;
 
-  return self._opened().then(function () {
+  self._loadFromStore();
 
-    self._loadFromStore();
-
-    self.id(self._store.id());
-
-    // register as doc id was just set
-    self._register().then(function () {
-      self.emit('load');
-    });
-
-  });
-};
-
-Doc.prototype._open = function () {
-  var self = this;
-  return self._col._opened().then(function () {
-    if (self._genDocStore) {
-      // Use self._dat as the store needs the reference and not a copy
-      self._import(Doc._createDocStore(self._dat, self._col._store));
-    }
-  });
-};
-
-Doc.prototype._opened = function () {
-  if (!this._openPromise) {
-    this._openPromise = this._open();
+  if (!self._store.id()) { // no id?
+    self._store.id(utils.uuid()); // gen id
   }
-  return this._openPromise;
+
+  self.id(self._store.id());
+
+  // register as doc id was just set
+  self._register().then(function () {
+    self.emit('load');
+  });
 };
 
 Doc.prototype._saveStore = function () {
   var self = this;
-  return self._opened().then(function () {
+  return self._loaded.then(function () {
     // If there is no id, set one so that the id is not set by the store
     var id = self.id();
     if (!id) {

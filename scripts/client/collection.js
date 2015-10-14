@@ -8,9 +8,9 @@ var inherits = require('inherits'),
   Doc = require('./doc'),
   Cursor = require('../orm/nosql/adapters/mem/cursor');
 
-var Collection = function (name, db, genColStore) {
+var Collection = function (name, db) {
   MemCollection.apply(this, arguments); // apply parent constructor
-  this._genColStore = genColStore; // TODO: really needed??
+  this._createStoreIfStoresImported();
 };
 
 inherits(Collection, MemCollection);
@@ -20,23 +20,40 @@ Collection.prototype._import = function (store) {
   this._initStore();
 };
 
-Collection.prototype._doc = function (data, genDocStore) {
+Collection.prototype._createStore = function () {
+  this._store = this._db._store.col(this._name);
+};
+
+Collection.prototype._createStoreIfStoresImported = function () {
+  // If the stores have already been imported then create a store for this col now
+  if (this._db.storesImported) {
+    this._createStore();
+  }
+};
+
+Collection.prototype._createMissingStores = function () {
+  if (!this._store) { // store was imported?
+    this._createStore();
+
+    // Create stores for any docs that have not been imported
+    this.all(function (doc) {
+      doc._createMissingStore();
+    });
+
+    // Create stores for any pending docs that have not been imported
+    this._allPending(function (doc) {
+      doc._createMissingStore();
+    });
+  }
+};
+
+Collection.prototype._doc = function (data) {
   var id = data ? data[this._db._idName] : null;
   if (id && this._docs[id]) { // has id and exists?
     // TODO: need to set data here??
     return this._docs[id];
   } else {
-    var doc = new Doc(data, this, genDocStore);
-
-    // In most cases we don't know the id when creating the doc and rely on save() to call
-    // register() later
-
-    // We need the store to be setup before changing the data
-    if (genDocStore && data) {
-      doc._changeDoc(data);
-    }
-
-    return doc;
+    return new Doc(data, this);
   }
 };
 
@@ -45,11 +62,15 @@ Collection.prototype.doc = function (data) {
 };
 
 Collection.prototype._initStore = function () {
-  var self = this;
-  self._loaded = self._store.all(function (docStore) {
+  var self = this, promises = [];
+
+  self._store.all(function (docStore) {
     var doc = self._doc();
     doc._import(docStore);
-  }).then(function () {
+    promises.push(doc._loaded);
+  });
+
+  self._loaded = Promise.all(promises).then(function () {
     self.emit('load');
   });
 };
@@ -142,17 +163,6 @@ Collection.prototype._localChanges = function (retryAfter, returnSent) {
   }, true).then(function () {
     return changes;
   });
-};
-
-Collection.prototype._open = function () {
-  return this._db._colStoreOpened(this, this._name, this._genColStore);
-};
-
-Collection.prototype._opened = function () {
-  if (!this._openPromise) {
-    this._openPromise = this._open();
-  }
-  return this._openPromise;
 };
 
 module.exports = Collection;

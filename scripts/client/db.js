@@ -35,6 +35,8 @@ var DB = function ( /* name, adapter */ ) {
 
   this._initStoreLoaded();
 
+  this._storesImported = false;
+
   this._connectWhenReady();
 
   this._loadStore();
@@ -76,6 +78,13 @@ DB.prototype._import = function (store) {
   this._initStore();
 };
 
+DB.prototype._createMissingStores = function () {
+  // Create stores for any cols that have not been imported
+  this.all(function (col) {
+    col._createMissingStores();
+  });
+};
+
 DB.prototype._initStore = function () {
   var self = this,
     promises = [],
@@ -91,6 +100,10 @@ DB.prototype._initStore = function () {
       promises.push(col._loaded);
     }
   });
+
+  // All the stores have been imported
+  self._storesImported = true;
+  self._createMissingStores();
 
   self._loaded = Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
@@ -127,30 +140,15 @@ DB.prototype._initProps = function (colStore) {
 
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
-DB.prototype._col = function (name, genColStore) {
+DB.prototype._col = function (name) {
   if (this._cols[name]) {
     return this._cols[name];
   } else {
-    // TODO: does genColStore really need to be passed?
-    var col = new Collection(name, this, genColStore);
+    var col = new Collection(name, this);
     this._cols[name] = col;
     this._emitColCreate(col);
 
     return col;
-  }
-};
-
-// TODO: move to col layer?? TODO: genColStore really needed??
-DB.prototype._colStoreOpened = function (col, name, genColStore) {
-  var self = this;
-  if (genColStore) {
-    return self._storeLoaded.then(function () {
-      var colStore = self._store.col(name);
-      col._import(colStore);
-      return col;
-    });
-  } else {
-    return Promise.resolve();
   }
 };
 

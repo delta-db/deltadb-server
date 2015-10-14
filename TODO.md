@@ -37,6 +37,7 @@ Next
 - semver pkg
 - codeclimate.com
 - there are two "Servers" in the server code -- one should be renamed
+- run on Amazon lambda and other similar services
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
 - create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable
 - convert all .db({}) to .db(name)? Really, because probably need to pass host, user-uuid and password
