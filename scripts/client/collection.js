@@ -26,7 +26,7 @@ Collection.prototype._createStore = function () {
 
 Collection.prototype._createStoreIfStoresImported = function () {
   // If the stores have already been imported then create a store for this col now
-  if (this._db.storesImported) {
+  if (this._db._storesImported) {
     this._createStore();
   }
 };

@@ -37,7 +37,7 @@ Doc.prototype._createStore = function () {
 
 Doc.prototype._createStoreIfStoresImported = function () {
   // If the stores have already been imported then create a store for this doc now
-  if (this._col._db.storesImported) {
+  if (this._col._db._storesImported) {
     this._createStore();
   }
 };
@@ -120,6 +120,11 @@ Doc.prototype._emitChange = function () {
 
 // TODO: split up
 Doc.prototype._change = function (name, value, updated, recorded, untracked) {
+
+  if (name === this._idName) {
+    // Don't track changes to id as the id is sent with every delta already
+    return;
+  }
 
   if (!updated) {
     updated = new Date();
@@ -306,9 +311,7 @@ Doc.prototype._allEvents = function (name, value, updated) {
 };
 
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
-  if (name !== this._idName) { // TODO: do we really not want to "track" id changes??
-    this._change(name, value, updated, recorded, untracked);
-  }
+  this._change(name, value, updated, recorded, untracked);
 
   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
     this._dat.updatedAt = updated;
@@ -318,9 +321,7 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
 };
 
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
-  if (name !== this._idName) {
-    this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
-  }
+  this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
 
   return MemDoc.prototype.unset.apply(this, arguments);
 };
