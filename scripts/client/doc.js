@@ -83,7 +83,7 @@ Doc.prototype._initStore = function () {
   if (!self.id()) { // no id?
     self.id(utils.uuid()); // gen id
   }
-  self._store.id(self.id); // set id
+  self._store.id(self.id()); // set id
 
   // register as doc id was just set
   self._register().then(function () {
