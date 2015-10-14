@@ -80,11 +80,10 @@ Doc.prototype._initStore = function () {
 
   self._loadFromStore();
 
-  if (!self._store.id()) { // no id?
-    self._store.id(utils.uuid()); // gen id
+  if (!self.id()) { // no id?
+    self.id(utils.uuid()); // gen id
   }
-
-  self.id(self._store.id());
+  self._store.id(self.id); // set id
 
   // register as doc id was just set
   self._register().then(function () {
@@ -95,14 +94,6 @@ Doc.prototype._initStore = function () {
 Doc.prototype._saveStore = function () {
   var self = this;
   return self._loaded.then(function () {
-    // If there is no id, set one so that the id is not set by the store
-    var id = self.id();
-    if (!id) {
-      id = utils.uuid();
-      self.id(id);
-    }
-    self._store.id(id); // use id from data
-
     return self._store.set(self._dat);
   });
 };
