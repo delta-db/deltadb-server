@@ -200,7 +200,7 @@ Utils.prototype.findAttrs = function (db, partition, where) {
 };
 
 Utils.prototype.sortAttrs = function (attrs) {
-  var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value'];
+  var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value', 'quorum'];
   return utils.sort(attrs, sortAttrs);
 };
 
