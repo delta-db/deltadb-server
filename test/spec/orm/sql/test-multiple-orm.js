@@ -13,15 +13,21 @@ var testORM = function (name, Adapter) {
 
     testUtils.setUp(this);
 
-    var postgres = null, dbPostgres = 'postgres', dbTest = 'testdb', host = 'localhost',
-      username = 'postgres', password = 'secret', port = null;
+    var postgres = null,
+      dbPostgres = 'postgres',
+      dbTest = 'testdb',
+      host = 'localhost',
+      username = 'postgres',
+      password = 'secret',
+      port = null;
 
     beforeEach(function () {
       postgres = new Adapter();
     });
 
     it('should allow simulatenous queries', function () {
-      var orm1 = new Adapter(), orm2 = new Adapter();
+      var orm1 = new Adapter(),
+        orm2 = new Adapter();
       return orm1.connect(dbPostgres, host, username, password, port).then(function () {
         return orm2.connect(dbPostgres, host, username, password, port);
       }).then(function () {
@@ -36,7 +42,8 @@ var testORM = function (name, Adapter) {
     });
 
     it('should retry connections', function () {
-      var test1 = new Adapter(), test2 = new Adapter();
+      var test1 = new Adapter(),
+        test2 = new Adapter();
       return postgres.connect(dbPostgres, host, username, password, port).then(function () {
         return test1.connect(dbTest, host, username, password, port).catch(function () {
           // failed and is ok as db doesnt exist
@@ -60,7 +67,8 @@ var testORM = function (name, Adapter) {
 
     it('should destroy connections', function () {
       // Make sure that destroying a database doesn't tie up the connections
-      var test1 = new Adapter(), test2 = new Adapter();
+      var test1 = new Adapter(),
+        test2 = new Adapter();
       return postgres.connect(dbPostgres, host, username, password, port).then(function () {
         return postgres._createDatabase(dbTest);
       }).then(function () {
@@ -84,7 +92,8 @@ var testORM = function (name, Adapter) {
     });
 
     it('should identify when db exists', function () {
-      var test1 = new Adapter(), test2 = new Adapter();
+      var test1 = new Adapter(),
+        test2 = new Adapter();
       return postgres.connect(dbPostgres, host, username, password, port).then(function () {
         return postgres._createDatabase(dbTest);
       }).then(function () {

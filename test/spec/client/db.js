@@ -23,7 +23,9 @@ describe('db', function () {
     return doc.set({
       since: null
     }).then(function () {
-      client.db({ db: 'mydb '});
+      client.db({
+        db: 'mydb '
+      });
     });
   });
 

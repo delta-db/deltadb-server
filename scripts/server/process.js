@@ -15,7 +15,9 @@ var Partitioner = require('../partitioner/sql'),
 
 var Process = function () {
   this._initSystemDB();
-  this._dbNames = { system: clientUtils.SYSTEM_DB_NAME };
+  this._dbNames = {
+    system: clientUtils.SYSTEM_DB_NAME
+  };
 };
 
 Process.SLEEP_MS = 1000;
@@ -29,19 +31,23 @@ Process.prototype._initSystemDB = function () {
   self._client = new Client(store);
 
   // TODO: doesn't url need to be set here?
-  self._systemDB = self._client.db({ db: clientUtils.SYSTEM_DB_NAME });
+  self._systemDB = self._client.db({
+    db: clientUtils.SYSTEM_DB_NAME
+  });
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
 
   self._dbs.on('doc:create', function (doc) {
-    var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
+    var data = doc.get(),
+      dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // new db? Ignore policy deltas
       self._dbNames[dbName] = dbName;
     }
   });
 
   self._dbs.on('doc:destroy', function (doc) {
-    var data = doc.get(), dbName = data[clientUtils.DB_ATTR_NAME];
+    var data = doc.get(),
+      dbName = data[clientUtils.DB_ATTR_NAME];
     if (dbName) { // destroying db? Ignore policy deltas
       delete self._dbNames[dbName];
     }
@@ -60,7 +66,8 @@ Process.prototype._processDB = function (dbName) {
   // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
   // partitioner each loop so that can deal with many DBs or is this too inefficient?
 
-  var self = this, part = new Partitioner(dbName);
+  var self = this,
+    part = new Partitioner(dbName);
   return part.connect().then(function () {
     return self._processAndCatch(part);
   }).then(function () {
@@ -75,7 +82,8 @@ Process.prototype._processDB = function (dbName) {
 };
 
 Process.prototype._process = function () {
-  var self = this, promises = [];
+  var self = this,
+    promises = [];
   utils.each(self._dbNames, function (dbName) {
     promises.push(self._processDB(dbName));
   });

@@ -393,10 +393,9 @@ DB.prototype._init = function () {
 DB.prototype._connect = function () {
   var self = this;
 
-  self._socket = io.connect(self._url,
-    {
-      'force new connection': true
-    }); // same client, multiple connections for testing
+  self._socket = io.connect(self._url, {
+    'force new connection': true
+  }); // same client, multiple connections for testing
 
   self._registerErrorListener();
 

@@ -12,7 +12,7 @@ var Connections = function () {
   this._id = 1;
 };
 
-Connections.prototype._connString = function (db, host, username, password /*, port */) {
+Connections.prototype._connString = function (db, host, username, password /*, port */ ) {
   return 'postgres://' + username + ':' + password + '@' + host + '/' + db;
 };
 
@@ -22,7 +22,8 @@ Connections.prototype._nextId = function () {
 };
 
 Connections.prototype.connect = function (db, host, username, password, port) {
-  var self = this, id = self._nextId(),
+  var self = this,
+    id = self._nextId(),
     connString = self._connString(db, host, username, password, port);
 
   if (self._connections[connString]) { // conn exists?
@@ -30,11 +31,17 @@ Connections.prototype.connect = function (db, host, username, password, port) {
   } else {
     var ids = {};
     ids[id] = true;
-    self._connections[connString] = { connection: new Connection(connString), ids: ids };
+    self._connections[connString] = {
+      connection: new Connection(connString),
+      ids: ids
+    };
   }
 
   return self._connections[connString].connection.connect().then(function () {
-    return Promise.resolve({ connection: self._connections[connString].connection, id: id });
+    return Promise.resolve({
+      connection: self._connections[connString].connection,
+      id: id
+    });
   }).catch(function (err) {
     return self._unregister(id, db, host, username, password, port).then(function () {
       throw err;

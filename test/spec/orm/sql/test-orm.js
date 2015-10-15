@@ -604,13 +604,13 @@ var testORM = function (name, Adapter) {
     it('should identify if db exists', function () {
       return sql.dbExists('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
         config.POSTGRES_PWD).then(function (exists) {
-          exists.should.eql(true);
-        }).then(function () {
-          return sql.dbExists('testdb_orm_nope', config.POSTGRES_HOST, config.POSTGRES_USER,
-            config.POSTGRES_PWD);
-        }).then(function (exists) {
-          exists.should.eql(false);
-        });
+        exists.should.eql(true);
+      }).then(function () {
+        return sql.dbExists('testdb_orm_nope', config.POSTGRES_HOST, config.POSTGRES_USER,
+          config.POSTGRES_PWD);
+      }).then(function (exists) {
+        exists.should.eql(false);
+      });
     });
 
   });

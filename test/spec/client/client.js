@@ -7,7 +7,8 @@ var utils = require('../../../scripts/utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  clientUtils = require('../../../scripts/client/utils');
+  clientUtils = require('../../../scripts/client/utils'),
+  Promise = require('bluebird');
 
 describe('client', function () {
 

@@ -231,8 +231,9 @@ DocRecs.prototype.canDestroyAt = function (docId, destroyedAt) {
   var where = ['id', '=', '"' + docId + '"'];
   // Use <= so that we trigger an update to docs that can be used to determine whether we need to
   // update
-  return this._sql.find(['id'], this._name, null, [where, 'and',
-    ['updated_at', '<=', '"' + destroyedAt.toISOString() + '"'],
+  return this._sql.find(['id'], this._name, null, [where, 'and', ['updated_at', '<=', '"' +
+      destroyedAt.toISOString() + '"'
+    ],
     'and', [
       ['destroyed_at', '<=', '"' + destroyedAt.toISOString() + '"'], 'or', ['destroyed_at',
         '=', 'null'

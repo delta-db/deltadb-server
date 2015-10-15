@@ -136,23 +136,31 @@ describe('basic', function () {
     });
 
     var setChangesShouldEql = function (changes) {
-      utils.changesShouldEql([
-        { name: 'thing', val: '"write"',
-          col: 'tasks' },
-        { name: 'priority', val: '"high"',
-          col: 'tasks' }], changes);
+      utils.changesShouldEql([{
+        name: 'thing',
+        val: '"write"',
+        col: 'tasks'
+      }, {
+        name: 'priority',
+        val: '"high"',
+        col: 'tasks'
+      }], changes);
     };
 
     var aEmitChangesShouldEql = function () {
-      utils.changesShouldEql([
-        { name: 'thing', val: '"write"',
-          col: 'tasks' }], aEmitChanges);
+      utils.changesShouldEql([{
+        name: 'thing',
+        val: '"write"',
+        col: 'tasks'
+      }], aEmitChanges);
     };
 
     var bEmitChangesShouldEql = function () {
-      utils.changesShouldEql([
-        { name: 'priority', val: '"high"',
-          col: 'tasks' }], bEmitChanges);
+      utils.changesShouldEql([{
+        name: 'priority',
+        val: '"high"',
+        col: 'tasks'
+      }], bEmitChanges);
     };
 
     // Create spy to verify that changes sent only once

@@ -18,8 +18,7 @@ var ensureDBCreated = function () {
     return system.create(adminParty);
   }).catch(function () {
     // Assume the error is because it doesn't already exist
-    return system.create(adminParty).catch(function () {
-    });
+    return system.create(adminParty).catch(function () {});
   }).then(function () {
     return partitioner.closeDatabase();
   });

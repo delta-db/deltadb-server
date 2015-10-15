@@ -88,7 +88,7 @@ Utils.prototype.merge = function (obj1, obj2) {
   return merged;
 };
 
-Utils.prototype.hash = function (/* password, salt */) {
+Utils.prototype.hash = function ( /* password, salt */ ) {
   // TODO: change all callers to use utils
   return clientUtils.hash.apply(this, arguments);
 };
@@ -98,12 +98,12 @@ Utils.prototype.genSalt = function () {
   return clientUtils.genSalt.apply(this, arguments);
 };
 
-Utils.prototype.hashPassword = function (/* password, salt */) {
+Utils.prototype.hashPassword = function ( /* password, salt */ ) {
   // TODO: change all callers to use utils
   return clientUtils.hashPassword.apply(this, arguments);
 };
 
-Utils.prototype.genSaltAndHashPassword = function (/* password */) {
+Utils.prototype.genSaltAndHashPassword = function ( /* password */ ) {
   // TODO: change all callers to use utils
   return clientUtils.genSaltAndHashPassword.apply(this, arguments);
 };

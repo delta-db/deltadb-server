@@ -27,8 +27,12 @@ describe('multiple', function () {
     // was also in use by EventEmitter. TODO: to prevent this in the future, should Doc contain
     // EventEmitter and just provide access functions?
 
-    var db1 = client1.db({ db: 'mydb' }),
-      db2 = client2.db({ db: 'mydb' }),
+    var db1 = client1.db({
+        db: 'mydb'
+      }),
+      db2 = client2.db({
+        db: 'mydb'
+      }),
       col1 = db1.col('mycol'),
       col2 = db2.col('mycol'),
       doc1 = col1.doc(),

@@ -65,7 +65,8 @@ SQL.prototype.connect = function (db, host, username, password, port) {
 };
 
 SQL.prototype.dbExists = function (db, host, username, password, port) {
-  var sql = new SQL(), exists = false;
+  var sql = new SQL(),
+    exists = false;
   return sql.connect('postgres', host, username, password, port).then(function () {
     return sql._query('SELECT 1 FROM pg_database WHERE datname=$1', [db]);
   }).then(function (results) {
@@ -95,8 +96,8 @@ SQL.prototype._isDBMissingError = function (err) {
 
 SQL.prototype._isDBExistsError = function (err) {
   return err.message ===
-      'duplicate key value violates unique constraint "pg_database_datname_index"' ||
-      err.message.match(/^database ".*" already exists$/);
+    'duplicate key value violates unique constraint "pg_database_datname_index"' ||
+    err.message.match(/^database ".*" already exists$/);
 };
 
 SQL.prototype._query = function (sql, replacements) {
@@ -116,7 +117,8 @@ SQL.prototype._query = function (sql, replacements) {
       throw new DBExistsError(err.message);
     } else {
       // TODO: a wrapper should be created in sql/sql.js and this should be moved there
-      throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));
+      throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(
+        replacements));
     }
   });
 };
@@ -309,21 +311,23 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
 SQL.prototype.close = function () {
   var self = this;
   return connections.disconnect(self._connection.id, self._db, self._host, self._username,
-    self._password, self._port)
-      .then(function () {
-        self._connected = false;
-        self._connection.connection.removeAllListeners(); // prevent listener leak
-      });
+      self._password, self._port)
+    .then(function () {
+      self._connected = false;
+      self._connection.connection.removeAllListeners(); // prevent listener leak
+    });
 };
 
 SQL.prototype._closeOtherConnections = function (db) {
-  return this._query('SELECT pg_terminate_backend (pid) FROM pg_stat_activity WHERE datname=$1',
-    [db]);
+  return this._query('SELECT pg_terminate_backend (pid) FROM pg_stat_activity WHERE datname=$1', [
+    db
+  ]);
 };
 
 SQL.prototype._dropDatabase = function (db, force) {
   // Postgres will not let you drop a DB if there are any other connections to the DB
-  var self = this, promise = null;
+  var self = this,
+    promise = null;
 
   if (force) {
     promise = self._closeOtherConnections(db);

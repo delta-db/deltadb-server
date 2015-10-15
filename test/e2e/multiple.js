@@ -79,21 +79,22 @@ describe('multiple', function () {
     });
 
     var task2 = bTasks.doc({
-     $id: docUUID,
-     priority: 'high'
+      $id: docUUID,
+      priority: 'high'
     });
 
     return Promise.all([
       clientUtils.once(aTasks, 'attr:record'),
       clientUtils.once(bTasks, 'attr:record'),
       task1.save(),
-      task2.save()]);
+      task2.save()
+    ]);
 
   };
 
   var createSendReceiveDestroy = function (i) {
     var promise = Promise.resolve();
-    if( i > 0) {
+    if (i > 0) {
       promise = destroyBoth().then(function () {
         createBoth();
       });
@@ -117,7 +118,7 @@ describe('multiple', function () {
     var chain = Promise.resolve();
 
     for (var i = 0; i < 5; i++) {
-        chain = chain.then(createSendReceiveDestroyFactory(i));
+      chain = chain.then(createSendReceiveDestroyFactory(i));
     }
 
     return chain;

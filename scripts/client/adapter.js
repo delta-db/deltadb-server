@@ -31,7 +31,9 @@ Adapter.prototype._initStore = function () {
 Adapter.prototype._initDBStore = function (db) {
   var self = this;
   self._loaded.then(function () {
-    var dbStore = self._store.db({ db: db._name }); // get or create store
+    var dbStore = self._store.db({
+      db: db._name
+    }); // get or create store
     db._import(dbStore);
   });
 };
@@ -101,7 +103,9 @@ Adapter.prototype.db = function (opts) {
 
 Adapter.prototype._systemDB = function () {
   if (!this._sysDB) {
-    this._sysDB = this.db({ db: clientUtils.SYSTEM_DB_NAME }); // TODO: pass url here
+    this._sysDB = this.db({
+      db: clientUtils.SYSTEM_DB_NAME
+    }); // TODO: pass url here
   }
   return this._sysDB;
 };
@@ -127,7 +131,8 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
 };
 
 Adapter.prototype._createDatabase = function (dbName) {
-  var self = this, ts = new Date();
+  var self = this,
+    ts = new Date();
   return self._systemDB()._createDatabase(dbName).then(function (doc) {
     return self._resolveAfterDatabaseCreated(dbName, doc, ts);
   });
@@ -153,7 +158,8 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
 };
 
 Adapter.prototype._destroyDatabase = function (dbName) {
-  var self = this, ts = new Date();
+  var self = this,
+    ts = new Date();
 
   // If the db exists then close it first!! I don't think we have to worry about a race condition
   // where the client re-creates this DB while trying to destroy as the destroy will just fail as
@@ -161,7 +167,9 @@ Adapter.prototype._destroyDatabase = function (dbName) {
   var promise = null;
   if (this.exists(dbName) && !self._localOnly) {
     // TODO: really need a get so that URL doesn't need to be specified here?
-    var db = this.db({ db: dbName });
+    var db = this.db({
+      db: dbName
+    });
     promise = db._disconnect();
   } else {
     promise = Promise.resolve();

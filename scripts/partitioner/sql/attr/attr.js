@@ -85,7 +85,7 @@ Attr.prototype.create = function () {
     return self.createIfPermitted();
   }).then(function () {
     return self.setDestroyedOrUpdateDoc();
-  }).then(function (/* updated */) {
+  }).then(function ( /* updated */ ) {
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
@@ -159,35 +159,35 @@ Attr.prototype.setOptions = function () {
 
   switch (this._params.name) {
 
-    case Doc._policyName:
-      // TODO: create fn for following
-      return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
-        this._params.changedByUserId, this._params.recordedAt,
-        this._params.updatedAt, this._params.seq,
-        this._params.restore, this._params.quorum,
-        this._params.colId, this._params.userUUID);
+  case Doc._policyName:
+    // TODO: create fn for following
+    return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
+      this._params.changedByUserId, this._params.recordedAt,
+      this._params.updatedAt, this._params.seq,
+      this._params.restore, this._params.quorum,
+      this._params.colId, this._params.userUUID);
 
-    case Doc._userName:
-      // TODO: create fn for following
-      return this._users.setUser(this._params.value, this._params.updatedAt,
-        this._params.changedByUserId, this._params.changedByUUID);
+  case Doc._userName:
+    // TODO: create fn for following
+    return this._users.setUser(this._params.value, this._params.updatedAt,
+      this._params.changedByUserId, this._params.changedByUUID);
 
-    case Doc._roleName: // TODO: split into fns
-      var roleUUID = this._roles.toUUID(this._params.value.roleName);
-      if (this._params.value.action === UserRoles.ACTION_REMOVE) {
-        return this._users.removeRole(this._params.forUserId, roleUUID);
-      } else {
-        return this._users.addRole(this._params.forUserId, roleUUID,
-          this._params.changedByUserId, this._params.changedByUUID,
-          this._params.updatedAt, this._params.docId);
-      }
-      break;
+  case Doc._roleName: // TODO: split into fns
+    var roleUUID = this._roles.toUUID(this._params.value.roleName);
+    if (this._params.value.action === UserRoles.ACTION_REMOVE) {
+      return this._users.removeRole(this._params.forUserId, roleUUID);
+    } else {
+      return this._users.addRole(this._params.forUserId, roleUUID,
+        this._params.changedByUserId, this._params.changedByUUID,
+        this._params.updatedAt, this._params.docId);
+    }
+    break;
 
-    case System.DB_ATTR_NAME:
-      return this._createOrDestroyDatabase();
+  case System.DB_ATTR_NAME:
+    return this._createOrDestroyDatabase();
 
-    default:
-      return Promise.resolve();
+  default:
+    return Promise.resolve();
   }
 };
 

@@ -19,7 +19,7 @@ Connection.prototype._connect = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     // get a pg client from the connection pool
-    pg.connect(self._connString, function(err, client, done) {
+    pg.connect(self._connString, function (err, client, done) {
       if (err) {
         self._connecting = null;
         reject(err);
@@ -71,7 +71,7 @@ Connection.prototype._query = function (sql, replacements) {
       reject(new SocketClosedError('socket was closed'));
     }
 
-    self._client.query(sql, replacements, function(err, result) {
+    self._client.query(sql, replacements, function (err, result) {
       if (err) {
         if (err.code === 'EPIPE' || err.message === 'This socket is closed.' ||
           err.message === 'This socket has been ended by the other party' ||

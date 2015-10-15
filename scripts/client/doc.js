@@ -5,7 +5,7 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data, col) {
+var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
   this._initDat(data);
 

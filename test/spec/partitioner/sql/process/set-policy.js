@@ -24,17 +24,15 @@ describe('set-policy', function () {
     return args.db._sql.find(null, 'roles', null, null, ['id', 'asc'])
       .then(function (results) {
         var systemRoles = [{
-            id: Roles.ID_SUPER,
-            uuid: '$r$super'
-          },
-          {
-            id: Roles.ID_OWNER,
-            uuid: '$r$owner'
-          }, {
-            id: Roles.ID_ALL,
-            uuid: '$r$all'
-          }
-        ];
+          id: Roles.ID_SUPER,
+          uuid: '$r$super'
+        }, {
+          id: Roles.ID_OWNER,
+          uuid: '$r$owner'
+        }, {
+          id: Roles.ID_ALL,
+          uuid: '$r$all'
+        }];
         var roles = systemRoles.concat(userRoles);
         testUtils.contains(roles, results.rows);
         results.rows.forEach(function (row) {

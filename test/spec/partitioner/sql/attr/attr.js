@@ -66,7 +66,8 @@ describe('attr', function () {
   });
 
   it('should create database', function () {
-    var dbCreated = null, attr = new Attr();
+    var dbCreated = null,
+      attr = new Attr();
 
     attr._partitioner = { // fake
       _dbName: System.DB_NAME,
@@ -90,7 +91,8 @@ describe('attr', function () {
   });
 
   it('should destroy database', function () {
-    var dbDestroyed = null, attr = new Attr();
+    var dbDestroyed = null,
+      attr = new Attr();
 
     attr._partitioner = { // fake
       _dbName: System.DB_NAME,
@@ -114,7 +116,8 @@ describe('attr', function () {
   });
 
   it('should not create or destroy database', function () {
-    var db = null, attr = new Attr();
+    var db = null,
+      attr = new Attr();
 
     attr._partitioner = { // fake
       _dbName: 'not' + System.DB_NAME,

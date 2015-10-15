@@ -40,7 +40,7 @@ Partitioners.prototype.register = function (dbName, socket, since) {
       socket: socket,
       since: since
     };
-   return self._partitioners[dbName].ready;
+    return self._partitioners[dbName].ready;
   } else {
 
     // First conn for this partitioner

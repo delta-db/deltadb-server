@@ -8,7 +8,7 @@ var inherits = require('inherits'),
   Doc = require('./doc'),
   Cursor = require('../orm/nosql/adapters/mem/cursor');
 
-var Collection = function (name, db) {
+var Collection = function ( /* name, db */ ) {
   MemCollection.apply(this, arguments); // apply parent constructor
   this._createStoreIfStoresImported();
 };
@@ -62,7 +62,8 @@ Collection.prototype.doc = function (data) {
 };
 
 Collection.prototype._initStore = function () {
-  var self = this, promises = [];
+  var self = this,
+    promises = [];
 
   self._store.all(function (docStore) {
     var doc = self._doc();

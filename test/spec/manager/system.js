@@ -52,14 +52,16 @@ describe('system', function () {
 
   it('should create database', function () {
 
-    var userUUID = 'user-uuid', since = null;
+    var userUUID = 'user-uuid',
+      since = null;
 
     // Sleep 1 ms so we only consider changes from now
     return testUtils.timeout(1).then(function () {
       since = new Date();
       return userUtils.createDatabase('myotherdb', userUUID);
     }).then(function () {
-      return testUtils.changes(manager._partitioner, since, null, null, null, true, userUUID);
+      return testUtils.changes(manager._partitioner, since, null, null, null, true,
+        userUUID);
     }).then(function (changes) {
       testUtils.contains(
         [{
@@ -71,14 +73,17 @@ describe('system', function () {
 
   it('should destroy database', function () {
 
-    var userUUID = 'user-uuid', since = null, id = null;
+    var userUUID = 'user-uuid',
+      since = null,
+      id = null;
 
     // Sleep 1 ms so we only consider changes from now
     return testUtils.timeout(1).then(function () {
       since = new Date();
       return userUtils.createDatabase('myotherdb', userUUID);
     }).then(function () {
-      return testUtils.changes(manager._partitioner, since, null, null, null, true, userUUID);
+      return testUtils.changes(manager._partitioner, since, null, null, null, true,
+        userUUID);
     }).then(function (changes) {
       id = changes[0].id;
       return testUtils.timeout(1);
@@ -87,7 +92,8 @@ describe('system', function () {
       since = new Date();
       return userUtils.destroyDatabase('myotherdb', userUUID);
     }).then(function () {
-      return testUtils.changes(manager._partitioner, since, null, null, null, true, userUUID);
+      return testUtils.changes(manager._partitioner, since, null, null, null, true,
+        userUUID);
     }).then(function (changes) {
       changes[0].id.should.eql(id);
       utils.notDefined(changes[0].name).should.eql(true);
