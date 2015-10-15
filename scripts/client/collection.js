@@ -35,10 +35,8 @@ Collection.prototype._createMissingStores = function () {
   if (!this._store) { // store was imported?
     this._createStore();
 
-    // Create stores for any docs that have not been imported
-    this.all(function (doc) {
-      doc._createMissingStore();
-    });
+    // We don't have to create any stores for docs that have been registered as the store would have
+    // to have been created if the doc has been registered
 
     // Create stores for any pending docs that have not been imported
     this._allPending(function (doc) {
