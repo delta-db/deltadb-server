@@ -36,6 +36,18 @@ Next
 ---
 - semver pkg
 - codeclimate.com
+- alternative ORM query structure using a new object called Query that inherits from Promise, e.g.
+		sql.find(attrs)
+		   .table(table)
+			 .joins(joins) // should table and joins be combined?
+			 .where(where)
+			 .order(order)
+			 .limit(limit)
+			 .offset(offset)
+			 // optional .distinct()
+			 // optional .throwIfMissing()
+			 .then(function (results) { })
+	 Also do something similar for NoSQL ORM
 - there are two "Servers" in the server code -- one should be renamed
 - run on Amazon lambda and other similar services
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
@@ -74,6 +86,8 @@ Next
 - Use local sockets so that can have 1 server process and multiple process processes that are all talking to each other
 - Make sure cannot create a DB that conflicts with the System DB
 - What if lose connection to underlying DB when doing things like creating tables? Need a way of wiping out tables and retrying?
+- add concept of foreign keys to SQL ORM and use it for cleaner deletions of records and their children
+
 
 NoSQL support
 ---
