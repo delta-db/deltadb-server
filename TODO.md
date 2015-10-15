@@ -1,8 +1,8 @@
 Now
 ---
 - sockets:
-	- fix old tests
 	- code coverage on old tests
+	- merge into master
 	- for test-e2e use spawn to launch server - add to CI and make sure complete coverage
 	- test where db already exists and then start server and make sure server processes the db
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
@@ -65,7 +65,7 @@ Next
 - option to log every queued change
 - command line tool for creating/modifying DB, user, etc...
 - when changes are recorded and then sent back to client, etc... then only pass id and recorded_at to save bandwidth?
-- could speed up write by writting batches to flat files and letting process routine read from files
+- could speed up write by writing batches to flat files and letting process routine read from files
 - could speed up read for certain scenarios by caching non-essential data say every 30 mins in flat files and then having clients read just this data and only query the DB directly for the essential data. Could separate the essential and non-essential via DB's and sync modes, could then put a DB in cache mode and all syncs would be cached and the cached syncs could be rotated.
 - tool in admin UI or code that helps you unit test policies
 - there is no construct for transmitting col/db destroys in a delta, e.g. could have { name: '$col', value: null } to denote destroy. Is this needed?

@@ -137,8 +137,8 @@ describe('client', function () {
       return utils.once(db2, 'load');
     }).then(function () {
       // Simulate initializing of store after client was setup
-     db2._loadStore();
-     return utils.once(db2, 'load');
+      db2._loadStore();
+      return utils.once(db2, 'load');
     }).then(function () {
       // We need to wait to get the task as the doc isn't registered until save() is called.
       // Alternatively, we could call task2.save() above in setUpClient2().

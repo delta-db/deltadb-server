@@ -78,22 +78,33 @@ Doc.prototype._loadFromStore = function () {
 Doc.prototype._initStore = function () {
   var self = this;
 
-  self._loadFromStore();
+  this._loadFromStore();
 
-  if (!self.id()) { // no id?
-    self.id(utils.uuid()); // gen id
-  }
-  self._store.id(self.id()); // set id
-
-  // register as doc id was just set
-  self._register().then(function () {
+  if (self._store.id()) { // does the store have an id? e.g. are we reloading data?
+    self.id(self._store.id());
+    self._register().then(function () {
+      self.emit('load');
+    });
+  } else {
+    // We have just created the store and nothing has been saved yet so don't register
     self.emit('load');
-  });
+  }
+};
+
+Doc.prototype._ensureId = function () {
+  // If there is no id, set one so that the id is not set by the store
+  var id = this.id();
+  if (!id) {
+    id = utils.uuid();
+    this.id(id);
+  }
+  this._store.id(id); // use id from data
 };
 
 Doc.prototype._saveStore = function () {
   var self = this;
   return self._loaded.then(function () {
+    self._ensureId();
     return self._store.set(self._dat);
   });
 };

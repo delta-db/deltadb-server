@@ -145,16 +145,12 @@ describe('basic', function () {
 
     var aEmitChangesShouldEql = function () {
       utils.changesShouldEql([
-        { name: '$id', val: '"' + docUUID + '"',
-          col: 'tasks' },
         { name: 'thing', val: '"write"',
           col: 'tasks' }], aEmitChanges);
     };
 
     var bEmitChangesShouldEql = function () {
       utils.changesShouldEql([
-        { name: '$id', val: '"' + docUUID + '"',
-          col: 'tasks' },
         { name: 'priority', val: '"high"',
           col: 'tasks' }], bEmitChanges);
     };
