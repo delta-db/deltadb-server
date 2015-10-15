@@ -106,7 +106,7 @@ Part.prototype._dbUser = config.POSTGRES_USER;
 Part.prototype._dbPwd = config.POSTGRES_PWD;
 Part.prototype._port = null;
 
-Part.prototype._DB_NAME_PREFIX = 'delta_';
+Part.prototype._DB_NAME_PREFIX = config.DB_NAME_PREFIX;
 
 Part.prototype._toUniqueDBName = function (dbName) {
   // Also remove '$' in the case of the system DB

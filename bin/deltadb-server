@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var program = require('commander'),
+  fs = require('fs'),
+  config = require('../config');
+
+// Options
+program
+  .version(JSON.parse(fs.readFileSync(__dirname + '/../package.json', 'utf8')).version)
+  .usage('[options]')
+  .option('-p, --port <port>', 'Port')
+  .option('-P, --prefix <prefix>', 'DB name prefix useful for keeping test DBs separate')
+  .parse(process.argv);
+
+// Map options to configurations
+var configOpts = {
+  port: 'PORT',
+  prefix: 'DB_NAME_PREFIX'
+};
+
+// Set configurations
+for (var opt in configOpts) {
+  if (program[opt]) { // opt val specified?
+    var configName = configOpts[opt];
+    config[configName] = program[opt];
+  }
+}
+
+// Start server
+require('../scripts/server');

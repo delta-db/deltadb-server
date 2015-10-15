@@ -9,9 +9,8 @@ var app = require('express')(),
   http = require('http').Server(app),
   io = require('socket.io')(http),
   Partitioners = require('./partitioners'),
-  log = require('../utils/log');
-
-var port = 3000;
+  log = require('../utils/log'),
+  config = require('../../config');
 
 var Server = function () {
   this._partitioners = new Partitioners();
@@ -88,8 +87,8 @@ Server.prototype.listen = function () {
     self._registerInitListener(socket);
   });
 
-  http.listen(port, function () {
-    log.info('listening on *:' + port);
+  http.listen(config.PORT, function () {
+    log.info('listening on *:' + config.PORT);
   });
 };
 
