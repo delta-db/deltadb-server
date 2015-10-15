@@ -7,8 +7,7 @@ var utils = require('../../../scripts/utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  clientUtils = require('../../../scripts/client/utils'),
-  Promise = require('bluebird');
+  clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
 
@@ -1542,51 +1541,6 @@ describe('client', function () {
         doc.should.eql(savedDoc);
       });
     });
-
-  });
-
-  it('should create database', function () {
-
-    var dbName = 'mydb';
-
-    // TODO: actually simulate syncing
-    // var sync = function () {
-    //   var server = new Server(); // mock server
-    //   server.remoteChanges = [{
-    //     id: '1',
-    //     col: 'tasks', // fake for syncing
-    //     name: '$db',
-    //     val: JSON.stringify({ '$db': 'mydb' }),
-    //     up: '2014-01-01T06:00:00.000Z',
-    //     re: (new Date()).toUTCString()
-    //   }];
-    //   return db.sync(server);
-    // };
-
-    client._resolveAfterDatabaseCreated = function () {
-      return Promise.resolve();
-      // TODO: actually simulate syncing
-      // // Fake syncing
-      // var self = this, args = arguments;
-      // return sync().then(function () {
-      //   return Client.prototype._resolveAfterDatabaseCreated.apply(self, args);
-      // });
-    };
-
-    return client._createDatabase(dbName);
-
-  });
-
-  it('should destroy database', function () {
-
-    var dbName = 'mydb';
-
-    client._resolveAfterDatabaseDestroyed = function () {
-      return Promise.resolve();
-      // TODO: actually simulate syncing
-    };
-
-    return client._destroyDatabase(dbName);
 
   });
 

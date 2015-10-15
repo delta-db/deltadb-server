@@ -1,6 +1,7 @@
 'use strict';
 
 describe('client', function () {
+  require('./adapter');
   require('./client');
   require('./db');
   require('./delta-db');
