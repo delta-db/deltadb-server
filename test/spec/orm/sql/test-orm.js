@@ -4,7 +4,8 @@ var testUtils = require('../../../utils'),
   config = require('../../../../config'),
   chai = require('chai'),
   expect = chai.expect,
-  MissingError = require('../../../../scripts/orm/sql/common/missing-error');
+  MissingError = require('../../../../scripts/orm/sql/common/missing-error'),
+  DBExistsError = require('../../../../scripts/client/db-exists-error');
 
 var testORM = function (name, Adapter) {
 
@@ -611,6 +612,12 @@ var testORM = function (name, Adapter) {
       }).then(function (exists) {
         exists.should.eql(false);
       });
+    });
+
+    it('should throw error when creating db if db exists', function () {
+      return testUtils.shouldThrow(function () {
+        return sql._createDatabase('testdb_orm');
+      }, new DBExistsError());
     });
 
   });
