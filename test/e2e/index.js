@@ -1,5 +1,7 @@
 'use strict';
 
+/* global before, after */
+
 var log = require('../../scripts/client/log'),
   LogStream = require('../../scripts/utils/log-stream'),
   ServerProcess = require('../server-process'),
@@ -16,13 +18,14 @@ describe('e2e', function () {
     system = new System(manager);
 
   /**
-   * Destroy and then create the system DB so that we have a fresh instance and Admin Party is enabled
+   * Destroy and then create the system DB so that we have a fresh instance and Admin Party is
+   * enabled
    */
   var destroyAndCreateSystemDB = function () {
     var adminParty = true;
     return system.destroy().catch(function (err) {
       // Ignore errors caused from missing DB
-      if ((!err instanceof DBMissingError)) {
+      if (!(err instanceof DBMissingError)) {
         throw err;
       }
     }).then(function () {
