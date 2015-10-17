@@ -20,7 +20,9 @@ var fs = require('fs'),
 var Server = function () {};
 
 Server.prototype.spawn = function () {
-  this._log = fs.createWriteStream('./test/server.log', { flags: 'w' });
+  this._log = fs.createWriteStream('./test/server.log', {
+    flags: 'w'
+  });
   this._server = spawn('./bin/deltadb-server', [
     '--port', config.PORT,
     '--prefix', config.DB_NAME_PREFIX

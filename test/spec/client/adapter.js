@@ -20,7 +20,9 @@ describe('adapter', function () {
       var promise = Client.prototype._resolveAfterDatabaseDestroyed.apply(this, arguments);
 
       // Fake syncing
-      var doc = originatingDoc._col.doc({ $db: 'mydb' });
+      var doc = originatingDoc._col.doc({
+        $db: 'mydb'
+      });
       doc._dat.destroyedAt = new Date();
       originatingDoc._col.emit('doc:destroy', doc);
 
@@ -39,7 +41,9 @@ describe('adapter', function () {
       var promise = Client.prototype._resolveAfterDatabaseCreated.apply(this, arguments);
 
       // Fake syncing
-      var doc = originatingDoc._col.doc({ $db: 'mydb' });
+      var doc = originatingDoc._col.doc({
+        $db: 'mydb'
+      });
       doc._dat.recordedAt = new Date();
       originatingDoc._col.emit('doc:create', doc);
 
@@ -65,7 +69,9 @@ describe('adapter', function () {
   it('should disconnect when destroying', function () {
     fakeResolveAfterDatabaseDestroyed();
 
-    var db = client.db({ db: 'mydb' });
+    var db = client.db({
+      db: 'mydb'
+    });
 
     var disconnected = false;
     db._disconnect = function () { // spy

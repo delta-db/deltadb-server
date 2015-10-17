@@ -3,7 +3,9 @@
 var fs = require('fs');
 
 var LogStream = function (filename) {
-  this._stream = fs.createWriteStream(filename, {'flags': 'w'});
+  this._stream = fs.createWriteStream(filename, {
+    'flags': 'w'
+  });
 };
 
 LogStream.prototype.write = function (msg) {
