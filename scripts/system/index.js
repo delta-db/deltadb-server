@@ -3,7 +3,8 @@
 // TODO: move Cols.ALL up so not at SQL layer. Same for any other partitioner deps at SQL layer
 var Cols = require('../partitioner/sql/col/cols'),
   Users = require('../partitioner/sql/user/users'),
-  clientUtils = require('../client/utils');
+  clientUtils = require('../client/utils'),
+  Roles = require('../partitioner/sql/roles');
 
 var System = function (manager) {
   this._manager = manager;
@@ -53,16 +54,34 @@ System.prototype._queueAdminPolicy = function () {
   return this._manager.queueSetPolicy(policy, Cols.ALL, null, System.DEFAULT_ADMIN_USER_UUID);
 };
 
-System.prototype.create = function () {
+// Allow anyone to create or destroy DBs
+System.prototype._queueAdminPartyPolicy = function () {
+  var policy = {
+    col: {
+      create: Roles.ALL,
+      read: Roles.ALL,
+      update: Roles.ALL,
+      destroy: Roles.ALL
+    }
+  };
+  return this._manager.queueSetPolicy(policy, clientUtils.DB_COLLECTION_NAME, null,
+    System.DEFAULT_ADMIN_USER_UUID);
+};
+
+System.prototype.create = function (adminParty) {
   var self = this;
-  return self._manager._partitioner.connectAndCreate().then(function () {
+  return self._manager._partitioner.createDatabase().then(function () {
     return self._queueCreateDefaultAdminUser();
   }).then(function () {
     return self._manager._partitioner.process(); // actually create user & role
   }).then(function () {
     return self._queueCreateDatabasesCollection();
   }).then(function () {
-    return self._queueAdminPolicy(); // losen policy so any admin can create database    
+    return self._queueAdminPolicy(); // losen policy so any admin can create database
+  }).then(function () {
+    if (adminParty) {
+      return self._queueAdminPartyPolicy();
+    }
   }).then(function () {
     return self._manager._partitioner.process();
   });

@@ -29,12 +29,18 @@ var Globals = require('./globals'),
   Changes = require('./changes'),
   Partition = require('./partition'),
   QueueAttrRecs = require('./queue/queue-attr-recs'),
-  config = require('../../../config');
+  config = require('../../../config'),
+  log = require('../../server/log'),
+  EventEmitter = require('events').EventEmitter,
+  inherits = require('inherits');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
+
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
+  this._registerDisconnectListener();
 
   this._globals = new Globals(this._sql);
   this._roles = new Roles(this._sql, this);
@@ -62,6 +68,25 @@ var Part = function (dbName, sql) {
     this._colRoles, this._queueAttrRecs
     // this._sessions
   ];
+
+  // TODO: causes "listener memory leak" as there is only one pg instance
+  // this._addSqlErrorListener();
+};
+
+inherits(Part, EventEmitter);
+
+// TODO: causes "listener memory leak" as there is only one pg instance. Better way?
+// Part.prototype._addSqlErrorListener = function () {
+//   this._sql.on('error', function (err) {
+//     log.warning('partitioner sql err=' + err.message);
+//   });
+// };
+
+Part.prototype._registerDisconnectListener = function () {
+  var self = this;
+  self._sql.on('disconnect', function () {
+    self.emit('disconnect');
+  });
 };
 
 Part.prototype._initPartitions = function () {
@@ -79,14 +104,14 @@ Part.prototype._initPartitions = function () {
 Part.prototype._host = config.POSTGRES_HOST;
 Part.prototype._dbUser = config.POSTGRES_USER;
 Part.prototype._dbPwd = config.POSTGRES_PWD;
+Part.prototype._port = null;
 
-Part.prototype._DB_NAME_PREFIX = 'delta_';
+Part.prototype._DB_NAME_PREFIX = config.DB_NAME_PREFIX;
 
 Part.prototype._toUniqueDBName = function (dbName) {
-  return this._DB_NAME_PREFIX + dbName;
+  // Also remove '$' in the case of the system DB
+  return this._DB_NAME_PREFIX + dbName.replace(/\$/, '');
 };
-
-// Part.prototype.batch = 100;
 
 Part.prototype.createTables = function () {
 
@@ -136,18 +161,20 @@ Part.prototype.changes = function (since, history, limit, offset, all, userId) {
 
 Part.prototype.connect = function () {
   // TODO: throw error if _dbName is reserved
-  return this._sql.connectAndUse(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
-    this._dbPwd);
+  return this._sql.connect(this._toUniqueDBName(this._dbName), this._host, this._dbUser,
+    this._dbPwd, this._port);
+};
+
+Part.prototype.dbExists = function (dbName) {
+  return this._sql.dbExists(this._toUniqueDBName(dbName), this._host, this._dbUser,
+    this._dbPwd, this._port);
 };
 
 Part.prototype.createDatabase = function () {
-  return this.createTables();
-};
-
-Part.prototype.connectAndCreate = function () {
   var self = this;
-  return self.connect().then(function () {
-    return self.createDatabase();
+  return self._sql.createAndUse(self._toUniqueDBName(self._dbName), self._host, self._dbUser,
+    self._dbPwd).then(function () {
+    return self.createTables();
   });
 };
 
@@ -158,7 +185,10 @@ Part.prototype.truncateDatabase = function () {
 
 // TODO: rename to destroy?
 Part.prototype.destroyDatabase = function () {
-  return this._sql.dropAndCloseDatabase();
+  // force close of all conns first
+  return this._sql.dropAndCloseDatabase(this._toUniqueDBName(this._dbName), this._host,
+    this._dbUser, this._dbPwd, this._port, true);
+
 };
 
 // TODO: rename to disconnect?
@@ -168,13 +198,14 @@ Part.prototype.closeDatabase = function () {
 
 Part.prototype.createAnotherDatabase = function (dbName) {
   // Create a different DB and then just close it as another partitioner will manage it
+  log.info('creating another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
-  var part = new Part(this._toUniqueDBName(dbName), sql);
+  var part = new Part(dbName, sql);
   return this._users.getSuperUser().then(function (user) {
     // Default other DB's super user salt and pwd so that it matches "ours"
     Users.SUPER_SALT = user.salt;
     Users.SUPER_PWD = user.password;
-    return part.connectAndCreate();
+    return part.createDatabase();
   }).then(function () {
     return part.closeDatabase();
   });
@@ -182,11 +213,10 @@ Part.prototype.createAnotherDatabase = function (dbName) {
 
 Part.prototype.destroyAnotherDatabase = function (dbName) {
   // Destroy a different DB and then just close it as another partitioner will manage it
+  log.info('destroying another DB ' + dbName);
   var sql = new SQL(); // TODO: pass in constructor
-  var part = new Part(this._toUniqueDBName(dbName), sql);
-  return part.connect().then(function () {
-    return part.destroyDatabase();
-  });
+  var part = new Part(dbName, sql);
+  return part.destroyDatabase();
 };
 
 module.exports = Part;

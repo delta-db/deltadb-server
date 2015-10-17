@@ -7,14 +7,16 @@ var Promise = require('bluebird'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
-  commonUtils = require('./common-utils');
+  commonUtils = require('./common-utils'),
+  clientUtils = require('../scripts/client/utils');
 
 var Utils = function () {};
 
-Utils.TIMEOUT = 8000;
+// Added to prototype so that it can be accessed outside this module
+Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.setUp = function (thisArg) {
-  thisArg.timeout(Utils.TIMEOUT); // increase timeout
+  thisArg.timeout(this.TIMEOUT); // increase timeout
 };
 
 Utils.prototype.toTime = function (rows) {
@@ -96,12 +98,9 @@ Utils.prototype.contains = function (expected, actual) {
   actual.should.eql(expected);
 };
 
-Utils.prototype.timeout = function (ms) {
-  return new Promise(function (resolve) {
-    setTimeout(function () {
-      resolve();
-    }, ms);
-  });
+Utils.prototype.timeout = function () {
+  // TODO: change all callers to use utils
+  return clientUtils.timeout.apply(this, arguments);
 };
 
 Utils.prototype.sleep = function (sleepMs) {
@@ -201,7 +200,7 @@ Utils.prototype.findAttrs = function (db, partition, where) {
 };
 
 Utils.prototype.sortAttrs = function (attrs) {
-  var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value'];
+  var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value', 'quorum'];
   return utils.sort(attrs, sortAttrs);
 };
 
@@ -344,8 +343,34 @@ Utils.prototype.changesShouldEql = function (expected, actual) {
     if (expected[i] && change.re) {
       expected[i].re = change.re;
     }
+
+    if (expected[i] && change.up) {
+      expected[i].up = change.up;
+    }
+
+    if (expected[i] && change.id) {
+      expected[i].id = change.id;
+    }
   });
   this.eqls(expected, actual);
+};
+
+Utils.prototype.shouldOnce = function (emitter, evnt) {
+  var self = this,
+    err = true,
+    args = null;
+
+  emitter.once(event, function (_args) {
+    err = false;
+    args = _args;
+  });
+
+  return self.timeout(100).then(function () {
+    if (err) {
+      self.never('should have emitted event ' + evnt);
+    }
+    return args;
+  });
 };
 
 Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {

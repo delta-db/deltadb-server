@@ -100,4 +100,28 @@ Manager.prototype.queueSetPolicy = function (policy, col, id, userUUID) {
   return this._partitioner.queue(changes, true);
 };
 
+Manager.prototype._queueDatabaseAction = function (dbName, userUUID, action) {
+  // We don't specify an id as we want the client to destroy the db without having to have the id
+  // that was used when the db was created
+  var changes = [{
+    col: clientUtils.DB_COLLECTION_NAME,
+    name: clientUtils.DB_ATTR_NAME,
+    val: JSON.stringify({
+      action: action,
+      name: dbName
+    }),
+    up: (new Date()).toISOString(),
+    uid: userUUID
+  }];
+  return this._partitioner.queue(changes, true);
+};
+
+Manager.prototype.queueCreateDatabase = function (dbName, userUUID) {
+  return this._queueDatabaseAction(dbName, userUUID, clientUtils.ACTION_ADD);
+};
+
+Manager.prototype.queueDestroyDatabase = function (dbName, userUUID) {
+  return this._queueDatabaseAction(dbName, userUUID, clientUtils.ACTION_REMOVE);
+};
+
 module.exports = Manager;

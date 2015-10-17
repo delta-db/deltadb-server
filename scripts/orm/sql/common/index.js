@@ -5,11 +5,17 @@
 // TODO: replace new Error() with something like new QueryError()
 
 var utils = require('../../../utils'),
-  MissingError = require('./missing-error');
+  MissingError = require('./missing-error'),
+  EventEmitter = require('events').EventEmitter,
+  inherits = require('inherits');
 
 // If SQL is written carefully, it is highly portable between MySQL and Postgres. Using the
 // structure in this class allows us to abstract the differences in SQL implementations.
-var SQL = function () {};
+var SQL = function () {
+  EventEmitter.apply(this, arguments); // apply parent constructor
+};
+
+inherits(SQL, EventEmitter);
 
 SQL.prototype._debug = false;
 
@@ -118,7 +124,7 @@ SQL.prototype.dropTable = function (table) {
 
 // SQL.prototype._query = function ( /* sql, replacements */ ) {};
 
-// e.g. var joins = { 
+// e.g. var joins = {
 //   joins: {
 //     docs: [ ['docs.obj_id', '=', 'objs.id'], 'or' , ['doc.user_id', '=', '?'] ],
 //     users: [ ['users.user_id', '=', 'docs.id'], 'and' , ['doc.user_id', '=', '?'] ]
@@ -171,7 +177,7 @@ SQL.prototype._escapeAndJoinForSelect = function (obj) {
   utils.each(obj, function (val, key) {
     if (isArray) {
       val = self.escape(val);
-      values += delim + val + ' AS "' + val + '"'; // use alias to prevent dups      
+      values += delim + val + ' AS "' + val + '"'; // use alias to prevent dups
     } else {
       values += delim + self.escape(key) + ' AS "' + self.escape(val) + '"';
     }

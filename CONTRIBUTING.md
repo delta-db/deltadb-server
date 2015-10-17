@@ -15,7 +15,7 @@ Committing Changes
 	npm run beautify
 	git add -A
 	git commit -m msg
-	git push 
+	git push
 
 
 Building
@@ -107,3 +107,10 @@ Running Tests In Any Browser Manually
     Point any browser to http://127.0.0.1:8001/test/new-index.html
     You can also run a specific test, e.g. http://127.0.0.1:8001/test/new-index.html?grep=mytest
 
+
+Debugging Tests Using Node Inspector
+---
+
+    $ node-inspector # leave this running in this window
+		Use *Chrome* to visit http://127.0.0.1:8080/?ws=127.0.0.1:8080&port=5858
+		$ mocha -g 'should restore from store' test/test.js --debug-brk

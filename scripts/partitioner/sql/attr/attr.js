@@ -5,7 +5,13 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   AttrRec = require('./attr-rec'),
   AttrParams = require('./attr-params'),
-  UserRoles = require('../user/user-roles');
+  UserRoles = require('../user/user-roles'),
+  System = require('../../../system'),
+  log = require('../../../server/log'),
+  SQLError = require('../../../orm/sql/common/sql-error'),
+  Docs = require('../doc/docs'),
+  DBMissingError = require('../../../client/db-missing-error'),
+  DBExistsError = require('../../../client/db-exists-error');
 
 var Doc = require('../../../client/doc');
 
@@ -22,9 +28,35 @@ var Attr = function (sql, partitionName, policy, partitions, users, docs, params
   this._partitioner = partitioner;
 };
 
+Attr.prototype._canDestroyOrUpdateDoc = function () {
+  var self = this;
+  if (self.destroyingDoc()) {
+    // TODO: all params needed?
+    return self._docs.canDestroy(self._partitionName, self._params.docId,
+      self._params.changedByUserId, self._params.updatedAt, self._params.restore,
+      self._params.docUUID, self._params.colId, self._params.userUUID);
+  } else {
+    // TODO: remove new Date()
+    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
+    return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
+  }
+};
+
+// TODO: split up
 Attr.prototype.create = function () {
+  // We want to make sure that we set the options before we create the attr as creating the attr
+  // will alert the calling process and we want this alert to be done after the options are set,
+  // e.g. alert after the DB has been created.
+  //
+  // 1. Check permissions
+  // 2. Can we destroy or update the doc based on timestamp? (need to gurantee that we haven't
+  //    processed an earlier change)
+  // 3. Set options, e.g. create a DB
+  // 4. Create the attr
+  // 5. Auto restore if the attr was previously deleted
+
   var self = this,
-    up = null,
+    latestNoRestore = null,
     latestNoDelRestore = null;
 
   // Don't replace LATEST unless there is a quorum
@@ -32,21 +64,38 @@ Attr.prototype.create = function () {
     return Promise.resolve(false);
   }
 
-  return self.createIfPermitted().then(function () {
+  latestNoRestore = !self._params.restore && self._partitionName === constants.LATEST;
+
+  // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
+  latestNoDelRestore = latestNoRestore && self._params.name;
+
+  return self._canCreate().then(function () {
+    return self._canDestroyOrUpdateDoc();
+  }).then(function (canUpdate) {
+    if (latestNoRestore && canUpdate) {
+      // Only set the options if the doc was updated. We want to prevent back-to-back changes from
+      // creating issues, e.g. if create DB and destroy DB requests are made back-to-back there is
+      // no guarantee of which order they will be received. This means that if we receive the
+      // destroy DB first then we'll destroy and then create. Instead, we'll ignore any deltas for
+      // docs for which we have already received a later update, e.g. we'd process the destroy and
+      // ignore the create.
+      return self.setOptions();
+    }
+  }).then(function () {
+    return self.createIfPermitted();
+  }).then(function () {
     return self.setDestroyedOrUpdateDoc();
-  }).then(function (updated) {
-    up = updated; // attr was updated? (non-del update)
-
-    // Prevent infinite recursion by checking restore flag. Not restoring, for LATEST and not del?
-    latestNoDelRestore = !self._params.restore && self._partitionName === constants.LATEST &&
-      self._params.name;
-
+  }).then(function ( /* updated */ ) {
     if (latestNoDelRestore) {
       return self.restoreIfDestroyedBefore();
     }
-  }).then(function () {
-    if (latestNoDelRestore && up) {
-      return self.setOptions();
+  }).catch(function (err) {
+    // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
+    // We can expect an SQLError if two clients try to create the DB at the same time
+    if (err instanceof ForbiddenError || err instanceof SQLError) {
+      log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
+    } else {
+      throw err;
     }
   });
 };
@@ -62,30 +111,68 @@ Attr.prototype.newAttrRec = function (partitionName) {
   return new AttrRec(this._sql, partitionName, this._params, this._partitioner);
 };
 
-Attr.prototype.createIfPermitted = function () {
+Attr.prototype._canCreate = function () {
   var self = this;
   var action = self._params.value ? constants.ACTION_UPDATE : constants.ACTION_DESTROY;
-  var attrRec = self.newAttrRec(self._partitionName);
   return self.permitted(action).then(function (allowed) {
     if (!allowed) {
       throw new ForbiddenError(action + ' forbidden');
     }
+  });
+};
+
+Attr.prototype.createIfPermitted = function () {
+  var self = this;
+  var attrRec = self.newAttrRec(self._partitionName);
+  return self._canCreate().then(function () {
     return attrRec.createOrReplace();
   });
 };
 
+Attr.prototype._createOrDestroyDatabase = function () {
+
+  // Only create DB if this the system partitioner
+  if (this._partitioner._dbName !== System.DB_NAME) {
+    // TODO: log?
+    return Promise.resolve();
+  }
+
+  if (this._params.value.action === AttrRec.ACTION_REMOVE) {
+    return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
+      // Ignore DBMissingErrors caused by race conditions when destroying the database
+      if (!(err instanceof DBMissingError)) {
+        throw err;
+      }
+    });
+  } else {
+    return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
+      // Ignore DBMissingErrors caused by race conditions when creating the database
+      if (!(err instanceof DBExistsError)) {
+        throw err;
+      }
+    });
+  }
+};
+
 Attr.prototype.setOptions = function () {
   // TODO: do we really need both this._params.changedByUUID & this._params.userUUID??
-  if (this._params.name === Doc._policyName) {
+
+  switch (this._params.name) {
+
+  case Doc._policyName:
+    // TODO: create fn for following
     return this._policy.setPolicy(this._params.docId, this._params.name, this._params.value,
       this._params.changedByUserId, this._params.recordedAt,
       this._params.updatedAt, this._params.seq,
       this._params.restore, this._params.quorum,
       this._params.colId, this._params.userUUID);
-  } else if (this._params.name === Doc._userName) {
+
+  case Doc._userName:
+    // TODO: create fn for following
     return this._users.setUser(this._params.value, this._params.updatedAt,
       this._params.changedByUserId, this._params.changedByUUID);
-  } else if (this._params.name === Doc._roleName) {
+
+  case Doc._roleName: // TODO: split into fns
     var roleUUID = this._roles.toUUID(this._params.value.roleName);
     if (this._params.value.action === UserRoles.ACTION_REMOVE) {
       return this._users.removeRole(this._params.forUserId, roleUUID);
@@ -94,13 +181,29 @@ Attr.prototype.setOptions = function () {
         this._params.changedByUserId, this._params.changedByUUID,
         this._params.updatedAt, this._params.docId);
     }
-  } else {
+    break;
+
+  case System.DB_ATTR_NAME:
+    return this._createOrDestroyDatabase();
+
+  default:
     return Promise.resolve();
   }
 };
 
 Attr.prototype.destroyingDoc = function () {
-  return !this._params.name && !this._params.value;
+  // TODO: similar code exists in process, attr-rec and here => re-use??
+  var name = this._params.name,
+    value = this._params.value;
+  if (Docs.isIdLess(this._params.name)) { // an id-less change?
+    if (this._params.value.action === AttrRec.ACTION_ADD) {
+      value = this._params.value.action.name;
+    } else { // remove doc
+      name = null;
+      value = null;
+    }
+  }
+  return !name && !value;
 };
 
 // Resolves as true if doc is updated and not destroyed

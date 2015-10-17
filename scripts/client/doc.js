@@ -5,10 +5,15 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc');
 
-var Doc = function (data, col, genDocStore) {
+var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
-  this._genDocStore = genDocStore; // TODO: is this really needed?
   this._initDat(data);
+
+  this._loaded = utils.once(this, 'load');
+
+  this._createStoreIfStoresImported();
+
+  this._changeDoc(data);
 };
 
 inherits(Doc, MemDoc);
@@ -26,12 +31,25 @@ Doc.prototype._import = function (store) {
   this._initStore();
 };
 
-Doc.prototype._pointToData = function () {
-  this._data = this._dat.data; // point to wrapped location
+Doc.prototype._createStore = function () {
+  this._import(this._col._store.doc(this._dat));
 };
 
-Doc._createDocStore = function (data, colStore) {
-  return colStore.doc(data);
+Doc.prototype._createStoreIfStoresImported = function () {
+  // If the stores have already been imported then create a store for this doc now
+  if (this._col._db._storesImported) {
+    this._createStore();
+  }
+};
+
+Doc.prototype._createMissingStore = function () {
+  if (!this._store) { // store was imported?
+    this._createStore();
+  }
+};
+
+Doc.prototype._pointToData = function () {
+  this._data = this._dat.data; // point to wrapped location
 };
 
 Doc.prototype._initDat = function (data) {
@@ -60,48 +78,33 @@ Doc.prototype._loadFromStore = function () {
 Doc.prototype._initStore = function () {
   var self = this;
 
-  return self._opened().then(function () {
+  this._loadFromStore();
 
-    self._loadFromStore();
-
+  if (self._store.id()) { // does the store have an id? e.g. are we reloading data?
     self.id(self._store.id());
-
-    // register as doc id was just set
     self._register().then(function () {
       self.emit('load');
     });
-
-  });
-};
-
-Doc.prototype._open = function () {
-  var self = this;
-  return self._col._opened().then(function () {
-    if (self._genDocStore) {
-      // Use self._dat as the store needs the reference and not a copy
-      self._import(Doc._createDocStore(self._dat, self._col._store));
-    }
-  });
-};
-
-Doc.prototype._opened = function () {
-  if (!this._openPromise) {
-    this._openPromise = this._open();
+  } else {
+    // We have just created the store and nothing has been saved yet so don't register
+    self.emit('load');
   }
-  return this._openPromise;
+};
+
+Doc.prototype._ensureId = function () {
+  // If there is no id, set one so that the id is not set by the store
+  var id = this.id();
+  if (!id) {
+    id = utils.uuid();
+    this.id(id);
+  }
+  this._store.id(id); // use id from data
 };
 
 Doc.prototype._saveStore = function () {
   var self = this;
-  return self._opened().then(function () {
-    // If there is no id, set one so that the id is not set by the store
-    var id = self.id();
-    if (!id) {
-      id = utils.uuid();
-      self.id(id);
-    }
-    self._store.id(id); // use id from data
-
+  return self._loaded.then(function () {
+    self._ensureId();
     return self._store.set(self._dat);
   });
 };
@@ -113,8 +116,17 @@ Doc.prototype.save = function () {
   });
 };
 
+Doc.prototype._emitChange = function () {
+  this._col._db.emit('change');
+};
+
 // TODO: split up
 Doc.prototype._change = function (name, value, updated, recorded, untracked) {
+
+  if (name === this._idName) {
+    // Don't track changes to id as the id is sent with every delta already
+    return;
+  }
 
   if (!updated) {
     updated = new Date();
@@ -122,7 +134,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
 
   // Determine the event before making any changes to the data and then emit the event after the
   // data has been changed
-  var evnts = this._events(name, value, updated);
+  var evnts = this._allEvents(name, value, updated);
 
   // To account for back-to-back writes, increment the seq number if updated is the same
   var seq = this._dat.latest[name] &&
@@ -147,6 +159,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
 
   if (!untracked) { // tracking?
     this._dat.changes.push(change);
+    this._emitChange();
   }
 
   if (name) { // update?
@@ -157,7 +170,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     };
 
     if (recorded) {
-      this._dat.latest[name].re = recorded;
+      this._dat.latest[name].re = recorded; // TODO: is this needed?
       this._dat.recordedAt = recorded;
     }
 
@@ -196,13 +209,24 @@ Doc.prototype._emit = function (evnt, name, value) {
     };
     this.emit(evnt, attr, this);
 
-    this._col._emit(evnt, attr, this); // bubble up to collection layer    
+    this._col._emit(evnt, attr, this); // bubble up to collection layer
   }
 };
 
 Doc.prototype._emitDocCreate = function () {
   // Always emit the id as the creating attr
   this._emit('doc:create', this._idName, this.id());
+};
+
+Doc.prototype._saveRecording = function (name, value, recorded) {
+  if (name && this._dat.latest[name]) {
+
+    this._emit('attr:record', name, value);
+    this._emit('doc:record', name, value);
+
+    this._dat.latest[name].re = recorded; // TODO: is this needed?
+    this._dat.recordedAt = recorded;
+  }
 };
 
 // TODO: better "changes" structure needed so that recording can happen faster? Use Dictionary to
@@ -225,20 +249,17 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
     if (change.name === name && val === value && change.up.getTime() === updated.getTime() &&
       changeSeq === seq) {
 
-      found = true;
+      found = true; // TODO: stop looping once the change has been found
 
-      if (name && self._dat.latest[name]) {
-
-        self._emit('attr:record', name, value);
-        self._emit('doc:record', name, value);
-
-        self._dat.latest[name].re = recorded;
-        self._dat.recordedAt = recorded;
-      }
+      self._saveRecording(name, value, recorded);
 
       delete self._dat.changes[i]; // the change was recorded with a quorum of servers so destroy it
     }
   });
+
+  if (!found) { // change originated from server?
+    self._saveRecording(name, value, recorded);
+  }
 };
 
 Doc.prototype._changeDoc = function (doc) {
@@ -252,7 +273,8 @@ Doc.prototype._destroying = function (value) {
   return value ? false : true;
 };
 
-Doc.prototype._events = function (name, value, updated) {
+// Cannot be called _events as this name is used by EventEmitter
+Doc.prototype._allEvents = function (name, value, updated) {
   var evnts = [];
 
   if (name) { // attr change?
@@ -291,10 +313,7 @@ Doc.prototype._events = function (name, value, updated) {
 };
 
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
-
-  if (name !== this._idName) { // TODO: do we really not to "track" id changes??
-    this._change(name, value, updated, recorded, untracked);
-  }
+  this._change(name, value, updated, recorded, untracked);
 
   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
     this._dat.updatedAt = updated;
@@ -304,11 +323,14 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
 };
 
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
-  if (name !== this._idName) {
-    this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
-  }
+  this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
 
   return MemDoc.prototype.unset.apply(this, arguments);
+};
+
+// TODO: remove this after enhance id-less docs to reconcile with ids?
+Doc.prototype._destroyLocally = function () {
+  return MemDoc.prototype.destroy.apply(this, arguments);
 };
 
 Doc.prototype.destroy = function (destroyedAt, untracked) {
@@ -447,7 +469,7 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
       chng.val = JSON.stringify(chng.val);
     }
     // if (!change.seq) {
-    //   delete chng.seq; // same some bandwidth and clear the seq if 0
+    //   delete chng.seq; // save some bandwidth and clear the seq if 0
     // }
     changes.push(chng);
     change.sent = new Date();

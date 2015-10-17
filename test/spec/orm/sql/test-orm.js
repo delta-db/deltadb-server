@@ -4,7 +4,8 @@ var testUtils = require('../../../utils'),
   config = require('../../../../config'),
   chai = require('chai'),
   expect = chai.expect,
-  MissingError = require('../../../../scripts/orm/sql/common/missing-error');
+  MissingError = require('../../../../scripts/orm/sql/common/missing-error'),
+  DBExistsError = require('../../../../scripts/client/db-exists-error');
 
 var testORM = function (name, Adapter) {
 
@@ -13,7 +14,7 @@ var testORM = function (name, Adapter) {
     testUtils.setUp(this);
 
     var createDatabase = function () {
-      return sql.connectAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+      return sql.createAndUse('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
         config.POSTGRES_PWD).then(
         function () {
           return sql.createTable('attrs', {
@@ -85,7 +86,8 @@ var testORM = function (name, Adapter) {
     });
 
     afterEach(function () {
-      return sql.dropAndCloseDatabase();
+      return sql.dropAndCloseDatabase('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+        config.POSTGRES_PWD);
     });
 
     var shouldEqlDefault = function (results) {
@@ -598,6 +600,24 @@ var testORM = function (name, Adapter) {
           doc_id: 1
         }], results.rows);
       });
+    });
+
+    it('should identify if db exists', function () {
+      return sql.dbExists('testdb_orm', config.POSTGRES_HOST, config.POSTGRES_USER,
+        config.POSTGRES_PWD).then(function (exists) {
+        exists.should.eql(true);
+      }).then(function () {
+        return sql.dbExists('testdb_orm_nope', config.POSTGRES_HOST, config.POSTGRES_USER,
+          config.POSTGRES_PWD);
+      }).then(function (exists) {
+        exists.should.eql(false);
+      });
+    });
+
+    it('should throw error when creating db if db exists', function () {
+      return testUtils.shouldThrow(function () {
+        return sql._createDatabase('testdb_orm');
+      }, new DBExistsError());
     });
 
   });

@@ -23,7 +23,9 @@ var Promise = require('bluebird'),
   Users = require('./user/users'),
   Doc = require('../../client/doc'),
   UserRoles = require('./user/user-roles'),
-  Docs = require('./doc/docs');
+  Docs = require('./doc/docs'),
+  clientUtils = require('../../client/utils'),
+  log = require('../../server/log');
 
 // TODO: remove unneeded params
 var Process = function (sql, docs, users, queueAttrRecs, partitions, cols, policy, roles,
@@ -286,8 +288,9 @@ Process.prototype._getOrCreateCol = function (col) {
           col.updatedAt, col.recordedByUserId);
       }
     }).catch(function (err) {
-      // TODO: log ForbiddenError?
-      if (!(err instanceof ForbiddenError)) {
+      if (err instanceof ForbiddenError) {
+        log.error('Error getting or creating col ' + col.colName + ', err=' + err.message);
+      } else {
         throw err;
       }
     });
@@ -324,7 +327,6 @@ Process.prototype._createDoc = function (partition, docUUID, colId, userId,
 
   // Note: only checks LATEST for permission
   var permUserId = recordedByUserId ? recordedByUserId : userId;
-  // console.log('permUserId=' + permUserId);
   return self._canCreateDoc(colId, docUUID, permUserId, attrName, attrVal, colName)
     .then(function () {
 
@@ -364,8 +366,9 @@ Process.prototype._getOrCreateDoc = function (partition, doc) {
           doc.attrName, doc.attrVal, doc.colName, doc.recordedByUserId);
       }
     }).catch(function (err) {
-      // TODO: log ForbiddenError?
-      if (!(err instanceof ForbiddenError)) {
+      if (err instanceof ForbiddenError) {
+        log.error('Error getting or creating doc, err=' + err.message);
+      } else {
         throw err;
       }
     });
@@ -516,7 +519,6 @@ Process.prototype._canDestroyAttr = function (changedByUserId, userColName, role
 
 Process.prototype._getRecordedByUserId = function (attr) {
   if (attr.super_uuid && this._userIds[attr.super_uuid]) {
-    // throw new Error('not yet being used');
     return this._userIds[attr.super_uuid];
   } else {
     return null;
@@ -568,7 +570,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
           // role users
           var roleUserAttr = utils.clone(attr);
 
-          // Clone sets Dates to strings, is there a better way?
+          // Clone sets Dates to strings, is there a better way? Yeah, enhance clone
           roleUserAttr.created_at = attr.created_at;
           roleUserAttr.recorded_at = attr.recorded_at;
           roleUserAttr.updated_at = attr.updated_at;
@@ -579,7 +581,9 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
 
           self._deltas.push(roleUserAttr);
         }).catch(function (err) {
-          if (!(err instanceof ForbiddenError)) {
+          if (err instanceof ForbiddenError) {
+            log.error('Error looking up or adding user to role, err=' + err.message);
+          } else {
             throw err;
           }
           // Destroy attr as don't have perm
@@ -628,10 +632,17 @@ Process.prototype._getOrGenDocUUID = function (attr) {
   // TODO: use similar ID-less construct for user roles?
   if (Docs.isIdLess(attr.attr_name)) {
     var action = JSON.parse(attr.attr_val);
-    return this._partitions[constants.LATEST]._docs.findUUID(attr.attr_name, action.name)
-      .then(function (docUUID) {
-        attr.doc_uuid = docUUID;
-      });
+    if (action.action === clientUtils.ACTION_ADD) { // creating DB?
+      attr.doc_uuid = utils.uuid(); // generate doc UUID as one doesn't already exist
+      return Promise.resolve();
+    } else { // look up doc UUID
+      return this._partitions[constants.LATEST]._docs.findUUID(attr.attr_name, action.name)
+        .then(function (docUUID) {
+          attr.doc_uuid = docUUID;
+          // Note: we don't delete attr_name here as we need it later down the pipeline to determine
+          // that this is an id-less doc
+        });
+    }
   } else {
     return Promise.resolve();
   }
@@ -680,7 +691,6 @@ Process.prototype._prepareAttrs = function (deltas) {
   return self._cacheUsers(deltas).then(function () {
     return self._takeInventory(deltas);
   }).then(function () {
-    // console.log('deltas='); console.log(deltas);
     return self._lookupOrCreate();
   });
 };
@@ -691,7 +701,9 @@ Process.prototype._processAttr = function (attr) {
   return self._createOrUpdateAttrs(attr).then(function () {
     return self._destroyQueueAttrRec(attr); // remove from queue
   }).catch(function (err) {
-    if (!(err instanceof ForbiddenError)) {
+    if (err instanceof ForbiddenError) {
+      log.error('Error processing attr=' + JSON.stringify(attr) + ', err=' + err.message);
+    } else {
       throw err;
     }
   });
@@ -721,7 +733,6 @@ Process.prototype.process = function () {
   self._clearCache();
   return self._queueAttrRecs.get().then(function (deltas) {
     if (deltas) {
-      // console.log('deltas='); console.log(deltas);
       self._deltas = deltas;
       return self._prepareAndProcessAttrs();
     }

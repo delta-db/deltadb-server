@@ -1,11 +1,9 @@
 'use strict';
 
-var Promise = require('bluebird'),
-  utils = require('../../../utils'),
+var utils = require('../../../utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  System = require('../../../system'),
   Docs = require('../doc/docs'),
   SQLError = require('../../../orm/sql/common/sql-error');
 
@@ -33,7 +31,8 @@ AttrRec.prototype._transformValue = function (rec) {
     var action = JSON.parse(rec.value);
     if (action.action === AttrRec.ACTION_ADD) {
       rec.value = JSON.stringify(action.name);
-    } else { // remove
+    } else { // remove doc
+      rec.name = null;
       rec.value = null;
     }
   }
@@ -67,28 +66,9 @@ AttrRec.prototype._createRec = function () {
   return this._sql.insert(this._rec(), this._name, 'id');
 };
 
-AttrRec.prototype._createOrDestroyDatabaseIfNeeded = function () {
-  if (this._partition === constants.LATEST && this._params.name === System.DB_ATTR_NAME) {
-    var action = JSON.parse(this._origValue);
-    if (this._params.value) { // creating?
-      return this._partitioner.createAnotherDatabase(action.name);
-    } else { // destroying?
-      return this._partitioner.destroyAnotherDatabase(action.name);
-    }
-  } else {
-    return Promise.resolve();
-  }
-};
-
+// TODO: consolidate create and _createRec to create
 AttrRec.prototype.create = function () {
-  var self = this,
-    id = null;
-  return self._createRec().then(function (_id) {
-    id = _id;
-    return self._createOrDestroyDatabaseIfNeeded();
-  }).then(function () {
-    return id;
-  });
+  return this._createRec();
 };
 
 AttrRec.prototype.getId = function () {

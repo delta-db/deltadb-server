@@ -15,7 +15,7 @@ describe('server', function () {
 
   var createDB = function (name) {
     var db = new DB(name);
-    return db.connectAndCreate().then(function () {
+    return db.createDatabase().then(function () {
       return db;
     });
   };

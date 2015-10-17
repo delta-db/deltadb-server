@@ -6,6 +6,7 @@ var utils = require('../../../utils'),
   Promise = require('bluebird');
 
 var Doc = function (data, col) {
+  EventEmitter.apply(this, arguments); // apply parent constructor
   this._data = data ? data : {};
   this._col = col;
   this._dirty = {};

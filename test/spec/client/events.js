@@ -20,7 +20,7 @@ describe('events', function () {
 
   beforeEach(function () {
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
 
     db = client.db({
       db: 'mydb'
@@ -760,7 +760,7 @@ describe('events', function () {
 
   var dbShouldCreateLocal = function () {
     store2 = new MemAdapter();
-    client2 = new Client(store2);
+    client2 = new Client(store2, true);
     return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
       args) {
       args[0].should.eql(db2);
@@ -798,7 +798,7 @@ describe('events', function () {
   //   });
   // };
 
-  // TODO: need to first implement db.destroy() 
+  // TODO: need to first implement db.destroy()
   // it('client: db:destroy local', function () {
   //   return dbShouldDestroyLocal();
   // });

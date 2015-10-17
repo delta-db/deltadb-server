@@ -2,19 +2,38 @@
 
 // TODO: make sure all timestamps in UTC
 
-// TODO: client pooling? See pg README
-
 // TODO: replace new Error() with new QueryError()
 
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   pg = require('pg'),
   AbstractSQL = require('../../common'),
-  SQLError = require('../../common/sql-error');
+  SQLError = require('../../common/sql-error'),
+  SocketClosedError = require('../../common/socket-closed-error'),
+  DBMissingError = require('../../../../client/db-missing-error'),
+  DBExistsError = require('../../../../client/db-exists-error'),
+  log = require('../../../../server/log'),
+  connections = require('./connections');
 
-var SQL = function () {};
+var SQL = function () {
+  AbstractSQL.apply(this, arguments); // apply parent constructor
+  this._connected = false;
+  this._connection = null;
+};
 
 inherits(SQL, AbstractSQL);
+
+pg.on('error', function (err) {
+  // Some errors, e.g. "terminating connection due to administrator command" caused from the server
+  // closing the connection will cause your app to crash unless we listen for them here.
+  log.warning('postgres err=' + err.message);
+});
+
+// TODO: causes a listener memory leak with as there is only one instance of pg. Should each ORM
+// have its own instance? Isn't that inefficient? Better to register error function instead?
+// SQL.prototype.on = function (event, callback) {
+//   pg.on(event, callback);
+// };
 
 SQL.prototype._template = function (i) {
   return '$' + i;
@@ -22,51 +41,85 @@ SQL.prototype._template = function (i) {
 
 SQL.prototype._createDatabase = function (db) {
   // Note: IF NOT EXISTS doesn't work in Postgres
+  // return this._query('CREATE DATABASE $1', [db]); // TODO: why doesn't this work?
+  return this._query('CREATE DATABASE ' + this.escape(db));
+};
+
+SQL.prototype.connect = function (db, host, username, password, port) {
   var self = this;
-  db = self.escape(db);
-  return self._query('CREATE DATABASE ' + db);
-};
-
-SQL.prototype._connect = function (db, host, username, password, port) {
-  var self = this,
-    connect = Promise.promisify(pg.connect, pg);
-  var con = 'postgres://' + username + ':' + password + '@' + host + '/' + self.escape(db);
   self._config(db, host, username, password, port);
-  return connect(con).then(function (args) {
-    self._client = args[0];
-    self._execute = Promise.promisify(self._client.query, self._client);
+  return connections.connect(db, host, username, password, port).then(function (connection) {
+    self._connection = connection;
+    self._connected = true;
+
+    self._connection.connection.on('disconnect', function () {
+      self.emit('disconnect');
+    });
+  }).catch(function (err) {
+    if (err.code === '3D000') {
+      throw new DBMissingError(err.message);
+    } else {
+      throw err;
+    }
   });
 };
 
-SQL.prototype.connectAndUse = function (db, host, username, password, port) {
-  // Note: need to specify a DB when connecting
-  var self = this,
-    created = false;
-  return self._connect(db, host, username, password, port).catch(function () {
-    // create db and the reconnect
-    created = true;
-    return self._connect('postgres', host, username, password, port).then(function () {
-      return self._createDatabase(db);
-    }).then(function () {
-      return self.close();
-    }).then(function () {
-      return self._connect(db, host, username, password, port);
-    }).then(function () {
-      return created;
-    });
+SQL.prototype.dbExists = function (db, host, username, password, port) {
+  var sql = new SQL(),
+    exists = false;
+  return sql.connect('postgres', host, username, password, port).then(function () {
+    return sql._query('SELECT 1 FROM pg_database WHERE datname=$1', [db]);
+  }).then(function (results) {
+    exists = results.rows ? true : false;
+    return sql.close();
+  }).then(function () {
+    return exists;
   });
+};
+
+SQL.prototype.createAndUse = function (db, host, username, password, port) {
+  // Note: need to specify a DB when connecting
+  var self = this;
+  // Connect to postgres db, create db and then connect to new db
+  return self.connect('postgres', host, username, password, port).then(function () {
+    return self._createDatabase(db);
+  }).then(function () {
+    return self.close();
+  }).then(function () {
+    return self.connect(db, host, username, password, port);
+  });
+};
+
+SQL.prototype._isDBMissingError = function (err) {
+  return err.message.match(/^database ".*" does not exist$/);
+};
+
+SQL.prototype._isDBExistsError = function (err) {
+  return err.message ===
+    'duplicate key value violates unique constraint "pg_database_datname_index"' ||
+    err.message.match(/^database ".*" already exists$/);
 };
 
 SQL.prototype._query = function (sql, replacements) {
-  this._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
-  return this._execute(sql, replacements).then(function (results) {
+  var self = this;
+  self._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
+  return self._connection.connection.query(sql, replacements).then(function (results) {
     return {
       rows: results.rows.length > 0 ? results.rows : null,
       affected: results.rowCount
     };
   }).catch(function (err) {
-    // TODO: a wrapper should be created in sql/sql.js and this should be moved there
-    throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(replacements));
+    if (err instanceof SocketClosedError) {
+      throw err;
+    } else if (self._isDBMissingError(err)) {
+      throw new DBMissingError(err.message);
+    } else if (self._isDBExistsError(err)) {
+      throw new DBExistsError(err.message);
+    } else {
+      // TODO: a wrapper should be created in sql/sql.js and this should be moved there
+      throw new SQLError(err + ', sql=' + sql + ', replacements=' + JSON.stringify(
+        replacements));
+    }
   });
 };
 
@@ -199,7 +252,7 @@ SQL.prototype._uniqueSql = function (table, indexes) {
     var joined = this._escapeAndJoinForIndex(indexes[i].attrs);
     var where = '';
     if (indexes[i].null || indexes[i].full) {
-      // TODO: support more than 1 null and full element and 
+      // TODO: support more than 1 null and full element and
       if (indexes[i].null) {
         where = ' WHERE ' + this.escape(indexes[i].null[0]) + ' IS NULL';
       } else {
@@ -254,19 +307,66 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
   return this._query(prefixSql + sql + suffixSql + this._uniqueSql(table, unique) + priStartSql);
 };
 
+// TODO: rename to disconnect?
 SQL.prototype.close = function () {
-  this._client.end(); // not async!
-  return Promise.resolve();
+  var self = this;
+
+  if (!self._connected) { // not connected?
+    return Promise.resolve();
+  }
+
+  return connections.disconnect(self._connection.id, self._db, self._host, self._username,
+      self._password, self._port)
+    .then(function () {
+      self._connected = false;
+      self._connection.connection.removeAllListeners(); // prevent listener leak
+    });
 };
 
-SQL.prototype.dropAndCloseDatabase = function () {
-  // Note: Cannot drop current database
+SQL.prototype._closeOtherConnections = function (db) {
+  return this._query('SELECT pg_terminate_backend (pid) FROM pg_stat_activity WHERE datname=$1', [
+    db
+  ]);
+};
+
+SQL.prototype._dropDatabase = function (db, force) {
+  // Postgres will not let you drop a DB if there are any other connections to the DB
   var self = this,
-    db = self._db;
-  return self.close().then(function () {
-    return self._connect('postgres', self._host, self._username, self._password, self._port);
-  }).then(function () {
+    promise = null;
+
+  if (force) {
+    promise = self._closeOtherConnections(db);
+  } else {
+    promise = Promise.resolve();
+  }
+
+  return promise.then(function () {
+    // return self._query('DROP DATABASE $1', [db]); // TODO: why doesn't this work?
     return self._query('DROP DATABASE ' + self.escape(db));
+  });
+};
+
+// Need to pass in host, username, password, port as may not have already connected to DB.
+// TODO: refactor and put host, username, password, port in SQL constructor?
+SQL.prototype.dropAndCloseDatabase = function (db, host, username, password, port, force) {
+  var self = this,
+    promise = null;
+
+  if (self._connected) {
+    promise = self.close(); // cannot drop current database
+  } else {
+    promise = Promise.resolve();
+  }
+
+  return promise.then(function () {
+    if (force) {
+      // Close all connections to this DB to prevent the DROP from failing
+      return connections.disconnectAll(db, host, username, password, port, force);
+    }
+  }).then(function () {
+    return self.connect('postgres', host, username, password, port);
+  }).then(function () {
+    return self._dropDatabase(db, force);
   }).then(function () {
     return self.close();
   });

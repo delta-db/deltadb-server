@@ -21,7 +21,7 @@ describe('client', function () {
     // between tests. In the future we want an event that is emitted when the loading of the store
     // has completed and we can then use this event in an afterEach().
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
 
     db = client.db({
       db: 'mydb'
@@ -611,6 +611,7 @@ describe('client', function () {
 
   it('should sync', function () {
     var server = new Server(); // mock server
+
     server.queue = function (changes) {
       changes.should.eql(
         [{
@@ -627,19 +628,21 @@ describe('client', function () {
           up: changes[1].up
         }]);
     };
+
     var task1 = tasks.doc({
         thing: 'play a song',
         priority: 'high'
       }),
       thingUpdated = null,
       priorityUpdated = null;
+
     return task1.save().then(function () {
+      return db.sync(server);
+    }).then(function () {
       return db._localChanges();
     }).then(function (changes) {
       thingUpdated = new Date(changes[0].up);
       priorityUpdated = new Date(changes[1].up);
-    }).then(function () {
-      return db.sync(server);
     }).then(function () {
       return db._localChanges();
     }).then(function (changes) {
@@ -1195,6 +1198,7 @@ describe('client', function () {
         priority: {
           val: 'high',
           up: new Date('2014-01-01T06:00:00.000Z'),
+          re: new Date('2014-01-01T05:00:00.000Z'),
           seq: 0
         }
       };
@@ -1308,6 +1312,7 @@ describe('client', function () {
         priority: {
           val: null,
           up: new Date('2014-01-01T07:00:00.000Z'),
+          re: new Date('2014-01-01T05:00:00.000Z'),
           seq: 0
         }
       };
@@ -1534,44 +1539,6 @@ describe('client', function () {
         data.userUUID.should.eql(userUUID);
         data.roleName.should.eql(roleName);
         doc.should.eql(savedDoc);
-      });
-    });
-
-  });
-
-  it('should create database', function () {
-
-    var dbName = 'mydb';
-
-    return client._createDatabase(dbName).then(function (savedDoc) {
-      var db = client.db({
-        db: '$system'
-      });
-      db.all(function (col) {
-        col.all(function (doc) {
-          var data = doc.get();
-          data.$db.name.should.eql(dbName);
-          doc.should.eql(savedDoc);
-        });
-      });
-    });
-
-  });
-
-  it('should destroy database', function () {
-
-    var dbName = 'mydb';
-
-    return client._destroyDatabase(dbName).then(function (savedDoc) {
-      var db = client.db({
-        db: '$system'
-      });
-      db.all(function (col) {
-        col.all(function (doc) {
-          var data = doc.get();
-          data.$db.name.should.eql(dbName);
-          doc.should.eql(savedDoc);
-        });
       });
     });
 

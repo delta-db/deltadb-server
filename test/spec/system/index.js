@@ -41,7 +41,6 @@ describe('system', function () {
         System.DEFAULT_ADMIN_USER_UUID)
       .then(function (changes) {
         testUtils.sortChanges(changes);
-        // console.log(changes);
         testUtils.contains(
           [
             // policy

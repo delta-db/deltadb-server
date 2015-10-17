@@ -3,13 +3,21 @@
 var Adapter = require('./adapter'),
   MemAdapter = require('../orm/nosql/adapters/mem');
 
-var store = new MemAdapter(); // TODO: change to web socket
+var store = new MemAdapter(); // TODO: configurable, e.g. IndexedDB
 var client = new Adapter(store);
 
-var DeltaDB = function (name /* , host, username, password */ ) {
-  return client.db({
+var DeltaDB = function (name, url) {
+  var opts = {
     db: name
-  });
+  };
+
+  if (typeof url === 'undefined') {
+    opts.local = true;
+  } else {
+    opts.url = url;
+  }
+
+  return client.db(opts);
 };
 
 var wrapFunction = function (fn) {

@@ -6,7 +6,7 @@
 //  Insert: 7979ms
 //  Select: 256ms
 //
-// MySQL: TODO 
+// MySQL: TODO
 
 /* global before, after */
 
@@ -83,7 +83,7 @@ describe('raw-orm', function () {
   };
 
   before(function () {
-    return sql.connectAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
+    return sql.createAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
       config.POSTGRES_PWD).then(
       function () {
         return createTable();
@@ -91,7 +91,8 @@ describe('raw-orm', function () {
   });
 
   after(function () {
-    return sql.dropAndCloseDatabase();
+    return sql.dropAndCloseDatabase('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
+      config.POSTGRES_PWD);
   });
 
   var insert = function () {

@@ -4,7 +4,9 @@ var EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   utils = require('../../../utils');
 
-var Adapter = function () {};
+var Adapter = function () {
+  EventEmitter.apply(this, arguments); // apply parent constructor
+};
 
 inherits(Adapter, EventEmitter);
 

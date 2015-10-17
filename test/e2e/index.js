@@ -2,234 +2,57 @@
 
 /* global before, after */
 
-var utils = require('../utils'),
-  MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../scripts/client/adapter'),
-  partUtils = require('../spec/partitioner/sql/utils');
+var log = require('../../scripts/client/log'),
+  LogStream = require('../../scripts/utils/log-stream'),
+  ServerProcess = require('../server-process'),
+  Partitioner = require('../../scripts/partitioner/sql'),
+  Manager = require('../../scripts/manager'),
+  System = require('../../scripts/system'),
+  DBMissingError = require('../../scripts/client/db-missing-error');
 
 describe('e2e', function () {
 
-  var store = null,
-    client = null,
-    a = null,
-    aTasks = null,
-    b = null,
-    bTasks = null;
+  var server = new ServerProcess(), // load test config before any
+    partitioner = new Partitioner(),
+    manager = new Manager(partitioner),
+    system = new System(manager);
 
-  var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-
-  beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store);
-
-    a = client.db({
-      db: 'mydb'
-    });
-
-    b = client.db({
-      db: 'mydb'
-    });
-
-    aTasks = a.col('tasks');
-  });
-
-  var syncAndProcess = function (localDB) {
-    // quorum=true as we are simulating a single DB
-    return localDB.sync(args.db, true).then(function () {
-      return args.db.process();
+  /**
+   * Destroy and then create the system DB so that we have a fresh instance and Admin Party is
+   * enabled
+   */
+  var destroyAndCreateSystemDB = function () {
+    var adminParty = true;
+    return system.destroy().catch(function (err) {
+      // Ignore errors caused from missing DB
+      if (!(err instanceof DBMissingError)) {
+        throw err;
+      }
+    }).then(function () {
+      return system.create(adminParty);
+    }).then(function () {
+      return partitioner.closeDatabase(); // close DB connection to return resources
     });
   };
 
-  it('client: should perform initial sync', function () {
-    var task1 = aTasks.doc({
-      thing: 'write a song',
-      priority: 'medium'
-    });
-    return task1.save().then(function () {
-      return task1.set({
-        priority: 'high'
-      });
-    }).then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'high'
-      }]);
+  before(function () {
+    log.stream(new LogStream('./test/client.log')); // enable client log
+    return destroyAndCreateSystemDB().then(function () {
+      server.spawn(); // start test server
     });
   });
 
-  it('client: should perform recent sync', function () {
-    var task1 = aTasks.doc({
-      thing: 'write a song',
-      priority: 'medium'
-    });
-    return task1.save().then(function () {
-      return syncAndProcess(a);
+  after(function () {
+    server.kill(); // kill test server
+    return system.destroy().then(function () {
+      return partitioner.closeDatabase(); // close DB connection to return resources
     }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'medium'
-      }]);
-    }).then(function () {
-      return task1.set({
-        priority: 'high'
-      });
-    }).then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'high'
-      }]);
+      log.stream(false); // disable client log
     });
   });
 
-  it('client: should perform non-recent sync', function () {
-    var task1 = aTasks.doc({
-      thing: 'write a song',
-      priority: 'medium'
-    });
-    return b.sync(args.db, true).then(function () {
-      return task1.save();
-    }).then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return args.db.archive(new Date());
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'medium'
-      }]);
-    });
-  });
+  require('./basic.js');
 
-  it('client: should preserve latest change', function () {
-    // a writes data
-    // a syncs
-    // b syncs - gets the data from a to b
-    // a makes change
-    // b makes change
-    // b syncs
-    // a syncs
-    // a's and b's data should be change from b
-    var task1 = aTasks.doc({
-      thing: 'write a song',
-      priority: 'medium'
-    });
-    return task1.save().then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'medium'
-      }]);
-    }).then(function () {
-      return task1.set({
-        priority: 'high'
-      });
-    }).then(function () {
-      return utils.sleep(); // ensure following update not on same timestamp
-    }).then(function () {
-      return bTasks.get(task1.id());
-    }).then(function (bTask1) {
-      return bTask1.set({
-        priority: 'low'
-      });
-    }).then(function () {
-      return utils.sleep(); // ensure sync happens after last update
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return utils.allShouldEql(aTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'low'
-      }]);
-    }).then(function () {
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write a song',
-        priority: 'low'
-      }]);
-    });
-  });
-
-  it('client: should auto restore', function () {
-    // Scenario:
-    // a: creates { thing: 'write', priority: 'high' }
-    // a: syncs
-    // b: syncs
-    // b: deletes doc
-    // a: edits { priority: 'low' }
-    // b: syncs
-    // a: syncs in 1 yr => restore doc and apply changes
-    var task1 = aTasks.doc({
-      thing: 'write',
-      priority: 'high'
-    });
-    return task1.save().then(function () {
-      return syncAndProcess(a);
-    }).then(function () {
-      return syncAndProcess(b);
-    }).then(function () {
-      bTasks = b.col('tasks');
-      return bTasks.get(task1.id());
-    }).then(function (bTask1) {
-      return bTask1.destroy();
-    }).then(function () {
-      // For the sake of this test, we need to guarantee that the deleting and restoring changes
-      // happen at different times as deletions are given priority and we want to ensure that the
-      // update happens after the delete
-      return utils.timeout(10);
-    }).then(function () {
-      return task1.set({
-        priority: 'medium'
-      });
-    }).then(function () {
-      return utils.sleep(); // ensure update happens before sync
-    }).then(function () {
-      return syncAndProcess(b); // send del
-    }).then(function () {
-      return syncAndProcess(a); // send update
-    }).then(function () {
-      return syncAndProcess(a); // get auto restore
-    }).then(function () {
-      return syncAndProcess(b); // get auto restore
-    }).then(function () {
-      return utils.allShouldEql(aTasks, [{
-        $id: task1.id(),
-        thing: 'write',
-        priority: 'medium'
-      }]);
-    }).then(function () {
-      return utils.allShouldEql(bTasks, [{
-        $id: task1.id(),
-        thing: 'write',
-        priority: 'medium'
-      }]);
-    });
-  });
+  require('./multiple.js');
 
 });

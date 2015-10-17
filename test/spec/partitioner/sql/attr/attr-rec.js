@@ -44,62 +44,6 @@ describe('attr-rec', function () {
     });
   });
 
-  var shouldCreateDB = function () {
-    var dbCreated = null;
-    args.db.createAnotherDatabase = function (dbName) { // mock creation
-      dbCreated = dbName;
-      return Promise.resolve();
-    };
-
-    var params = {
-      name: System.DB_ATTR_NAME,
-      value: {
-        action: 'add',
-        name: 'mydb'
-      }
-    };
-    var attrRec = new AttrRec(args.db._sql, constants.LATEST, params, args.db);
-
-    attrRec._createRec = function () { // mock attr creation
-      return Promise.resolve(1);
-    };
-
-    return attrRec.create().then(function () {
-      dbCreated.should.eql('mydb');
-    });
-  };
-
-  it('should create database', function () {
-    return shouldCreateDB();
-  });
-
-  it('should destroy database', function () {
-    var dbDestroyed = null;
-    args.db.destroyAnotherDatabase = function (dbName) { // mock creation
-      dbDestroyed = dbName;
-      return Promise.resolve();
-    };
-
-    var params = {
-      name: System.DB_ATTR_NAME,
-      value: {
-        action: 'remove',
-        name: 'mydb'
-      }
-    };
-    var attrRec = new AttrRec(args.db._sql, constants.LATEST, params, args.db);
-
-    attrRec._createRec = function () { // mock attr creation
-      return Promise.resolve(1);
-    };
-
-    return shouldCreateDB().then(function () {
-      return attrRec.create();
-    }).then(function () {
-      dbDestroyed.should.eql('mydb');
-    });
-  });
-
   it('should get id', function () {
     var params = {
       docId: 1,

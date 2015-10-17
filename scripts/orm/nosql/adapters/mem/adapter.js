@@ -6,6 +6,7 @@ var inherits = require('inherits'),
   utils = require('../../../../utils');
 
 var Adapter = function () {
+  CommonAdapter.apply(this, arguments); // apply parent constructor
   this._dbs = {};
 };
 
@@ -25,6 +26,10 @@ Adapter.prototype.db = function (opts) {
 // TODO: should this return a promise like col.all()??
 Adapter.prototype.all = function (callback) {
   utils.each(this._dbs, callback);
+};
+
+Adapter.prototype.exists = function (dbName) {
+  return this._dbs[dbName] ? true : false;
 };
 
 module.exports = Adapter;

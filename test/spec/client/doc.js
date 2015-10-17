@@ -14,7 +14,7 @@ describe('doc', function () {
 
   beforeEach(function () {
     store = new MemAdapter();
-    client = new Client(store);
+    client = new Client(store, true);
 
     db = client.db({
       db: 'mydb'

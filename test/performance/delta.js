@@ -78,7 +78,7 @@ describe('delta', function () {
 
   before(function () {
     db = new DB('a');
-    return JUST_READ ? db.connect() : db.connectAndCreate();
+    return JUST_READ ? db.connect() : db.createDatabase();
   });
 
   after(function () {

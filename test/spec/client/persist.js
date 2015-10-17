@@ -16,18 +16,18 @@ describe('client', function () {
 
   beforeEach(function () {
     store = new MemAdapter();
-    client = new Client(store);
-    propsReady = utils.once(client, 'load');
+    client = new Client(store, true);
     db = client.db({
       db: 'mydb'
     });
+    propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
     task = tasks.doc();
   });
 
   // TODO: define afterEach and destroy underlying store
 
-  it('it should restore from store', function () {
+  it('should restore from store', function () {
 
     var client2 = null,
       db2 = null,
@@ -85,13 +85,13 @@ describe('client', function () {
       return task.save();
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by reloading the store
-      client2 = new Client(store);
+      client2 = new Client(store, true);
       db2 = client2.db({
         db: 'mydb'
       });
 
       // Wait until all the docs have been loaded from the store
-      return utils.once(client2, 'load');
+      return utils.once(db2, 'load');
     }).then(function () {
       // Verify restoration of since
       var props = db2._props.get();
@@ -121,7 +121,7 @@ describe('client', function () {
       task2 = null;
 
     var setUpClient2 = function () {
-      client2 = new Client(store);
+      client2 = new Client(store, true);
       db2 = client2.db({
         db: 'mydb'
       });
@@ -134,9 +134,11 @@ describe('client', function () {
     }).then(function () {
       return setUpClient2();
     }).then(function () {
+      return utils.once(db2, 'load');
+    }).then(function () {
       // Simulate initializing of store after client was setup
-      client2._initStore();
-      return utils.once(client2, 'load');
+      db2._loadStore();
+      return utils.once(db2, 'load');
     }).then(function () {
       // We need to wait to get the task as the doc isn't registered until save() is called.
       // Alternatively, we could call task2.save() above in setUpClient2().

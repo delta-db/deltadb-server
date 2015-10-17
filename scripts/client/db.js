@@ -2,9 +2,9 @@
 
 // TODO: later, db should be passed in a constructor so that it doesn't have to be passed to sync??
 
-// TODO: destroy() that sends { col: '', name: null, val: null } or something like add user role
-
 // TODO: move some events to nosql/common layer?
+
+// TODO: separate out socket.io code?
 
 var inherits = require('inherits'),
   Promise = require('bluebird'),
@@ -12,16 +12,38 @@ var inherits = require('inherits'),
   MemDB = require('../orm/nosql/adapters/mem/db'),
   Doc = require('./doc'),
   Collection = require('./collection'),
-  clientUtils = require('./utils');
+  clientUtils = require('./utils'),
+  io = require('socket.io-client'),
+  Sender = require('./sender'),
+  log = require('../client/log'),
+  config = require('./config');
 
-var DB = function ( /* name, adapter */ ) {
+var DB = function (name, adapter, url, localOnly) {
+  this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
+
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};
-  this._retryAfterSecs = 180000;
+  this._retryAfterMSecs = 180000;
   this._recorded = false;
+  this._sender = new Sender(this);
+  this._url = url ? url : config.URL;
+
+  this._prepInitDone();
 
   this._initStoreLoaded();
+
+  this._storesImported = false;
+
+  this._localOnly = localOnly;
+  if (!localOnly) {
+    // This is registered immediately so that do not listen for a change after a change has already
+    this._registerSenderListener();
+
+    this._connectWhenReady();
+  }
+
+  this._loadStore();
 };
 
 inherits(DB, MemDB);
@@ -33,14 +55,38 @@ DB.PROPS_DOC_ID = 'props';
 // Use a version # to allow for patching of the store between versions when the schema changes
 DB.VERSION = 1;
 
+DB.prototype._loadStore = function () {
+  this._adapter._initDBStore(this);
+};
+
+DB.prototype._prepInitDone = function () {
+  // This promise ensures that the we have already received init-done from the server
+  this._initDone = utils.once(this, 'init-done');
+};
+
 DB.prototype._initStoreLoaded = function () {
   // This promise ensures that the store is ready before we use it.
-  this._storeLoaded = utils.once(this, 'load');
+  this._storeLoaded = utils.once(this, 'load'); // TODO: are _storeLoaded and _loaded both needed?
+};
+
+// TODO: can this be cleaned up? Do we really need _storeLoaded, _loaded and _ready?
+DB.prototype._ready = function () {
+  var self = this;
+  return self._storeLoaded.then(function () {
+    return self._loaded;
+  });
 };
 
 DB.prototype._import = function (store) {
   this._store = store;
   this._initStore();
+};
+
+DB.prototype._createMissingStores = function () {
+  // Create stores for any cols that have not been imported
+  this.all(function (col) {
+    col._createMissingStores();
+  });
 };
 
 DB.prototype._initStore = function () {
@@ -58,6 +104,10 @@ DB.prototype._initStore = function () {
       promises.push(col._loaded);
     }
   });
+
+  // All the stores have been imported
+  self._storesImported = true;
+  self._createMissingStores();
 
   self._loaded = Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
@@ -94,31 +144,15 @@ DB.prototype._initProps = function (colStore) {
 
 // TODO: make sure user-defined colName doesn't start with $
 // TODO: make .col() not be promise any more? Works for indexedb and mongo adapters?
-DB.prototype._col = function (name, genColStore) {
+DB.prototype._col = function (name) {
   if (this._cols[name]) {
     return this._cols[name];
   } else {
-
-    // TODO: does genColStore really need to be passed?
-    var col = new Collection(name, this, genColStore);
+    var col = new Collection(name, this);
     this._cols[name] = col;
     this._emitColCreate(col);
 
     return col;
-  }
-};
-
-// TODO: move to col layer?? TODO: genColStore really needed??
-DB.prototype._colStoreOpened = function (col, name, genColStore) {
-  var self = this;
-  if (genColStore) {
-    return self._storeLoaded.then(function () {
-      var colStore = self._store.col(name);
-      col._import(colStore);
-      return col;
-    });
-  } else {
-    return Promise.resolve();
   }
 };
 
@@ -157,14 +191,17 @@ DB.prototype._setChange = function (change) {
 DB.prototype._setChanges = function (changes) {
   var self = this,
     chain = Promise.resolve();
+
   if (!changes) {
     return chain;
   }
+
   changes.forEach(function (change) {
     chain = chain.then(function () {
       return self._setChange(change);
     });
   });
+
   return chain;
 };
 
@@ -172,15 +209,13 @@ DB.prototype._setChanges = function (changes) {
 DB.prototype.sync = function (part, quorum) {
   var self = this,
     newSince = null;
-  return self._localChanges(self._retryAfter).then(function (changes) {
+  return self._localChanges(self._retryAfterMSecs).then(function (changes) {
     return part.queue(changes, quorum);
   }).then(function () {
     newSince = new Date();
     return self._loaded; // ensure props have been loaded/created first
   }).then(function () {
-    return self._props.get();
-  }).then(function (props) {
-    return part.changes(props.since);
+    return part.changes(self._props.since);
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {
@@ -239,6 +274,160 @@ DB.prototype._destroyDatabase = function (dbName) {
   var colName = clientUtils.DB_COLLECTION_NAME;
   var col = this.col(colName);
   return col._destroyDatabase(dbName);
+};
+
+DB.prototype.destroy = function () {
+  return this._adapter._destroyDatabase(this._name, this._localOnly);
+};
+
+DB.prototype._emitInit = function () {
+  var self = this;
+  return self._ready().then(function () { // ensure props have been loaded/created first
+    var msg = {
+      db: self._name,
+      since: self._props.since
+    };
+    log.info(self._id + ' sending init ' + JSON.stringify(msg));
+    self._socket.emit('init', msg);
+  });
+};
+
+DB.prototype._emitChanges = function (changes) {
+  var msg = {
+    changes: changes
+  };
+  log.info(this._id + ' sending ' + JSON.stringify(msg));
+  this._socket.emit('changes', msg);
+};
+
+// TODO: it appears that the local changes don't get cleared until they are recorded, which is
+// correct, but investigate further to make sure that changes won't be duplicated back and forth.
+DB.prototype._findAndEmitChanges = function () {
+  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do
+  // we need a _connected flag to determine whether to skip the following?
+
+  // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
+  // code?
+  var self = this;
+
+  return self._ready().then(function () { // ensure props have been loaded/created first
+    return self._localChanges(self._retryAfterMSecs);
+  }).then(function (changes) {
+    if (changes.length > 0) {
+      self._emitChanges(changes);
+    }
+  });
+
+};
+
+DB.prototype._processChanges = function (msg) {
+  var self = this;
+  log.info(self._id + ' received ' + JSON.stringify(msg));
+  return self._ready().then(function () { // ensure props have been loaded/created first
+    return self._setChanges(msg.changes); // Process the server's changes
+  }).then(function () {
+    return self._props.set({ // Update since
+      since: msg.since
+    });
+  });
+};
+
+DB.prototype._registerChangesListener = function () {
+  var self = this;
+  self._socket.on('changes', function (msg) {
+    self._processChanges(msg);
+  });
+};
+
+DB.prototype._registerSenderListener = function () {
+  var self = this;
+  self.on('change', function () {
+    // This is registered immediately so that we don't listen for a change after a change has
+    // already been made; therefore, we need to make sure the _initDone promise has resolved first.
+    self._initDone.then(function () {
+      self._sender.send();
+    });
+  });
+};
+
+DB.prototype._registerDisconnectListener = function () {
+  var self = this;
+  self._socket.on('disconnect', function () {
+    log.info(self._id + ' server disconnected');
+    self.emit('disconnect');
+  });
+};
+
+DB.prototype._createDatabaseAndInit = function () {
+  var self = this;
+  return self._adapter._createDatabase(self._name).then(function () {
+    return self._init();
+  });
+};
+
+DB.prototype._registerErrorListener = function () {
+  var self = this;
+  self._socket.on('delta-error', function (err) {
+    log.warning(self._id + ' err=' + err.message);
+
+    if (err.name === 'DBMissingError') {
+      log.info(self._id + ' creating DB ' + self._name);
+      self._createDatabaseAndInit();
+    } else {
+      throw err;
+    }
+  });
+};
+
+DB.prototype._registerInitDoneListener = function () {
+  var self = this;
+
+  // Server currently requires init-done before it will start listening to changes
+  self._socket.on('init-done', function () {
+    log.info(self._id + ' received init-done');
+    self.emit('init-done'); // notify listeners
+    self._sender.send();
+  });
+};
+
+DB.prototype._init = function () {
+  this._emitInit();
+};
+
+DB.prototype._connect = function () {
+  var self = this;
+
+  self._socket = io.connect(self._url, {
+    'force new connection': true
+  }); // same client, multiple connections for testing
+
+  self._registerErrorListener();
+
+  self._registerDisconnectListener();
+
+  self._registerChangesListener();
+
+  self._registerInitDoneListener();
+
+  self._socket.on('connect', function () {
+    self._init();
+  });
+
+};
+
+DB.prototype._disconnect = function () {
+  var promise = utils.once(this, 'disconnect');
+  this._socket.disconnect();
+  return promise;
+};
+
+DB.prototype._connectWhenReady = function () {
+  var self = this;
+  return self._storeLoaded.then(function () {
+    if (!self._adapter._localOnly) {
+      return self._connect();
+    }
+  });
 };
 
 module.exports = DB;

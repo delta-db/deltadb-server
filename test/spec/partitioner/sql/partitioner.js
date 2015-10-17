@@ -1,7 +1,8 @@
 'use strict';
 
 var testUtils = require('../../../utils'),
-  Partitioner = require('../../../../scripts/partitioner/sql');
+  Partitioner = require('../../../../scripts/partitioner/sql'),
+  DBMissingError = require('../../../../scripts/client/db-missing-error');
 
 describe('partitioner', function () {
 
@@ -22,6 +23,13 @@ describe('partitioner', function () {
     return part.createAnotherDatabase('testdb2').then(function () {
       return part.destroyAnotherDatabase('testdb2');
     });
+  });
+
+  it('should throw error if trying to connect to missing db', function () {
+    var otherPart = new Partitioner('testdb2');
+    return testUtils.shouldThrow(function () {
+      return otherPart.connect();
+    }, new DBMissingError());
   });
 
 });
