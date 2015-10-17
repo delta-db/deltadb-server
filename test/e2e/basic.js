@@ -17,8 +17,6 @@ describe('basic', function () {
     b = null,
     bTasks = null;
 
-  this.timeout(utils.TIMEOUT);
-
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientB = new Client(storeB);
@@ -209,7 +207,7 @@ describe('basic', function () {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
         shouldResolve(resolve, reject);
-      }, utils.TIMEOUT - 1000);
+      }, utils.TIMEOUT - 2000); // utils.TIMEOUT - 1 sec is not enough time
 
     });
 

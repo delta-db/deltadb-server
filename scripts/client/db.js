@@ -18,7 +18,7 @@ var inherits = require('inherits'),
   log = require('../client/log'),
   config = require('./config');
 
-var DB = function (name, adapter, url) {
+var DB = function (name, adapter, url, localOnly) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -31,14 +31,17 @@ var DB = function (name, adapter, url) {
 
   this._prepInitDone();
 
-  // This is registered immediately so that do not listen for a change after a change has already
-  this._registerSenderListener();
-
   this._initStoreLoaded();
 
   this._storesImported = false;
 
-  this._connectWhenReady();
+  this._localOnly = localOnly;
+  if (!localOnly) {
+    // This is registered immediately so that do not listen for a change after a change has already
+    this._registerSenderListener();
+
+    this._connectWhenReady();
+  }
 
   this._loadStore();
 };
@@ -274,7 +277,7 @@ DB.prototype._destroyDatabase = function (dbName) {
 };
 
 DB.prototype.destroy = function () {
-  return this._adapter._destroyDatabase(this._name);
+  return this._adapter._destroyDatabase(this._name, this._localOnly);
 };
 
 DB.prototype._emitInit = function () {

@@ -20,7 +20,8 @@ describe('multiple', function () {
     b = null,
     bTasks = null;
 
-  // A lot of time is needed as we destroy and create the dbs several times
+  // A lot of time is needed as we destroy and create the dbs several times. Unfortunately, it
+  // appears that mocha doesn't support embedding this in a before() or beforeEach().
   this.timeout(40000);
 
   var createA = function () {

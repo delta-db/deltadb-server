@@ -310,6 +310,11 @@ SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
 // TODO: rename to disconnect?
 SQL.prototype.close = function () {
   var self = this;
+
+  if (!self._connected) { // not connected?
+    return Promise.resolve();
+  }
+
   return connections.disconnect(self._connection.id, self._db, self._host, self._username,
       self._password, self._port)
     .then(function () {

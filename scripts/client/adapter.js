@@ -94,7 +94,10 @@ Adapter.prototype.db = function (opts) {
   if (db) { // exists?
     return db;
   } else {
-    db = new DB(opts.db, this, opts.url);
+    if (typeof opts.local === 'undefined') {
+      opts.local = this._localOnly;
+    }
+    db = new DB(opts.db, this, opts.url, opts.local);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);
     return db;
@@ -157,7 +160,7 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
   });
 };
 
-Adapter.prototype._destroyDatabase = function (dbName) {
+Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
   var self = this,
     ts = new Date();
 
@@ -165,8 +168,7 @@ Adapter.prototype._destroyDatabase = function (dbName) {
   // where the client re-creates this DB while trying to destroy as the destroy will just fail as
   // the db is in use and will be retried later.
   var promise = null;
-  if (this.exists(dbName) && !self._localOnly) {
-    // TODO: really need a get so that URL doesn't need to be specified here?
+  if (this.exists(dbName) && !localOnly) {
     var db = this.db({
       db: dbName
     });

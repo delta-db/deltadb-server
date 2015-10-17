@@ -11,8 +11,10 @@ var DeltaDB = function (name, url) {
     db: name
   };
 
-  if (typeof url !== 'undefined') {
-    opts[url] = url;
+  if (typeof url === 'undefined') {
+    opts.local = true;
+  } else {
+    opts.url = url;
   }
 
   return client.db(opts);

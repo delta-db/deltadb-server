@@ -7,7 +7,8 @@ var testUtils = require('../../utils'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
-  utils = require('../../../scripts/utils');
+  utils = require('../../../scripts/utils'),
+  DBMissingError = require('../../../scripts/client/db-missing-error');
 
 describe('system', function () {
 
@@ -44,9 +45,14 @@ describe('system', function () {
 
   afterEach(function () {
     return system.destroy().then(function () {
-      return partitioner.destroyAnotherDatabase('myotherdb').catch(function () {
+      return partitioner.destroyAnotherDatabase('myotherdb').catch(function (err) {
         // Ignore error in case trying to destroy after DB has already been destroyed
+        if (!(err instanceof DBMissingError)) {
+          throw err;
+        }
       });
+    }).then(function () {
+      return partitioner.closeDatabase();
     });
   });
 

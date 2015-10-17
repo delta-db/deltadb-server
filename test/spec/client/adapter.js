@@ -58,7 +58,7 @@ describe('adapter', function () {
 
     fakeResolveAfterDatabaseDestroyed();
 
-    return client._destroyDatabase('mydb');
+    return client._destroyDatabase('mydb', true);
 
   });
 
@@ -67,15 +67,13 @@ describe('adapter', function () {
 
     var db = client.db({ db: 'mydb' });
 
-    client._localOnly = false;
-
     var disconnected = false;
     db._disconnect = function () { // spy
       disconnected = true;
       return Promise.resolve();
     };
 
-    return client._destroyDatabase('mydb').then(function () {
+    return client._destroyDatabase('mydb', false).then(function () {
       disconnected.should.eql(true);
     });
   });
