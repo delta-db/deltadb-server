@@ -12,7 +12,7 @@ var Promise = require('bluebird'),
   SocketClosedError = require('../../common/socket-closed-error'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
-  log = require('../../../../utils/log'),
+  log = require('../../../../server/log'),
   connections = require('./connections');
 
 var SQL = function () {

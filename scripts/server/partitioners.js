@@ -4,7 +4,7 @@
 
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
-  log = require('../utils/log'),
+  log = require('../server/log'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
@@ -144,7 +144,7 @@ Partitioners.prototype._doPoll = function (partitioner) {
     }).catch(function (err) {
       // TODO: create mechanism to gracefully alert poll that a DB has been destroyed so that it
       // doesn't generate unexpected errors due to missing tables, socket connections, etc...
-      log.error('doPoll error=' + err);
+      log.warning('doPoll error=' + err);
     });
 };
 

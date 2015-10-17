@@ -25,7 +25,7 @@ var Promise = require('bluebird'),
   UserRoles = require('./user/user-roles'),
   Docs = require('./doc/docs'),
   clientUtils = require('../../client/utils'),
-  log = require('../../utils/log');
+  log = require('../../server/log');
 
 // TODO: remove unneeded params
 var Process = function (sql, docs, users, queueAttrRecs, partitions, cols, policy, roles,

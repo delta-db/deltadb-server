@@ -9,7 +9,7 @@ var app = require('express')(),
   http = require('http').Server(app),
   io = require('socket.io')(http),
   Partitioners = require('./partitioners'),
-  log = require('../utils/log'),
+  log = require('../server/log'),
   config = require('../../config');
 
 var Server = function () {

@@ -15,7 +15,7 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   io = require('socket.io-client'),
   Sender = require('./sender'),
-  log = require('../utils/log'),
+  log = require('../client/log'),
   config = require('./config');
 
 var DB = function (name, adapter, url) {

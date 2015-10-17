@@ -1,10 +1,8 @@
 'use strict';
 
-// For debugging
-// var log = require('../../scripts/utils/log');
-// log.setSilent(false);
-
-var ServerProcess = require('../server-process'),
+var log = require('../../scripts/client/log'),
+  LogStream = require('../../scripts/utils/log-stream'),
+  ServerProcess = require('../server-process'),
   Partitioner = require('../../scripts/partitioner/sql'),
   Manager = require('../../scripts/manager'),
   System = require('../../scripts/system'),
@@ -35,6 +33,7 @@ describe('e2e', function () {
   };
 
   before(function () {
+    log.stream(new LogStream('./test/client.log')); // enable client log
     return destroyAndCreateSystemDB().then(function () {
       server.spawn(); // start test server
     });
@@ -42,7 +41,11 @@ describe('e2e', function () {
 
   after(function () {
     server.kill(); // kill test server
-    return system.destroy();
+    return system.destroy().then(function () {
+      return partitioner.closeDatabase(); // close DB connection to return resources
+    }).then(function () {
+      log.stream(false); // disable client log
+    });
   });
 
   require('./basic.js');

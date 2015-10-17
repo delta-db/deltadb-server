@@ -1,7 +1,8 @@
 'use strict';
 
-var log = require('../utils/log');
-log.setSilent(false); // turn on log
+// TODO: better to make log file a command line option than output to stdout?
+var log = require('../server/log');
+log.console(true);
 
 var Server = require('./server'),
   Process = require('./process'),
