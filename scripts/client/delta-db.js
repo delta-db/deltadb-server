@@ -6,9 +6,11 @@ var Adapter = require('./adapter'),
 var store = new MemAdapter(); // TODO: change to web socket
 var client = new Adapter(store);
 
-var DeltaDB = function (name /* , host, username, password */ ) {
+// TODO: update wiki accordingly
+var DeltaDB = function (name, url) {
   return client.db({
     db: name
+    url: url
   });
 };
 

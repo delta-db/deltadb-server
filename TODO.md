@@ -125,6 +125,7 @@ Future?
 - wrap ids to prevent exceptions? Is this a concern with the attrs table? Do we need to have a process that sets the auto_increment back to 0 when it reaches a high enough number? Better to just not have ids for these tables? But then how to order attributes in a deterministic way? Need to take DB offline at this point and adjust all ids down to 0? Could prevent taking DB offline by just starting to adjust all ids with transactions once we get close to the overflow value, but then this would make the changes() call return changes out of order. http://stackoverflow.com/questions/2615417/what-happens-when-auto-increment-on-integer-column-reaches-the-max-value-in-data
 - what is the best web socket framework to use that will give us max speed and num connections? https://medium.com/@denizozger/finding-the-right-node-js-websocket-implementation-b63bfca0539. Probably need to benchmark
 - auto restore for when DB destroyed?
+- Generate entire RESTful API, including swagger docs with just MSON and DeltaDB store. This could be good for third parties that don't want to use DeltaDB to access the data.
 
 
 Docs

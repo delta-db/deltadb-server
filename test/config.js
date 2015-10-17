@@ -2,8 +2,9 @@
 
 var Config = function () {};
 
-Config.prototype.PORT = 8080;
-Config.prototype.DB_NAME_PREFIX = 'delta_';
+// Set config so that our test server doesn't interfere with any production server
+Config.prototype.PORT = 8081;
+Config.prototype.DB_NAME_PREFIX = 'delta_test_';
 
 // TODO: can we change this to https?
 Config.prototype.URL = 'http://localhost:' + Config.prototype.PORT;

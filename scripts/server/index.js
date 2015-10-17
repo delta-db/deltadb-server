@@ -1,38 +1,34 @@
 'use strict';
 
-// TMP - BEGIN
 var log = require('../utils/log');
-log.setSilent(false);
-
-// TODO: test launcher needs to drop $system (if exists) and then create before the server runs
-var Partitioner = require('../partitioner/sql'),
-  Manager = require('../manager'),
-  System = require('../system');
-
-var ensureDBCreated = function () {
-  var partitioner = new Partitioner();
-  var manager = new Manager(partitioner);
-  var system = new System(manager);
-  var adminParty = true;
-  return system.destroy().then(function () {
-    return system.create(adminParty);
-  }).catch(function () {
-    // Assume the error is because it doesn't already exist
-    return system.create(adminParty).catch(function () {});
-  }).then(function () {
-    return partitioner.closeDatabase();
-  });
-};
-// TMP - END
-
+log.setSilent(false); // turn on log
 
 var Server = require('./server'),
-  Process = require('./process');
+  Process = require('./process'),
+  System = require('../system'),
+  Partitioner = require('../partitioner/sql'),
+  Manager = require('../manager');
 
 var server = new Server(),
   process = new Process();
 
-ensureDBCreated().then(function () { // TODO: remove this promise!
+/**
+ * Create the system DB if it doesn't already exist
+ */
+var ensureSystemDBCreated = function () {
+  var partitioner = new Partitioner();
+  var manager = new Manager(partitioner);
+  var system = new System(manager);
+  return partitioner.dbExists(partitioner._dbName).then(function (exists) {
+    if (!exists) {
+      return system.create().then(function () {
+        return partitioner.closeDatabase(); // close DB connection to return resources
+      });
+    }
+  });
+};
+
+ensureSystemDBCreated().then(function () {
   process.run();
   server.listen();
 });

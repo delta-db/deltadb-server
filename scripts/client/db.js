@@ -15,9 +15,10 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   io = require('socket.io-client'),
   Sender = require('./sender'),
-  log = require('../utils/log');
+  log = require('../utils/log'),
+  config = require('./config');
 
-var DB = function ( /* name, adapter */ ) {
+var DB = function (name, adapter, url) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -26,7 +27,7 @@ var DB = function ( /* name, adapter */ ) {
   this._retryAfterMSecs = 180000;
   this._recorded = false;
   this._sender = new Sender(this);
-  this._url = 'http://localhost:3000'; // TODO: make this configurable
+  this._url = url ? url : config.URL;
 
   this._prepInitDone();
 

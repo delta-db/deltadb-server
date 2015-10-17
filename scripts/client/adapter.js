@@ -94,7 +94,7 @@ Adapter.prototype.db = function (opts) {
   if (db) { // exists?
     return db;
   } else {
-    db = new DB(opts.db, this);
+    db = new DB(opts.db, this, opts.url);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);
     return db;
