@@ -1,19 +1,17 @@
 Now
 ---
 - sockets:
-	- code coverage on old tests
-	- merge into master
-	- for test-e2e use spawn to launch server - add to CI and make sure complete coverage
-	- test where db already exists and then start server and make sure server processes the db
-	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
-	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
-	- event for connect. Disconnect event already exists, but add info about both to wiki
-	- run on 3000 and then use iptables in production? http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied. This way don't have to run app as root
-- test client with idb, there will be problems as the idb adapter cannot reload at adapter layer--everything ok now?
-	- add client tests to browser tests
+	- browser code coverage
+	- test browser code with IDB
+	- make sure node and browser tests running in CI
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - impl todomvc example
+- Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
+- Tests:
+	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
+	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
+	- event for connect. Disconnect event already exists, but add info about both to wiki
 - Admin UI, e.g. "Delta Admin"
 - impl deltadb-ng and modify todo example
 - use lie instead of bluebird
