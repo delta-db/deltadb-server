@@ -8,7 +8,7 @@ var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
 
-describe('multiple', function () {
+describe('race', function () {
 
   var self = this,
     storeA = null,
@@ -24,6 +24,7 @@ describe('multiple', function () {
   // appears that mocha doesn't support embedding this in a before() or beforeEach().
   this.timeout(40000);
 
+  // Use Client instead of DeltaDB so that we can simulate separate clients
   var createA = function () {
     storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientA = new Client(storeA);
@@ -35,6 +36,7 @@ describe('multiple', function () {
     aTasks = a.col('tasks');
   };
 
+  // Use Client instead of DeltaDB so that we can simulate separate clients
   var createB = function () {
     storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
     clientB = new Client(storeB);
