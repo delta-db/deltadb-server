@@ -351,17 +351,21 @@ DB.prototype._createDatabaseAndInit = function () {
   });
 };
 
+DB.prototype._onDeltaError = function (err) {
+  log.warning(this._id + ' err=' + err.message);
+
+  if (err.name === 'DBMissingError') {
+    log.info(this._id + ' creating DB ' + this._name);
+    this._createDatabaseAndInit();
+  } else {
+    throw err;
+  }
+};
+
 DB.prototype._registerErrorListener = function () {
   var self = this;
   self._socket.on('delta-error', function (err) {
-    log.warning(self._id + ' err=' + err.message);
-
-    if (err.name === 'DBMissingError') {
-      log.info(self._id + ' creating DB ' + self._name);
-      self._createDatabaseAndInit();
-    } else {
-      throw err;
-    }
+    self._onDeltaError(err);
   });
 };
 
