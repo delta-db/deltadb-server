@@ -312,11 +312,14 @@ Process.prototype._lookupOrCreateCol = function (col) {
 
 Process.prototype._lookupOrCreateCols = function () {
   var self = this,
-    promises = [];
+    chain = Promise.resolve();
+  // Sequentially chain so that we only have to do a single col lookup per batch
   utils.each(self._colIds, function (attr) {
-    promises.push(self._getOrCreateCol(attr));
+    chain = chain.then(function () {
+      return self._getOrCreateCol(attr)
+    });
   });
-  return Promise.all(promises);
+  return chain;
 };
 
 // -----
@@ -388,11 +391,14 @@ Process.prototype._getOrCreateDocs = function (attr) {
 
 Process.prototype._lookupOrCreateDocs = function () {
   var self = this,
-    promises = [];
+    chain = Promise.resolve();
+  // Sequentially chain so that we only have to do one doc lookup per batch
   utils.each(self._docIds[constants.ALL], function (attr) {
-    promises.push(self._getOrCreateDocs(attr));
+    chain = chain.then(function () {
+      return self._getOrCreateDocs(attr)
+    });
   });
-  return Promise.all(promises);
+  return chain;
 };
 
 // TODO: remove once this type of logic is handled by DocRecs
