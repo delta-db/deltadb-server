@@ -1,7 +1,6 @@
 Now
 ---
 - sockets:
-	- browser code coverage
 	- make sure node and browser tests running in CI
 	- e2e with browser test
 	- test browser code with IDB
