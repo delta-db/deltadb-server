@@ -8,10 +8,10 @@ var DeltaDB = function (name, url, store) {
     db: name
   };
 
-  if (typeof url === 'undefined') {
-    opts.local = true;
-  } else {
+  if (url) {
     opts.url = url;
+  } else {
+    opts.local = true;
   }
 
   if (typeof store !== 'undefined') {

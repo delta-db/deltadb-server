@@ -1,6 +1,7 @@
 'use strict';
 
-var DeltaDB = require('../../../scripts/client/delta-db');
+var DeltaDB = require('../../../scripts/client/delta-db'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('delta-db', function () {
 
@@ -12,6 +13,13 @@ describe('delta-db', function () {
   it('should uuid', function () {
     var uuid = DeltaDB.uuid();
     (uuid !== null).should.eql(true);
+  });
+
+  it('should construct with store', function () {
+    var adapter = new MemAdapter();
+    var dbStore = adapter.db('mydb');
+    var db = new DeltaDB('mydb', null, dbStore);
+    return db.destroy();
   });
 
 });
