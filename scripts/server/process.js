@@ -5,7 +5,6 @@
 
 var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
-  MemAdapter = require('../orm/nosql/adapters/mem'),
   Client = require('../client'),
   clientUtils = require('../client/utils'),
   utils = require('../utils'),
@@ -25,10 +24,9 @@ Process.SLEEP_MS = 1000;
 // TODO: split up
 // Use a client to connect to the System DB to load and track the creation/destruction of DBs
 Process.prototype._initSystemDB = function () {
-  var self = this,
-    store = new MemAdapter();
+  var self = this;
 
-  self._client = new Client(store);
+  self._client = new Client();
 
   // TODO: doesn't url need to be set here?
   self._systemDB = self._client.db({

@@ -6,21 +6,18 @@
 
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird');
 
 describe('events', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     db = null,
     tasks = null,
     task = null;
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
 
     db = client.db({
       db: 'mydb'
@@ -747,8 +744,7 @@ describe('events', function () {
 
   // ------------------------
 
-  var store2 = null,
-    client2 = null,
+  var client2 = null,
     db2 = null;
 
   var dbCreateLocal = function () {
@@ -759,8 +755,7 @@ describe('events', function () {
   };
 
   var dbShouldCreateLocal = function () {
-    store2 = new MemAdapter();
-    client2 = new Client(store2, true);
+    client2 = new Client(true);
     return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
       args) {
       args[0].should.eql(db2);

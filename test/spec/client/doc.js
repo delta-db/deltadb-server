@@ -1,20 +1,17 @@
 'use strict';
 
-var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter'),
+var Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc');
 
 describe('doc', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     db = null,
     tasks = null,
     task = null;
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
 
     db = client.db({
       db: 'mydb'

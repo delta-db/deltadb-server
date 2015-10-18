@@ -1,26 +1,23 @@
 'use strict';
 
-var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../scripts/client/adapter'),
+var Client = require('../../scripts/client/adapter'),
   DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
   utils = require('../utils');
 
 describe('separate', function () {
 
-  var storeA = null,
+  var
     clientA = null,
     a = null,
     aTasks = null,
-    storeB = null,
     clientB = null,
     b = null,
     bTasks = null;
 
   // Use Client instead of DeltaDB so that we can simulate separate clients
   var createA = function () {
-    storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientA = new Client(storeA);
+    clientA = new Client();
 
     a = clientA.db({
       db: 'mydb'
@@ -31,8 +28,7 @@ describe('separate', function () {
 
   // Use Client instead of DeltaDB so that we can simulate separate clients
   var createB = function () {
-    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientB = new Client(storeB);
+    clientB = new Client();
 
     b = clientB.db({
       db: 'mydb'

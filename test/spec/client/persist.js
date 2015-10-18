@@ -1,22 +1,19 @@
 'use strict';
 
 var utils = require('../../../scripts/utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   DB = require('../../../scripts/client/db');
 
 describe('client', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     db = null,
     tasks = null,
     task = null,
     propsReady = null;
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
     db = client.db({
       db: 'mydb'
     });
@@ -83,7 +80,7 @@ describe('client', function () {
       return task.save();
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by reloading the store
-      client2 = new Client(store, true);
+      client2 = new Client(true);
       db2 = client2.db({
         db: 'mydb',
         store: db._store // simulate a reload by using the same store as db
@@ -120,7 +117,7 @@ describe('client', function () {
       task2 = null;
 
     var setUpClient2 = function () {
-      client2 = new Client(store, true);
+      client2 = new Client(true);
       db2 = client2.db({
         db: 'mydb',
         store: db._store // reuse the store

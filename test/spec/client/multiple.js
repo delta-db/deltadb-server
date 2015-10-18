@@ -1,22 +1,17 @@
 'use strict';
 
 var testUtils = require('../../utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird');
 
 describe('multiple', function () {
 
-  var store1 = null,
-    client1 = null,
-    store2 = null,
+  var client1 = null,
     client2 = null;
 
   beforeEach(function () {
-    store1 = new MemAdapter();
-    client1 = new Client(store1, true); // local only so no connection to server
-    store2 = new MemAdapter();
-    client2 = new Client(store2, true); // local only so no connection to server
+    client1 = new Client(true); // local only so no connection to server
+    client2 = new Client(true); // local only so no connection to server
   });
 
   // Note: don't need afterEach as everything created in mem and therefore doesn't need to be purged

@@ -4,15 +4,13 @@
 
 var utils = require('../../../scripts/utils'),
   testUtils = require('../../utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
   clientUtils = require('../../../scripts/client/utils');
 
 describe('client', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     db = null,
     tasks = null;
 
@@ -20,8 +18,7 @@ describe('client', function () {
     // TODO: For now, we have to instantiate a new store each time so that data isn't reloaded
     // between tests. In the future we want an event that is emitted when the loading of the store
     // has completed and we can then use this event in an afterEach().
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
 
     db = client.db({
       db: 'mydb'

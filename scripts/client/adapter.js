@@ -9,14 +9,9 @@ var inherits = require('inherits'),
   clientUtils = require('./utils'),
   Promise = require('bluebird');
 
-// TODO: remove store param!
-var Adapter = function (store, localOnly) {
+var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
-
-  this._store = store;
   this._localOnly = localOnly;
-
-//  this._initStore();
 };
 
 // We inherit from MemAdapter so that we can have singular references in memory to items like Docs.
@@ -36,7 +31,9 @@ Adapter.prototype.uuid = function () {
 Adapter.prototype._dbStore = function (name) {
   // TODO: if IndexedDB support available then use IDB adapter otherwise MemAdapter.
   var adapterStore = new MemAdapter();
-  return adapterStore.db({ db: name });
+  return adapterStore.db({
+    db: name
+  });
 };
 
 Adapter.prototype.db = function (opts) {
@@ -46,6 +43,7 @@ Adapter.prototype.db = function (opts) {
   } else {
 
     if (typeof opts.local === 'undefined') {
+      //    if (typeof opts.local === 'undefined' && typeof this._localOnly !== 'undefined') {
       opts.local = this._localOnly;
     }
 
@@ -139,7 +137,7 @@ Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
       delete self._dbs[dbName];
     });
   } else {
-    delete self._dbs[dbName]
+    delete self._dbs[dbName];
     return Promise.resolve();
   }
 };

@@ -3,8 +3,7 @@
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
   DB = require('../../scripts/client/db'),
-  Promise = require('bluebird'),
-  utils = require('../utils');
+  Promise = require('bluebird');
 
 describe('basic', function () {
 
