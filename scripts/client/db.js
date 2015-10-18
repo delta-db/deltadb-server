@@ -76,13 +76,6 @@ DB.prototype._import = function (store) {
   this._initStore();
 };
 
-DB.prototype._createMissingStores = function () {
-  // Create stores for any cols that have not been imported
-  this.all(function (col) {
-    col._createMissingStores();
-  });
-};
-
 DB.prototype._initStore = function () {
   var self = this,
     promises = [],
@@ -101,7 +94,6 @@ DB.prototype._initStore = function () {
 
   // All the stores have been imported
   self._storesImported = true;
-  self._createMissingStores();
 
   self._loaded = Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store

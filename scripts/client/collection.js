@@ -31,20 +31,6 @@ Collection.prototype._createStoreIfStoresImported = function () {
   }
 };
 
-Collection.prototype._createMissingStores = function () {
-  if (!this._store) { // store was imported?
-    this._createStore();
-
-    // We don't have to create any stores for docs that have been registered as the store would have
-    // to have been created if the doc has been registered
-
-    // Create stores for any pending docs that have not been imported
-    this._allPending(function (doc) {
-      doc._createMissingStore();
-    });
-  }
-};
-
 Collection.prototype._doc = function (data) {
   var id = data ? data[this._db._idName] : null;
   if (id && this._docs[id]) { // has id and exists?

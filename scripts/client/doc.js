@@ -42,12 +42,6 @@ Doc.prototype._createStoreIfStoresImported = function () {
   }
 };
 
-Doc.prototype._createMissingStore = function () {
-  if (!this._store) { // store was imported?
-    this._createStore();
-  }
-};
-
 Doc.prototype._pointToData = function () {
   this._data = this._dat.data; // point to wrapped location
 };
