@@ -4,6 +4,8 @@ node_js:
   - "0.10"
 
 addons:
+  # We need >=9.3 for testing only as we need to force close connections via pg_terminate_backend().
+  # TODO: remove after 9.3 becomes the default.
   postgresql: "9.4"
 
 script: npm run $COMMAND
