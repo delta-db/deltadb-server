@@ -121,27 +121,27 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
 };
 
 Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
-  var self = this,
-    ts = new Date();
+  var self = this;
 
-  // If the db exists then close it first!! I don't think we have to worry about a race condition
-  // where the client re-creates this DB while trying to destroy as the destroy will just fail as
-  // the db is in use and will be retried later.
-  var promise = null;
   if (this.exists(dbName) && !localOnly) {
+    // If the db exists then close it first!! I don't think we have to worry about a race condition
+    // where the client re-creates this DB while trying to destroy as the destroy will just fail as
+    // the db is in use and will be retried later.
+    var ts = new Date();
     var db = this.db({
       db: dbName
     });
-    promise = db._disconnect();
+    return db._disconnect().then(function () {
+      return self._systemDB()._destroyDatabase(dbName);
+    }).then(function (doc) {
+      return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
+    }).then(function () {
+      delete self._dbs[dbName];
+    });
   } else {
-    promise = Promise.resolve();
+    delete self._dbs[dbName]
+    return Promise.resolve();
   }
-
-  return promise.then(function () {
-    return self._systemDB()._destroyDatabase(dbName);
-  }).then(function (doc) {
-    return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
-  });
 };
 
 module.exports = Adapter;

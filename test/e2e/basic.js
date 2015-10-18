@@ -93,4 +93,6 @@ describe('basic', function () {
   // TODO: test send interval by making interval large and making a bunch of changes in a short
   // period of time and making sure sync only called twice
 
+  // TODO: test local only mode
+
 });

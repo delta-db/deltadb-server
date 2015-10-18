@@ -1,8 +1,7 @@
 'use strict';
 
-var Adapter = require('./adapter');
-
-var client = new Adapter();
+var Adapter = require('./adapter'),
+  client = new Adapter();
 
 var DeltaDB = function (name, url, store) {
   var opts = {
