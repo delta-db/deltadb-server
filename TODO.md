@@ -46,6 +46,7 @@ Next
 			 // optional .throwIfMissing()
 			 .then(function (results) { })
 	 Also do something similar for NoSQL ORM
+- update to travis' new infrastructure (away from legacy setup)
 - there are two "Servers" in the server code -- one should be renamed
 - run on Amazon lambda and other similar services
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
