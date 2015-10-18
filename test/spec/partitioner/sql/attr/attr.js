@@ -4,18 +4,21 @@
 
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
+  commonUtils = require('../../../../common-utils'),
   constants = require(partDir + '/constants'),
   ForbiddenError = require(partDir + '/forbidden-error'),
   Attr = require(partDir + '/attr/attr'),
   System = require('../../../../../scripts/system'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  DBExistsError = require('../../../../../scripts/client/db-exists-error'),
+  DBMissingError = require('../../../../../scripts/client/db-missing-error');
 
 describe('attr', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
-  var testUtils = args.utils,
-    attrRecs = null;
+  var attrRecs = null,
+    testUtils = args.utils;
 
   beforeEach(function () {
     attrRecs = args.db._partitions[constants.LATEST]._attrRecs;
@@ -43,26 +46,19 @@ describe('attr', function () {
     attr.setDestroyedOrUpdateDoc();
   });
 
-  it('should throw non-forbidden error when creating', function () {
+  it('should catch errors when creating', function () {
     var attr = new Attr();
-    attr.create = function () {
-      return new Promise(function () {
-        throw new Error('err');
-      });
-    };
-    return testUtils.shouldThrow(function () {
-      return attr.createLatestAndAllAndRecentAndRecentAttr();
-    }, new Error('err'));
+    attr._processCreateErr(new ForbiddenError());
+    attr._processCreateErr(new DBExistsError());
+    attr._processCreateErr(new DBMissingError());
   });
 
-  it('should handle forbidden error when creating', function () {
-    var attr = new Attr();
-    attr.create = function () {
-      return new Promise(function () {
-        throw new ForbiddenError('err');
-      });
-    };
-    return attr.createLatestAndAllAndRecentAndRecentAttr();
+  it('should throw non-forbidden error when creating', function () {
+    var attr = new Attr(),
+      err = new Error();
+    return commonUtils.shouldNonPromiseThrow(function () {
+      attr._processCreateErr(err);
+    }, err);
   });
 
   it('should create database', function () {
@@ -144,7 +140,76 @@ describe('attr', function () {
     });
   });
 
-  // TODO: what if remote server receives a destroy DB before a create DB, will we keep trying to
-  // destroy the DB or will this be ignored? This error should probably be ignored.
+  it('should throw error when creating db', function () {
+    var attr = new Attr(),
+      err = new Error();
+
+    attr._params = { // fake
+      value: {
+        name: 'mydb'
+      }
+    };
+
+    attr._partitioner = { // fake
+      createAnotherDatabase: testUtils.promiseErrorFactory(err)
+    };
+
+    return commonUtils.shouldThrow(function () {
+      return attr._createDB();
+    }, err);
+  });
+
+  it('should catch errors when creating db', function () {
+    var attr = new Attr(),
+      err = new DBExistsError();
+
+    attr._params = { // fake
+      value: {
+        name: 'mydb'
+      }
+    };
+
+    attr._partitioner = { // fake
+      createAnotherDatabase: testUtils.promiseErrorFactory(err)
+    };
+
+    return attr._createDB();
+  });
+
+  it('should throw error when destroying db', function () {
+    var attr = new Attr(),
+      err = new Error();
+
+    attr._params = { // fake
+      value: {
+        name: 'mydb'
+      }
+    };
+
+    attr._partitioner = { // fake
+      destroyAnotherDatabase: testUtils.promiseErrorFactory(err)
+    };
+
+    return commonUtils.shouldThrow(function () {
+      return attr._destroyDB();
+    }, err);
+  });
+
+  it('should catch errors when destroying db', function () {
+    var attr = new Attr(),
+      err = new DBMissingError();
+
+    attr._params = { // fake
+      value: {
+        name: 'mydb'
+      }
+    };
+
+    attr._partitioner = { // fake
+      destroyAnotherDatabase: testUtils.promiseErrorFactory(err)
+    };
+
+    return attr._destroyDB();
+  });
 
 });

@@ -41,6 +41,17 @@ Attr.prototype._canDestroyOrUpdateDoc = function () {
   }
 };
 
+Attr.prototype._processCreateErr = function (err) {
+  // We can expect a DBExistsError/DBMissingError if two clients try to create/destroy the same DB
+  // simultaneously
+  if (err instanceof ForbiddenError || err instanceof DBExistsError ||
+    err instanceof DBMissingError) {
+    log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
+  } else {
+    throw err;
+  }
+};
+
 // TODO: split up
 Attr.prototype.create = function () {
   // We want to make sure that we set the options before we create the attr as creating the attr
@@ -89,12 +100,7 @@ Attr.prototype.create = function () {
       return self.restoreIfDestroyedBefore();
     }
   }).catch(function (err) {
-    // We can expect a DBExistsError if two clients try to create the same DB simultaneously
-    if (err instanceof ForbiddenError || err instanceof DBExistsError) {
-      log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
-    } else {
-      throw err;
-    }
+    self._processCreateErr(err);
   });
 };
 
@@ -127,8 +133,25 @@ Attr.prototype.createIfPermitted = function () {
   });
 };
 
-Attr.prototype._createOrDestroyDatabase = function () {
+Attr.prototype._destroyDB = function () {
+  return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
+    // Ignore DBMissingErrors caused by race conditions when destroying the database
+    if (!(err instanceof DBMissingError)) {
+      throw err;
+    }
+  });
+};
 
+Attr.prototype._createDB = function () {
+  return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
+    // Ignore DBMissingErrors caused by race conditions when creating the database
+    if (!(err instanceof DBExistsError)) {
+      throw err;
+    }
+  });
+};
+
+Attr.prototype._createOrDestroyDatabase = function () {
   // Only create DB if this the system partitioner
   if (this._partitioner._dbName !== System.DB_NAME) {
     // TODO: log?
@@ -136,19 +159,9 @@ Attr.prototype._createOrDestroyDatabase = function () {
   }
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-    return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
-      // Ignore DBMissingErrors caused by race conditions when destroying the database
-      if (!(err instanceof DBMissingError)) {
-        throw err;
-      }
-    });
+    return this._destroyDB();
   } else {
-    return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
-      // Ignore DBMissingErrors caused by race conditions when creating the database
-      if (!(err instanceof DBExistsError)) {
-        throw err;
-      }
-    });
+    return this._createDB();
   }
 };
 
@@ -249,10 +262,6 @@ Attr.prototype.createLatestAndAllAndRecentAndRecentAttr = function () {
   }).then(function () {
     self._partitionName = constants.RECENT;
     return self.create();
-  }).catch(function (err) {
-    if (!(err instanceof ForbiddenError)) {
-      throw err;
-    }
   });
 };
 
