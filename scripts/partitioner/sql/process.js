@@ -707,11 +707,12 @@ Process.prototype._processAttr = function (attr) {
   return self._createOrUpdateAttrs(attr).then(function () {
     return self._destroyQueueAttrRec(attr); // remove from queue
   }).catch(function (err) {
-    if (err instanceof ForbiddenError) {
-      log.error('Error processing attr=' + JSON.stringify(attr) + ', err=' + err.message);
-    } else {
-      throw err;
-    }
+    // TODO: remove? Is it even possible to get a ForbiddneError here?
+    // if (err instanceof ForbiddenError) {
+    //   log.error('Error processing attr=' + JSON.stringify(attr) + ', err=' + err.message);
+    // } else {
+    throw err;
+    // }
   });
 };
 

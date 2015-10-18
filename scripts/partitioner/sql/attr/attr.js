@@ -8,7 +8,6 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  SQLError = require('../../../orm/sql/common/sql-error'),
   Docs = require('../doc/docs'),
   DBMissingError = require('../../../client/db-missing-error'),
   DBExistsError = require('../../../client/db-exists-error');
@@ -37,7 +36,7 @@ Attr.prototype._canDestroyOrUpdateDoc = function () {
       self._params.docUUID, self._params.colId, self._params.userUUID);
   } else {
     // TODO: remove new Date()
-    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
+    var updatedAt = new Date(self._params.updatedAt);
     return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
   }
 };
@@ -90,9 +89,8 @@ Attr.prototype.create = function () {
       return self.restoreIfDestroyedBefore();
     }
   }).catch(function (err) {
-    // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
-    // We can expect an SQLError if two clients try to create the DB at the same time
-    if (err instanceof ForbiddenError || err instanceof SQLError) {
+    // We can expect a DBExistsError if two clients try to create the same DB simultaneously
+    if (err instanceof ForbiddenError || err instanceof DBExistsError) {
       log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
     } else {
       throw err;
@@ -174,14 +172,15 @@ Attr.prototype.setOptions = function () {
 
   case Doc._roleName: // TODO: split into fns
     var roleUUID = this._roles.toUUID(this._params.value.roleName);
+    var ret = null;
     if (this._params.value.action === UserRoles.ACTION_REMOVE) {
-      return this._users.removeRole(this._params.forUserId, roleUUID);
+      ret = this._users.removeRole(this._params.forUserId, roleUUID);
     } else {
-      return this._users.addRole(this._params.forUserId, roleUUID,
+      ret = this._users.addRole(this._params.forUserId, roleUUID,
         this._params.changedByUserId, this._params.changedByUUID,
         this._params.updatedAt, this._params.docId);
     }
-    break;
+    return ret;
 
   case System.DB_ATTR_NAME:
     return this._createOrDestroyDatabase();
