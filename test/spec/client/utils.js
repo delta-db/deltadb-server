@@ -4,14 +4,28 @@ var clientUtils = require('../../../scripts/client/utils');
 
 describe('utils', function () {
 
-  it('should gen user', function () {
-    return clientUtils.genUser('user-uuid', 'username', 'secret').then(function (user) {
+  var shouldGenUser = function (status) {
+    return clientUtils.genUser('user-uuid', 'username', 'secret', status).then(function (user) {
       user.uuid.should.eql('user-uuid');
       user.username.should.eql('username');
-      user.status.should.eql('enabled');
+
+      if (typeof status === 'undefined') {
+        user.status.should.eql('enabled');
+      } else {
+        user.status.should.eql(status);
+      }
+
       (user.salt === null).should.eql(false);
       (user.password === null).should.eql(false);
     });
+  };
+
+  it('should gen user without status', function () {
+    return shouldGenUser();
+  });
+
+  it('should gen user with status', function () {
+    return shouldGenUser(true);
   });
 
   it('should convert to doc uuid', function () {
