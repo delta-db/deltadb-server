@@ -414,9 +414,7 @@ DB.prototype._disconnect = function () {
 DB.prototype._connectWhenReady = function () {
   var self = this;
   return self._storeLoaded.then(function () {
-    if (!self._adapter._localOnly) {
-      return self._connect();
-    }
+    return self._connect();
   });
 };
 

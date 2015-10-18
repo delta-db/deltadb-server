@@ -100,7 +100,7 @@ Utils.prototype.contains = function (expected, actual) {
 
 Utils.prototype.timeout = function () {
   // TODO: change all callers to use utils
-  return clientUtils.timeout.apply(this, arguments);
+  return clientUtils.timeout.apply(clientUtils, arguments);
 };
 
 Utils.prototype.sleep = function (sleepMs) {
@@ -314,12 +314,12 @@ Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
 
 Utils.prototype.never = function () {
   // TODO: change all callers to use commonUtils
-  return commonUtils.never.apply(this, arguments);
+  return commonUtils.never.apply(commonUtils, arguments);
 };
 
 Utils.prototype.shouldThrow = function () {
   // TODO: change all callers to use commonUtils
-  return commonUtils.shouldThrow.apply(this, arguments);
+  return commonUtils.shouldThrow.apply(commonUtils, arguments);
 };
 
 // TODO: refactor test code to use this more
