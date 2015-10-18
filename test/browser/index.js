@@ -6,6 +6,7 @@ describe('browser', function () {
   require('../spec/orm/nosql/common');
   require('../spec/utils/utils');
 
-  // TODO: also test client!
+  // TODO: also test entire client!
+  require('../spec/client/utils');
 
 });

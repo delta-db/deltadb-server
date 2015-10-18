@@ -8,8 +8,9 @@ var commonUtils = require('../common-utils'),
   IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
   utils = require('../new-utils');
 
-var Adapter = function (adapter) {
-  this._adapter = adapter;
+var Adapter = function (AdapterClass) {
+  this._Adapter = AdapterClass;
+  this._adapter = new AdapterClass();
 };
 
 Adapter.prototype.test = function () {

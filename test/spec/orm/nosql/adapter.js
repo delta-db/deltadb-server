@@ -4,9 +4,9 @@ var utils = require('../../../new-utils');
 
 // TODO: split into separate tests
 
-var Adapter = function (Adapter) {
-  this._Adapter = Adapter;
-  this._adapter = new Adapter();
+var Adapter = function (AdapterClass) {
+  this._Adapter = AdapterClass;
+  this._adapter = new AdapterClass();
 };
 
 Adapter.prototype.test = function () {
