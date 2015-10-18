@@ -1,22 +1,19 @@
 'use strict';
 
 var utils = require('../../../scripts/utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   DB = require('../../../scripts/client/db');
 
 describe('client', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     db = null,
     tasks = null,
     task = null,
     propsReady = null;
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
     db = client.db({
       db: 'mydb'
     });
@@ -24,8 +21,6 @@ describe('client', function () {
     tasks = db.col('tasks');
     task = tasks.doc();
   });
-
-  // TODO: define afterEach and destroy underlying store
 
   it('should restore from store', function () {
 
@@ -85,9 +80,10 @@ describe('client', function () {
       return task.save();
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by reloading the store
-      client2 = new Client(store, true);
+      client2 = new Client(true);
       db2 = client2.db({
-        db: 'mydb'
+        db: 'mydb',
+        store: db._store // simulate a reload by using the same store as db
       });
 
       // Wait until all the docs have been loaded from the store
@@ -121,9 +117,10 @@ describe('client', function () {
       task2 = null;
 
     var setUpClient2 = function () {
-      client2 = new Client(store, true);
+      client2 = new Client(true);
       db2 = client2.db({
-        db: 'mydb'
+        db: 'mydb',
+        store: db._store // reuse the store
       });
       tasks2 = db2.col('tasks');
     };
@@ -137,7 +134,7 @@ describe('client', function () {
       return utils.once(db2, 'load');
     }).then(function () {
       // Simulate initializing of store after client was setup
-      db2._loadStore();
+      db2._import(db._store);
       return utils.once(db2, 'load');
     }).then(function () {
       // We need to wait to get the task as the doc isn't registered until save() is called.

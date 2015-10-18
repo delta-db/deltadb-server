@@ -3,14 +3,12 @@
 /* global before, after */
 
 var utils = require('../utils'),
-  MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../scripts/client/adapter'),
   partUtils = require('../spec/partitioner/sql/utils');
 
 describe('e2e-no-socket', function () {
 
-  var store = null,
-    client = null,
+  var client = null,
     a = null,
     aTasks = null,
     b = null,
@@ -19,8 +17,7 @@ describe('e2e-no-socket', function () {
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
 
     a = client.db({
       db: 'mydb'

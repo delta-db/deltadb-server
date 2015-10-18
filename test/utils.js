@@ -360,7 +360,7 @@ Utils.prototype.shouldOnce = function (emitter, evnt) {
     err = true,
     args = null;
 
-  emitter.once(event, function (_args) {
+  emitter.once(evnt, function (_args) {
     err = false;
     args = _args;
   });

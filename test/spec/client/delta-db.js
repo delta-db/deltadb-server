@@ -4,12 +4,9 @@ var DeltaDB = require('../../../scripts/client/delta-db');
 
 describe('delta-db', function () {
 
-  it('should instantiate', function () {
+  it('should create and destroy locally only', function () {
     var db = new DeltaDB('mydb');
-    db.on('db:create', function () {
-      // db created
-    });
-    db._name.should.eql('mydb');
+    return db.destroy();
   });
 
   it('should uuid', function () {

@@ -53,6 +53,8 @@ describe('e2e', function () {
 
   require('./basic.js');
 
-  require('./multiple.js');
+  require('./separate.js');
+
+  require('./race.js');
 
 });

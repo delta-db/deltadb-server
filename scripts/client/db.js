@@ -42,8 +42,6 @@ var DB = function (name, adapter, url, localOnly) {
 
     this._connectWhenReady();
   }
-
-  this._loadStore();
 };
 
 inherits(DB, MemDB);
@@ -54,10 +52,6 @@ DB.PROPS_DOC_ID = 'props';
 
 // Use a version # to allow for patching of the store between versions when the schema changes
 DB.VERSION = 1;
-
-DB.prototype._loadStore = function () {
-  this._adapter._initDBStore(this);
-};
 
 DB.prototype._prepInitDone = function () {
   // This promise ensures that the we have already received init-done from the server

@@ -2,20 +2,17 @@
 
 /* global after */
 
-var MemAdapter = require('../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../scripts/client/adapter'),
+var Client = require('../../scripts/client/adapter'),
   Promise = require('bluebird'),
   clientUtils = require('../../scripts/client/utils'),
   utils = require('../utils');
 
-describe('multiple', function () {
+describe('race', function () {
 
   var self = this,
-    storeA = null,
     clientA = null,
     a = null,
     aTasks = null,
-    storeB = null,
     clientB = null,
     b = null,
     bTasks = null;
@@ -24,9 +21,9 @@ describe('multiple', function () {
   // appears that mocha doesn't support embedding this in a before() or beforeEach().
   this.timeout(40000);
 
+  // Use Client instead of DeltaDB so that we can simulate separate clients
   var createA = function () {
-    storeA = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientA = new Client(storeA);
+    clientA = new Client();
 
     a = clientA.db({
       db: 'mydb'
@@ -35,9 +32,9 @@ describe('multiple', function () {
     aTasks = a.col('tasks');
   };
 
+  // Use Client instead of DeltaDB so that we can simulate separate clients
   var createB = function () {
-    storeB = new MemAdapter(); // TODO: also test with IndexedDB in browser
-    clientB = new Client(storeB);
+    clientB = new Client();
 
     b = clientB.db({
       db: 'mydb'

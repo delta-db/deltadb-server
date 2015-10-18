@@ -1,17 +1,14 @@
 'use strict';
 
-var MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  Client = require('../../../scripts/client/adapter'),
+var Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird');
 
 describe('adapter', function () {
 
-  var store = null,
-    client = null;
+  var client = null;
 
   beforeEach(function () {
-    store = new MemAdapter();
-    client = new Client(store, true);
+    client = new Client(true);
   });
 
   var fakeResolveAfterDatabaseDestroyed = function () {

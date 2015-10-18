@@ -1,12 +1,9 @@
 'use strict';
 
 var Adapter = require('./adapter'),
-  MemAdapter = require('../orm/nosql/adapters/mem');
+  client = new Adapter();
 
-var store = new MemAdapter(); // TODO: configurable, e.g. IndexedDB
-var client = new Adapter(store);
-
-var DeltaDB = function (name, url) {
+var DeltaDB = function (name, url, store) {
   var opts = {
     db: name
   };
@@ -15,6 +12,10 @@ var DeltaDB = function (name, url) {
     opts.local = true;
   } else {
     opts.url = url;
+  }
+
+  if (typeof store !== 'undefined') {
+    opts.store = store;
   }
 
   return client.db(opts);
