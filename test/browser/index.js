@@ -2,7 +2,7 @@
 
 describe('browser', function () {
 
-  require('./adapters');
+  // require('./adapters');
   require('../spec/orm/nosql/common');
   // require('../spec/utils/utils');
   //
