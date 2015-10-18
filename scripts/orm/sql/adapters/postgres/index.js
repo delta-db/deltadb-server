@@ -45,6 +45,15 @@ SQL.prototype._createDatabase = function (db) {
   return this._query('CREATE DATABASE ' + this.escape(db));
 };
 
+// Separate for easier code coverage
+SQL.prototype._processConnectError = function (err) {
+  if (err.code === '3D000') {
+    throw new DBMissingError(err.message);
+  } else {
+    throw err;
+  }
+};
+
 SQL.prototype.connect = function (db, host, username, password, port) {
   var self = this;
   self._config(db, host, username, password, port);
@@ -56,11 +65,7 @@ SQL.prototype.connect = function (db, host, username, password, port) {
       self.emit('disconnect');
     });
   }).catch(function (err) {
-    if (err.code === '3D000') {
-      throw new DBMissingError(err.message);
-    } else {
-      throw err;
-    }
+    self._processConnectError(err);
   });
 };
 
@@ -348,7 +353,7 @@ SQL.prototype._dropDatabase = function (db, force) {
 
 // Need to pass in host, username, password, port as may not have already connected to DB.
 // TODO: refactor and put host, username, password, port in SQL constructor?
-SQL.prototype.dropAndCloseDatabase = function (db, host, username, password, port, force) {
+SQL.prototype.dropAndCloseDatabase = function (db, host, username, password, port) {
   var self = this,
     promise = null;
 
@@ -359,14 +364,12 @@ SQL.prototype.dropAndCloseDatabase = function (db, host, username, password, por
   }
 
   return promise.then(function () {
-    if (force) {
-      // Close all connections to this DB to prevent the DROP from failing
-      return connections.disconnectAll(db, host, username, password, port, force);
-    }
+    // Close all connections to this DB to prevent the DROP from failing
+    return connections.disconnectAll(db, host, username, password, port);
   }).then(function () {
     return self.connect('postgres', host, username, password, port);
   }).then(function () {
-    return self._dropDatabase(db, force);
+    return self._dropDatabase(db);
   }).then(function () {
     return self.close();
   });
