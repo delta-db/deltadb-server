@@ -316,7 +316,7 @@ Process.prototype._lookupOrCreateCols = function () {
   // Sequentially chain so that we only have to do a single col lookup per batch
   utils.each(self._colIds, function (attr) {
     chain = chain.then(function () {
-      return self._getOrCreateCol(attr)
+      return self._getOrCreateCol(attr);
     });
   });
   return chain;
@@ -395,7 +395,7 @@ Process.prototype._lookupOrCreateDocs = function () {
   // Sequentially chain so that we only have to do one doc lookup per batch
   utils.each(self._docIds[constants.ALL], function (attr) {
     chain = chain.then(function () {
-      return self._getOrCreateDocs(attr)
+      return self._getOrCreateDocs(attr);
     });
   });
   return chain;
