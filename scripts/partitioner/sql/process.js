@@ -231,7 +231,7 @@ Process.prototype._lookupOrCreateUserRoleCols = function (userColName, roleColNa
   attr, recordedByUserId) {
   var self = this,
     userColId = null;
-  return self._lookupOrCreateCol( // user col
+  return self._getOrCreateCol( // user col
       {
         colName: userColName,
         userUUID: attr.user_uuid,
@@ -240,7 +240,7 @@ Process.prototype._lookupOrCreateUserRoleCols = function (userColName, roleColNa
       })
     .then(function (_userColId) {
       userColId = _userColId;
-      return self._lookupOrCreateCol( // role col
+      return self._getOrCreateCol( // role col
         {
           colName: roleColName,
           userUUID: attr.user_uuid,
@@ -274,6 +274,7 @@ Process.prototype._createCol = function (colName, userId, userUUID, updatedAt, r
   return self._cols.getOrCreateIfPermitted(colName, userId, userUUID, updatedAt, permUserId)
     .then(function (colId) {
       self._colIds[colName] = colId;
+      return colId;
     });
 };
 
@@ -299,27 +300,14 @@ Process.prototype._getOrCreateCol = function (col) {
   }
 };
 
-Process.prototype._lookupOrCreateCol = function (col) {
-  var self = this;
-  if (self._colIds[col.colName]) {
-    return Promise.resolve(self._colIds[col.colName]);
-  } else {
-    return self._getOrCreateCol(col).then(function () {
-      return self._colIds[col.colName];
-    });
-  }
-};
-
 Process.prototype._lookupOrCreateCols = function () {
   var self = this,
-    chain = Promise.resolve();
-  // Sequentially chain so that we only have to do a single col lookup per batch
+    promises = [];
+  // We don't need to sequentially chain as all the colIds have already been added sequentially
   utils.each(self._colIds, function (attr) {
-    chain = chain.then(function () {
-      return self._getOrCreateCol(attr);
-    });
+    promises.push(self._getOrCreateCol(attr));
   });
-  return chain;
+  return Promise.all(promises);
 };
 
 // -----
@@ -391,14 +379,12 @@ Process.prototype._getOrCreateDocs = function (attr) {
 
 Process.prototype._lookupOrCreateDocs = function () {
   var self = this,
-    chain = Promise.resolve();
-  // Sequentially chain so that we only have to do one doc lookup per batch
+    promises = [];
+  // We don't need to sequentially chain as all the colIds have already been added sequentially
   utils.each(self._docIds[constants.ALL], function (attr) {
-    chain = chain.then(function () {
-      return self._getOrCreateDocs(attr);
-    });
+    promises.push(self._getOrCreateDocs(attr));
   });
-  return chain;
+  return Promise.all(promises);
 };
 
 // TODO: remove once this type of logic is handled by DocRecs
