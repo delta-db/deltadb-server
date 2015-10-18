@@ -2,8 +2,7 @@
 
 var inherits = require('inherits'),
   CommonAdapter = require('../../common/adapter'),
-  DB = require('./db'),
-  utils = require('../../../../utils');
+  DB = require('./db');
 
 var Adapter = function () {
   CommonAdapter.apply(this, arguments); // apply parent constructor
@@ -23,10 +22,11 @@ Adapter.prototype.db = function (opts) {
   }
 };
 
+// Note: not used, but may be used in the future
 // TODO: should this return a promise like col.all()??
-Adapter.prototype.all = function (callback) {
-  utils.each(this._dbs, callback);
-};
+// Adapter.prototype.all = function (callback) {
+//   utils.each(this._dbs, callback);
+// };
 
 Adapter.prototype.exists = function (dbName) {
   return this._dbs[dbName] ? true : false;

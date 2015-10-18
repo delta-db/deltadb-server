@@ -8,15 +8,13 @@ var Promise = require('bluebird'),
   where = require('../../common/where'),
   order = require('../../common/order'),
   Cursor = require('./cursor'),
-  Doc = require('./doc'),
-  utils = require('../../../../utils');
+  Doc = require('./doc');
 
 var Collection = function (name, db) {
   CommonCollection.apply(this, arguments); // apply parent constructor
   this._name = name;
   this._db = db;
   this._docs = {};
-  this._pendingDocs = {};
 };
 
 inherits(Collection, CommonCollection);
@@ -49,7 +47,6 @@ Collection.prototype.find = function (query, callback) {
 };
 
 Collection.prototype._register = function (doc) {
-  delete this._pendingDocs[doc._pendingID];
   this._docs[doc.id()] = doc;
   return Promise.resolve();
 };
@@ -57,13 +54,6 @@ Collection.prototype._register = function (doc) {
 Collection.prototype._unregister = function (doc) {
   delete this._docs[doc.id()];
   return Promise.resolve();
-};
-
-/**
- * Provide access to all the docs that have not yet been saved
- */
-Collection.prototype._allPending = function (callback) {
-  return utils.each(this._pendingDocs, callback);
 };
 
 module.exports = Collection;
