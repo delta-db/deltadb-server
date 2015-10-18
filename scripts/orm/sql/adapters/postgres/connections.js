@@ -76,7 +76,9 @@ Connections.prototype.disconnect = function (id, db, host, username, password, p
 
 Connections.prototype.disconnectAll = function (db, host, username, password, port) {
   return this._unregisterAll(db, host, username, password, port).then(function (conn) {
-    if (conn) { // is there a connection to close?
+    // Is there a connection to close? There may not be a connection if this is only one connection
+    // as it was previously closed via dropAndCloseDatabase().
+    if (conn) {
       return conn.connection.disconnect();
     }
   });

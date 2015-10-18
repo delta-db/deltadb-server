@@ -3,7 +3,8 @@
 var DB = require('../../../scripts/client/db'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  clientUtils = require('../../../scripts/client/utils');
+  clientUtils = require('../../../scripts/client/utils'),
+  commonUtils = require('../../common-utils');
 
 describe('db', function () {
 
@@ -41,6 +42,16 @@ describe('db', function () {
       });
       return clientUtils.once(db, 'load');
     });
+  });
+
+  it('should throw delta errors', function () {
+    var client = new Client(true);
+    var db = client.db({
+      db: 'mydb'
+    });
+    return commonUtils.shouldNonPromiseThrow(function () {
+      db._onDeltaError(new Error('my err'));
+    }, new Error('my err'));
   });
 
 });

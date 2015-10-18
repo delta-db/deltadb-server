@@ -8,7 +8,6 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  SQLError = require('../../../orm/sql/common/sql-error'),
   Docs = require('../doc/docs'),
   DBMissingError = require('../../../client/db-missing-error'),
   DBExistsError = require('../../../client/db-exists-error');
@@ -37,8 +36,19 @@ Attr.prototype._canDestroyOrUpdateDoc = function () {
       self._params.docUUID, self._params.colId, self._params.userUUID);
   } else {
     // TODO: remove new Date()
-    var updatedAt = new Date(self._params.updatedAt ? self._params.updatedAt : null);
+    var updatedAt = new Date(self._params.updatedAt);
     return self._partitions[self._partitionName]._docs.canUpdate(self._params.docId, updatedAt);
+  }
+};
+
+Attr.prototype._processCreateErr = function (err) {
+  // We can expect a DBExistsError/DBMissingError if two clients try to create/destroy the same DB
+  // simultaneously
+  if (err instanceof ForbiddenError || err instanceof DBExistsError ||
+    err instanceof DBMissingError) {
+    log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
+  } else {
+    throw err;
   }
 };
 
@@ -90,13 +100,7 @@ Attr.prototype.create = function () {
       return self.restoreIfDestroyedBefore();
     }
   }).catch(function (err) {
-    // TODO: modify SQL ORM to report DBAlreadyExistsError and catch it here instead of SQLError
-    // We can expect an SQLError if two clients try to create the DB at the same time
-    if (err instanceof ForbiddenError || err instanceof SQLError) {
-      log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
-    } else {
-      throw err;
-    }
+    self._processCreateErr(err);
   });
 };
 
@@ -129,8 +133,25 @@ Attr.prototype.createIfPermitted = function () {
   });
 };
 
-Attr.prototype._createOrDestroyDatabase = function () {
+Attr.prototype._destroyDB = function () {
+  return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
+    // Ignore DBMissingErrors caused by race conditions when destroying the database
+    if (!(err instanceof DBMissingError)) {
+      throw err;
+    }
+  });
+};
 
+Attr.prototype._createDB = function () {
+  return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
+    // Ignore DBMissingErrors caused by race conditions when creating the database
+    if (!(err instanceof DBExistsError)) {
+      throw err;
+    }
+  });
+};
+
+Attr.prototype._createOrDestroyDatabase = function () {
   // Only create DB if this the system partitioner
   if (this._partitioner._dbName !== System.DB_NAME) {
     // TODO: log?
@@ -138,19 +159,9 @@ Attr.prototype._createOrDestroyDatabase = function () {
   }
 
   if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-    return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
-      // Ignore DBMissingErrors caused by race conditions when destroying the database
-      if (!(err instanceof DBMissingError)) {
-        throw err;
-      }
-    });
+    return this._destroyDB();
   } else {
-    return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
-      // Ignore DBMissingErrors caused by race conditions when creating the database
-      if (!(err instanceof DBExistsError)) {
-        throw err;
-      }
-    });
+    return this._createDB();
   }
 };
 
@@ -174,14 +185,15 @@ Attr.prototype.setOptions = function () {
 
   case Doc._roleName: // TODO: split into fns
     var roleUUID = this._roles.toUUID(this._params.value.roleName);
+    var ret = null;
     if (this._params.value.action === UserRoles.ACTION_REMOVE) {
-      return this._users.removeRole(this._params.forUserId, roleUUID);
+      ret = this._users.removeRole(this._params.forUserId, roleUUID);
     } else {
-      return this._users.addRole(this._params.forUserId, roleUUID,
+      ret = this._users.addRole(this._params.forUserId, roleUUID,
         this._params.changedByUserId, this._params.changedByUUID,
         this._params.updatedAt, this._params.docId);
     }
-    break;
+    return ret;
 
   case System.DB_ATTR_NAME:
     return this._createOrDestroyDatabase();
@@ -250,10 +262,6 @@ Attr.prototype.createLatestAndAllAndRecentAndRecentAttr = function () {
   }).then(function () {
     self._partitionName = constants.RECENT;
     return self.create();
-  }).catch(function (err) {
-    if (!(err instanceof ForbiddenError)) {
-      throw err;
-    }
   });
 };
 

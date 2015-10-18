@@ -76,13 +76,6 @@ DB.prototype._import = function (store) {
   this._initStore();
 };
 
-DB.prototype._createMissingStores = function () {
-  // Create stores for any cols that have not been imported
-  this.all(function (col) {
-    col._createMissingStores();
-  });
-};
-
 DB.prototype._initStore = function () {
   var self = this,
     promises = [],
@@ -101,7 +94,6 @@ DB.prototype._initStore = function () {
 
   // All the stores have been imported
   self._storesImported = true;
-  self._createMissingStores();
 
   self._loaded = Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
@@ -359,17 +351,21 @@ DB.prototype._createDatabaseAndInit = function () {
   });
 };
 
+DB.prototype._onDeltaError = function (err) {
+  log.warning(this._id + ' err=' + err.message);
+
+  if (err.name === 'DBMissingError') {
+    log.info(this._id + ' creating DB ' + this._name);
+    this._createDatabaseAndInit();
+  } else {
+    throw err;
+  }
+};
+
 DB.prototype._registerErrorListener = function () {
   var self = this;
   self._socket.on('delta-error', function (err) {
-    log.warning(self._id + ' err=' + err.message);
-
-    if (err.name === 'DBMissingError') {
-      log.info(self._id + ' creating DB ' + self._name);
-      self._createDatabaseAndInit();
-    } else {
-      throw err;
-    }
+    self._onDeltaError(err);
   });
 };
 
@@ -418,9 +414,7 @@ DB.prototype._disconnect = function () {
 DB.prototype._connectWhenReady = function () {
   var self = this;
   return self._storeLoaded.then(function () {
-    if (!self._adapter._localOnly) {
-      return self._connect();
-    }
+    return self._connect();
   });
 };
 

@@ -228,4 +228,31 @@ describe('utils', function () {
     });
   });
 
+  it('should promisify when callback has multiple parameters', function () {
+    var Foo = function () {
+      this.x = 7;
+
+      this.bar = function (y, callback) {
+        if (y === this.x) {
+          callback(null, y, y + 1);
+        } else {
+          callback(new Error('not equal'));
+        }
+      };
+    };
+
+    var foo = new Foo();
+
+    var bar = utils.promisify(foo.bar, foo);
+
+    return bar(7).then(function (args) {
+      args[0].should.eql(7);
+      args[1].should.eql(8);
+    }).then(function () {
+      return commonTestUtils.shouldThrow(function () {
+        return bar(6);
+      }, new Error('not equal'));
+    });
+  });
+
 });

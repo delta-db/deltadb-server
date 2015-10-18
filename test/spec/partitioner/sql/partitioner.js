@@ -32,4 +32,10 @@ describe('partitioner', function () {
     }, new DBMissingError());
   });
 
+  it('should determine if db exists', function () {
+    return part.dbExists('testdb2').then(function (exists) {
+      exists.should.eql(false);
+    });
+  });
+
 });
