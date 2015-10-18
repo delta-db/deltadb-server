@@ -2,8 +2,9 @@ Now
 ---
 - sockets:
 	- browser code coverage
-	- test browser code with IDB
 	- make sure node and browser tests running in CI
+	- e2e with browser test
+	- test browser code with IDB
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - impl todomvc example
