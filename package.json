@@ -71,7 +71,6 @@
     "events": "^1.1.0",
     "http-server": "^0.8.0",
     "indexeddbshim": "^2.2.1",
-    "insert-module-globals": "^6.6.2",
     "istanbul": "^0.3.15",
     "js-beautify": "^1.5.5",
     "jshint": "^2.5.11",
