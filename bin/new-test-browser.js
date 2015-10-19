@@ -17,23 +17,31 @@ require('./new-dev-server');
 
 var spawn = require('child_process').spawn;
 
-// Unless we have mocha-phantomjs installed globally we have to specify the full path
-// var child = spawn('mocha-phantomjs', [
-var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', [
-  'http://127.0.0.1:8001/test/new-index.html',
-  '--timeout', '25000',
-  '--hooks', 'test/phantom-hooks.js'
-]);
+var server = require('../test/browser-server');
 
-child.stdout.on('data', function(data) {
-  console.log(data.toString()); // echo output, including what could be errors
-});
+server.start('browser-server.log', 'browser-client.log').then(function () {
 
-child.on('close', function (code) {
-  console.log('Mocha process exited with code ' + code);
-  if (code > 0) {
-    process.exit(1);
-  } else {
-  	process.exit(0);
-  }
+  // Unless we have mocha-phantomjs installed globally we have to specify the full path
+  // var child = spawn('mocha-phantomjs', [
+  var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', [
+    'http://127.0.0.1:8001/test/new-index.html',
+    '--timeout', '25000',
+    '--hooks', 'test/phantom-hooks.js'
+  ]);
+
+  child.stdout.on('data', function(data) {
+    console.log(data.toString()); // echo output, including what could be errors
+  });
+
+  child.on('close', function (code) {
+    console.log('Mocha process exited with code ' + code);
+    return server.stop().then(function () {
+      if (code > 0) {
+        process.exit(1);
+      } else {
+        process.exit(0);
+      }
+    });
+  });
+
 });

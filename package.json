@@ -38,7 +38,7 @@
     "dev": "browserify test/test.js > test/test-bundle.js && npm run dev-server",
     "dev-server": "./bin/dev-server.js",
     "coverage": "mkdir -p coverage/node && npm test --coverage && istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100 coverage/node/coverage.json",
-    "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/remove.js -o test/new-test-bundle.js -d",
+    "build-test-coverage": "browserify -t [ browserify-istanbul --ignore **/node_modules/** ] ./test/test-browser.js -o test/new-test-bundle.js -d",
     "coverage-report": "istanbul report --dir coverage/browser --root coverage/browser lcov",
     "check-coverage": "istanbul check-coverage --lines 100 --function 100 --statements 100 --branches 100 coverage/browser/coverage.json",
     "new-dev-server": "./bin/new-dev-server.js",
