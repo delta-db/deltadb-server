@@ -7,6 +7,8 @@ describe('browser', function () {
   // require('../spec/utils/utils');
 
   // TODO: also test entire client!
-  require('../spec/client/utils');
+  // require('../spec/client/utils');
+
+  // require('../adapters');
 
 });
