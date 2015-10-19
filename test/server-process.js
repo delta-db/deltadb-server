@@ -67,8 +67,8 @@ Server.prototype._kill = function () {
 
 Server.prototype.start = function (serverFilename, clientFilename) {
   var self = this;
-  return self._destroyAndCreateSystemDB(serverFilename, clientFilename).then(function () {
-    self._spawn(); // start test server
+  return self._destroyAndCreateSystemDB().then(function () {
+    self._spawn(serverFilename, clientFilename); // start test server
   });
 };
 
