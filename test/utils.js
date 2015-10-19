@@ -13,27 +13,20 @@ var Promise = require('bluebird'),
 var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
-Utils.prototype.TIMEOUT = 8000;
+Utils.prototype.TIMEOUT = commonUtils.TIMEOUT;
 
 Utils.prototype.setUp = function (thisArg) {
   thisArg.timeout(this.TIMEOUT); // increase timeout
 };
 
-Utils.prototype.toTime = function (rows) {
-  rows.forEach(function (cells) {
-    for (var j in cells) {
-      if (cells[j] instanceof Date) {
-        cells[j] = cells[j].getTime();
-      }
-    }
-  });
-  return rows;
+Utils.prototype.toTime = function (/* rows */) {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.toTime.apply(commonUtils, arguments);
 };
 
-Utils.prototype.eqls = function (expected, actual) {
-  // Convert to milliseconds so that errors report specific problems--expect doesn't compare
-  // milliseconds by default
-  this.toTime(actual).should.eql(this.toTime(expected));
+Utils.prototype.eqls = function (/* expected, actual */) {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.eqls.apply(commonUtils, arguments);
 };
 
 Utils.prototype.eql = function (v1, v2) {
@@ -240,9 +233,9 @@ Utils.prototype.attrsShouldEql = function (db, partition, expected, quorum, wher
   });
 };
 
-Utils.prototype.sortChanges = function (changes) {
-  var attrs = ['col', 'name', 'up', 'seq', 'val'];
-  return utils.sort(changes, attrs);
+Utils.prototype.sortChanges = function (/* changes */) {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.sortChanges.apply(commonUtils, arguments);
 };
 
 Utils.prototype.findColRoles = function (db, where) {
@@ -336,23 +329,9 @@ Utils.prototype.promiseResolveFactory = function (data) {
   return utils.resolveFactory(data);
 };
 
-Utils.prototype.changesShouldEql = function (expected, actual) {
-  this.sortChanges(actual);
-  this.sortChanges(expected);
-  actual.forEach(function (change, i) {
-    if (expected[i] && change.re) {
-      expected[i].re = change.re;
-    }
-
-    if (expected[i] && change.up) {
-      expected[i].up = change.up;
-    }
-
-    if (expected[i] && change.id) {
-      expected[i].id = change.id;
-    }
-  });
-  this.eqls(expected, actual);
+Utils.prototype.changesShouldEql = function (/* expected, actual */) {
+  // TODO: change all callers to use commonUtils
+  return commonUtils.changesShouldEql.apply(commonUtils, arguments);
 };
 
 Utils.prototype.shouldOnce = function (emitter, evnt) {

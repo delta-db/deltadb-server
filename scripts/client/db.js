@@ -362,7 +362,7 @@ DB.prototype._onDeltaError = function (err) {
   }
 };
 
-DB.prototype._registerErrorListener = function () {
+DB.prototype._registerDeltaErrorListener = function () {
   var self = this;
   self._socket.on('delta-error', function (err) {
     self._onDeltaError(err);
@@ -391,7 +391,7 @@ DB.prototype._connect = function () {
     'force new connection': true
   }); // same client, multiple connections for testing
 
-  self._registerErrorListener();
+  self._registerDeltaErrorListener();
 
   self._registerDisconnectListener();
 

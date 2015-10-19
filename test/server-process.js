@@ -1,5 +1,13 @@
 'use strict';
 
+// Set config so that our test server doesn't interfere with any production server. We need to set
+// the config first so that all of the following code uses this config.
+var config = require('../config'),
+  testConfig = require('./config');
+for (var i in testConfig) {
+  config[i] = testConfig[i];
+}
+
 // Uncomment for debugging
 // (function() {
 //     var childProcess = require("child_process");
@@ -20,8 +28,7 @@ var fs = require('fs'),
   Manager = require('../scripts/manager'),
   System = require('../scripts/system'),
   DBMissingError = require('../scripts/client/db-missing-error'),
-  log = require('../scripts/client/log'),
-  LogStream = require('../scripts/utils/log-stream');
+  log = require('../scripts/client/log');
 
 var Server = function () {
   this._partitioner = new Partitioner();
@@ -48,15 +55,16 @@ Server.prototype._destroyAndCreateSystemDB = function () {
   });
 };
 
-Server.prototype._spawn = function (serverFilename, clientFilename) {
-  log.stream(new LogStream('./test/' + clientFilename)); // enable client log
+Server.prototype._spawn = function (serverFilename) {
   this._log = fs.createWriteStream('./test/' + serverFilename, {
     flags: 'w'
   });
+
   this._server = spawn('./bin/deltadb-server', [
     '--port', config.PORT,
     '--prefix', config.DB_NAME_PREFIX
   ]);
+
   this._server.stdout.pipe(this._log);
   this._server.stderr.pipe(this._log);
 };
@@ -65,10 +73,10 @@ Server.prototype._kill = function () {
   this._server.kill();
 };
 
-Server.prototype.start = function (serverFilename, clientFilename) {
+Server.prototype.start = function (serverFilename) {
   var self = this;
   return self._destroyAndCreateSystemDB().then(function () {
-    self._spawn(serverFilename, clientFilename); // start test server
+    self._spawn(serverFilename); // start test server
   });
 };
 
