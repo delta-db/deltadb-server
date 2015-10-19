@@ -34,7 +34,8 @@ var Server = function () {
  * enabled
  */
 Server.prototype._destroyAndCreateSystemDB = function () {
-  var self = this, adminParty = true;
+  var self = this,
+    adminParty = true;
   return self._system.destroy().catch(function (err) {
     // Ignore errors caused from missing DB
     if (!(err instanceof DBMissingError)) {
