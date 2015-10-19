@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - "4.1"
+  - "0.12"
 
 addons:
   # We need >=9.3 for testing only as we need to force close connections via pg_terminate_backend().
