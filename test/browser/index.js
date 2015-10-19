@@ -10,6 +10,6 @@ describe('browser', function () {
   // require('../spec/client/utils');
 
   // TODO: remove!
-  require('../browser/adapters');
+  // require('../browser/adapters');
 
 });
