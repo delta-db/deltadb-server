@@ -19,7 +19,7 @@ var spawn = require('child_process').spawn,
   server = require('../test/browser-server'),
   utils = require('../test/utils');
 
-server.start('browser-server.log', 'browser-client.log').then(function () {
+server.start('browser-server.log').then(function () {
 
   // Give server time to start listening to prevent socket.io from displaying errors
   return utils.timeout(2000);

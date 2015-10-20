@@ -6,6 +6,8 @@ var wd = require('wd');
 var selenium = require('selenium-standalone');
 var querystring = require("querystring");
 
+var server = require('../test/browser-server');
+
 var devserver = require('./dev-server.js');
 
 var testTimeout = 30 * 60 * 1000;
@@ -130,24 +132,28 @@ function startTest() {
     /* jshint evil: true */
     var interval = setInterval(function () {
       sauceClient.eval('window.results', function (err, results) {
-        if (err) {
-          clearInterval(interval);
-          testError(err);
-        } else if (results.completed || results.failures.length) {
-          clearInterval(interval);
-          testComplete(results);
-        } else {
-          console.log('=> ', results);
-        }
+        server.stop().then(function () {
+          if (err) {
+            clearInterval(interval);
+            testError(err);
+          } else if (results.completed || results.failures.length) {
+            clearInterval(interval);
+            testComplete(results);
+          } else {
+            console.log('=> ', results);
+          }
+        });
       });
     }, 10 * 1000);
   });
 }
 
-devserver.start(function () {
-  if (client.runner === 'saucelabs') {
-    startSauceConnect(startTest);
-  } else {
-    startSelenium(startTest);
-  }
+server.start('browser-server.log').then(function () {
+  devserver.start(function () {
+    if (client.runner === 'saucelabs') {
+      startSauceConnect(startTest);
+    } else {
+      startSelenium(startTest);
+    }
+  });
 });
