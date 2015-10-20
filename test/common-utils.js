@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../scripts/utils');
+var utils = require('../scripts/utils'),
+  clientUtils = require('../scripts/client/utils');
 
 var Utils = function () {};
 
@@ -84,6 +85,58 @@ Utils.prototype.toTime = function (rows) {
     }
   });
   return rows;
+};
+
+Utils.prototype.sleep = function (sleepMs) {
+  // Ensure a different timestamp will be generated after this function resolves.
+  // Occasionally, using timeout(1) will not guarantee a different timestamp, e.g.:
+  //   1. (new Date()).getTime()
+  //   2. timeout(1)
+  //   3. (new Date()).getTime()
+  // It is not clear as to what causes this but the solution is to sleep longer. This function is
+  // also used to delay between DB writes to create predictable patterns. In this case it may be
+  // that the DB adapter processes queries out of sequence.
+  return clientUtils.timeout(sleepMs ? sleepMs : 10);
+};
+
+Utils.prototype.allShouldEql = function (collection, expected) {
+  var allDocs = [];
+  return collection.all(function (item) {
+    allDocs.push(item.get());
+  }).then(function () {
+    allDocs.should.eql(expected);
+  });
+};
+
+Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
+  var self = this,
+    err = true;
+
+  var doOncePromise = utils.doAndOnce(promiseFactory, emitter, evnt).then(function (args) {
+    err = false;
+    return args;
+  });
+
+  return clientUtils.timeout(100).then(function () {
+    if (err) {
+      self.never('should have emitted event ' + evnt);
+    }
+    return doOncePromise;
+  });
+};
+
+// Execute promise and wait to make sure that event is not emitted
+Utils.prototype.shouldDoAndNotOnce = function (promiseFactory, emitter, evnt) {
+  var self = this,
+    err = false;
+  utils.doAndOnce(promiseFactory, emitter, evnt).then(function () {
+    err = true;
+  });
+  return clientUtils.timeout(100).then(function () {
+    if (err) {
+      self.never('should not have emitted event ' + evnt);
+    }
+  });
 };
 
 module.exports = new Utils();

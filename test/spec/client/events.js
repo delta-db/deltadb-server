@@ -5,7 +5,7 @@
 // TODO: split up tests by event
 
 var utils = require('../../../scripts/utils'),
-  testUtils = require('../../utils'),
+  commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird');
 
@@ -68,7 +68,7 @@ describe('events', function () {
   };
 
   var attrShouldCreateLocal = function (emitter) {
-    return testUtils.shouldDoAndOnce(createLocal, emitter, 'attr:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'attr:create').then(function (args) {
       createLocalShouldEql(args);
     });
   };
@@ -104,7 +104,7 @@ describe('events', function () {
 
   var attrShouldCreateRemote = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(createRemote, emitter, 'attr:create');
+      return commonUtils.shouldDoAndOnce(createRemote, emitter, 'attr:create');
     }).then(function (args) {
       createRemoteShouldEql(args);
     });
@@ -141,7 +141,7 @@ describe('events', function () {
 
   var attrShouldCreateRemoteSame = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndNotOnce(createRemoteSame, emitter, 'attr:create');
+      return commonUtils.shouldDoAndNotOnce(createRemoteSame, emitter, 'attr:create');
     });
   };
 
@@ -166,7 +166,7 @@ describe('events', function () {
 
   var attrShouldCreateRemoteEarlier = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndNotOnce(createRemoteEarlier, emitter, 'attr:create');
+      return commonUtils.shouldDoAndNotOnce(createRemoteEarlier, emitter, 'attr:create');
     });
   };
 
@@ -179,7 +179,7 @@ describe('events', function () {
   // ------------------------
 
   var updateLocal = function () {
-    return testUtils.sleep().then(function () { // sleep so update is after create
+    return commonUtils.sleep().then(function () { // sleep so update is after create
       task.set({
         'priority': 'high'
       }); // use _set so we can force a timestamp
@@ -192,7 +192,7 @@ describe('events', function () {
 
   var attrShouldUpdateLocal = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(updateLocal, emitter, 'attr:update');
+      return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'attr:update');
     }).then(function (args) {
       updateShouldEql(args);
     });
@@ -229,7 +229,7 @@ describe('events', function () {
 
   var attrShouldUpdateRemote = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(updateRemote, emitter, 'attr:update');
+      return commonUtils.shouldDoAndOnce(updateRemote, emitter, 'attr:update');
     }).then(function (args) {
       updateShouldEql(args);
     });
@@ -254,14 +254,14 @@ describe('events', function () {
   // ------------------------
 
   var destroyLocal = function () {
-    return testUtils.sleep().then(function () { // sleep so destroy is after create
+    return commonUtils.sleep().then(function () { // sleep so destroy is after create
       task.unset('priority'); // use _set so we can force a timestamp
     });
   };
 
   var attrShouldDestroyLocal = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(destroyLocal, emitter, 'attr:destroy');
+      return commonUtils.shouldDoAndOnce(destroyLocal, emitter, 'attr:destroy');
     }).then(function (args) {
       createLocalShouldEql(args);
     });
@@ -294,14 +294,14 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.sleep().then(function () { // sleep so destroy is after create
+    return commonUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
 
   var attrShouldDestroyRemote = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(destroyRemote, emitter, 'attr:destroy');
+      return commonUtils.shouldDoAndOnce(destroyRemote, emitter, 'attr:destroy');
     }).then(function (args) {
       createLocalShouldEql(args);
     });
@@ -336,14 +336,14 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.sleep().then(function () { // sleep so record is after create
+    return commonUtils.sleep().then(function () { // sleep so record is after create
       return db.sync(server, true);
     });
   };
 
   var attrShouldRecord = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'attr:record');
+      return commonUtils.shouldDoAndOnce(recordRemote, emitter, 'attr:record');
     }).then(function (args) {
       createLocalShouldEql(args);
     });
@@ -372,7 +372,7 @@ describe('events', function () {
   };
 
   var docShouldCreateLocal = function (emitter) {
-    return testUtils.shouldDoAndOnce(createLocal, emitter, 'doc:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'doc:create').then(function (args) {
       docCreateShouldEql(args);
     });
   };
@@ -400,7 +400,7 @@ describe('events', function () {
   };
 
   var docShouldCreateRemote = function (emitter) {
-    return testUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (args) {
       return argsShouldEqlTask(args);
     });
   };
@@ -409,7 +409,7 @@ describe('events', function () {
     // Note: cannot receive doc:create event for doc that hasn't yet been created
     return utils.doAndOnce(createLocal, task, 'attr:create').then(function () {
       // Assert doc:create not received as already created
-      return testUtils.shouldDoAndNotOnce(createRemote, task, 'doc:create');
+      return commonUtils.shouldDoAndNotOnce(createRemote, task, 'doc:create');
     });
   });
 
@@ -428,7 +428,7 @@ describe('events', function () {
   // ------------------------
 
   var docShouldUpdateLocal = function (emitter) {
-    return testUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
+    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
       args[0].should.eql(task);
     });
   };
@@ -451,7 +451,7 @@ describe('events', function () {
 
   var docShouldUpdateRemote = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
-      return testUtils.shouldDoAndOnce(updateRemote, emitter, 'doc:update');
+      return commonUtils.shouldDoAndOnce(updateRemote, emitter, 'doc:update');
     }).then(function (args) {
       return argsShouldEqlTask(args);
     });
@@ -480,14 +480,14 @@ describe('events', function () {
   };
 
   var destroyDocLocal = function () {
-    return testUtils.sleep().then(function () { // sleep so destroy is after create
+    return commonUtils.sleep().then(function () { // sleep so destroy is after create
       return task.destroy();
     });
   };
 
   var docShouldDestroyLocal = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(destroyDocLocal, emitter, 'doc:destroy');
+      return commonUtils.shouldDoAndOnce(destroyDocLocal, emitter, 'doc:destroy');
     }).then(function (args) {
       docDestroyShouldEql(args);
     });
@@ -520,14 +520,14 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return testUtils.sleep().then(function () { // sleep so destroy is after create
+    return commonUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
 
   var docShouldDestroyRemote = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(destroyDocRemote, emitter, 'doc:destroy');
+      return commonUtils.shouldDoAndOnce(destroyDocRemote, emitter, 'doc:destroy');
     }).then(function (args) {
       docDestroyShouldEql(args);
     });
@@ -553,7 +553,7 @@ describe('events', function () {
 
   var docShouldRecord = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
-      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'doc:record');
+      return commonUtils.shouldDoAndOnce(recordRemote, emitter, 'doc:record');
     }).then(function (args) {
       docCreateShouldEql(args);
     });
@@ -589,7 +589,7 @@ describe('events', function () {
   };
 
   var colShouldCreateLocal = function (emitter) {
-    return testUtils.shouldDoAndOnce(colCreateLocal, emitter, 'col:create').then(function (
+    return commonUtils.shouldDoAndOnce(colCreateLocal, emitter, 'col:create').then(function (
       args) {
       colCreateShouldEql(args);
     });
@@ -619,7 +619,7 @@ describe('events', function () {
   };
 
   var colShouldCreateRemote = function (emitter) {
-    return testUtils.shouldDoAndOnce(colCreateRemote, emitter, 'col:create').then(function (
+    return commonUtils.shouldDoAndOnce(colCreateRemote, emitter, 'col:create').then(function (
       args) {
       return args[0].get('2');
     }).then(function (doc) {
@@ -639,7 +639,7 @@ describe('events', function () {
   // ------------------------
 
   var colShouldUpdateLocal = function (emitter) {
-    return testUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
+    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
       return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();
@@ -662,7 +662,7 @@ describe('events', function () {
   var colShouldUpdateRemote = function (emitter) {
     // We cannot first listen to col:create as the col was created with db.col()
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
-      return testUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
+      return commonUtils.shouldDoAndOnce(updateRemote, emitter, 'col:update');
     }).then(function (args) {
       return args[0].get('1');
     }).then(function (doc) {
@@ -686,14 +686,14 @@ describe('events', function () {
   // ------------------------
 
   var destroyColLocal = function () {
-    return testUtils.sleep().then(function () { // sleep so destroy is after create
+    return commonUtils.sleep().then(function () { // sleep so destroy is after create
       return tasks.destroy();
     });
   };
 
   var colShouldDestroyLocal = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
+      return commonUtils.shouldDoAndOnce(destroyColLocal, emitter, 'col:destroy');
     }).then(function (args) {
       return args[0].get('1');
     }).then(function (doc) {
@@ -721,7 +721,7 @@ describe('events', function () {
 
   var colShouldRecord = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'doc:create').then(function () {
-      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'col:record');
+      return commonUtils.shouldDoAndOnce(recordRemote, emitter, 'col:record');
     }).then(function (args) {
       return args[0].get('1');
     }).then(function (doc) {
@@ -756,7 +756,7 @@ describe('events', function () {
 
   var dbShouldCreateLocal = function () {
     client2 = new Client(true);
-    return testUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
+    return commonUtils.shouldDoAndOnce(dbCreateLocal, client2, 'db:create').then(function (
       args) {
       args[0].should.eql(db2);
     });
@@ -787,7 +787,7 @@ describe('events', function () {
   // };
 
   // var dbShouldDestroyLocal = function () {
-  //   return testUtils.shouldDoAndOnce(dbDestroyLocal, client2, 'db:destroy').then(function (
+  //   return commonUtils.shouldDoAndOnce(dbDestroyLocal, client2, 'db:destroy').then(function (
   //     args) {
   //     args[0].should.eql(db2);
   //   });
@@ -805,7 +805,7 @@ describe('events', function () {
 
   var dbShouldRecord = function (emitter) {
     return utils.doAndOnce(createLocal, emitter, 'attr:create').then(function () {
-      return testUtils.shouldDoAndOnce(recordRemote, emitter, 'db:record');
+      return commonUtils.shouldDoAndOnce(recordRemote, emitter, 'db:record');
     }).then(function (args) {
       args[0].should.eql(db);
     });

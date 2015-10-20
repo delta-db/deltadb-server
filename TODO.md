@@ -2,7 +2,6 @@ Now
 ---
 - e2e with browser test
 - test browser code with IDB
-- test all client code in browser
 - generate client bundle
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm

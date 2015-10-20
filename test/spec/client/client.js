@@ -3,7 +3,7 @@
 // TODO: split up
 
 var utils = require('../../../scripts/utils'),
-  testUtils = require('../../utils'),
+  commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
   clientUtils = require('../../../scripts/client/utils');
@@ -41,10 +41,12 @@ describe('client', function () {
     });
   };
 
-  var up = new Date('2014-01-01 08:00'),
+  var up = new Date('01/01/2014 08:00'),
     upStr = up.toISOString();
+
   var re = new Date(),
     reStr = re.toISOString();
+
   var remoteChanges = [{
     id: '1',
     col: 'tasks',
@@ -185,7 +187,7 @@ describe('client', function () {
       nextUpdated = null;
     // For some reason, waiting 1 millisecond can still occassionally result in all changes having
     // the same timestamp so we'll bump it to 2 milliseconds
-    return testUtils.sleep().then(function () { // make sure changes occur at later timestamp
+    return commonUtils.sleep().then(function () { // make sure changes occur at later timestamp
       updated = new Date(); // use the same updated date for the next 2 updates
       task1._set('priority', 'low', updated);
       task1._set('priority', 'medium', updated);
@@ -228,7 +230,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.sleep(); // ensure different timestamp for upcoming change
+      return commonUtils.sleep(); // ensure different timestamp for upcoming change
     }).then(function () {
       // Make another update at later timestamp and make sure the seq is 0
       nextUpdated = new Date();
@@ -515,7 +517,7 @@ describe('client', function () {
 
   it('should process remote changes', function () {
     return db._setChanges(remoteChanges).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         thing: 'write a song',
         priority: 'low'
@@ -581,7 +583,7 @@ describe('client', function () {
           seq: 0
         }])
       .then(function () {
-        return testUtils.allShouldEql(tasks, [{
+        return commonUtils.allShouldEql(tasks, [{
           $id: '1',
           thing: 'write a song',
           priority: 'high'
@@ -598,7 +600,7 @@ describe('client', function () {
             seq: 0
           }]);
       }).then(function () {
-        return testUtils.allShouldEql(tasks, [{
+        return commonUtils.allShouldEql(tasks, [{
           $id: '1',
           thing: 'write a song',
           priority: 'high'
@@ -689,7 +691,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         thing: 'write a song',
         priority: 'low'
@@ -716,7 +718,7 @@ describe('client', function () {
       re: '2014-01-01T05:30:00.000Z'
     }];
     return db.sync(server).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         thing: 'write a song'
       }]);
@@ -746,7 +748,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, []);
+      return commonUtils.allShouldEql(tasks, []);
     });
   });
 
@@ -768,7 +770,7 @@ describe('client', function () {
       re: '2014-01-01T05:30:00.000Z'
     }];
     return db.sync(server).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         thing: 'write a song',
         priority: 'high'
@@ -806,7 +808,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         priority: 'high'
       }]);
@@ -1154,7 +1156,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         priority: 'high'
       }]);
@@ -1201,7 +1203,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         priority: 'high'
       }]);
@@ -1259,7 +1261,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, []);
+      return commonUtils.allShouldEql(tasks, []);
     });
   });
 
@@ -1315,7 +1317,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1'
       }]);
     });
@@ -1372,7 +1374,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         priority: 'low'
       }]);
@@ -1431,7 +1433,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return testUtils.allShouldEql(tasks, [{
+      return commonUtils.allShouldEql(tasks, [{
         $id: '1',
         priority: 'low'
       }]);
