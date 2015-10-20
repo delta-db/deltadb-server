@@ -3,12 +3,11 @@
 var Client = require('../../scripts/client/adapter'),
   DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
-  utils = require('../utils');
+  commonUtils = require('../common-utils');
 
 describe('separate', function () {
 
-  var
-    clientA = null,
+  var clientA = null,
     a = null,
     aTasks = null,
     clientB = null,
@@ -67,7 +66,7 @@ describe('separate', function () {
     });
 
     var setChangesShouldEql = function (changes) {
-      utils.changesShouldEql([{
+      commonUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -79,7 +78,7 @@ describe('separate', function () {
     };
 
     var aEmitChangesShouldEql = function () {
-      utils.changesShouldEql([{
+      commonUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -87,7 +86,7 @@ describe('separate', function () {
     };
 
     var bEmitChangesShouldEql = function () {
-      utils.changesShouldEql([{
+      commonUtils.changesShouldEql([{
         name: 'priority',
         val: '"high"',
         col: 'tasks'
@@ -140,7 +139,7 @@ describe('separate', function () {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
         shouldResolve(resolve, reject);
-      }, utils.TIMEOUT - 2000); // utils.TIMEOUT - 1 sec is not enough time
+      }, commonUtils.TIMEOUT - 2000); // commonUtils.TIMEOUT - 1 sec is not enough time
 
     });
 

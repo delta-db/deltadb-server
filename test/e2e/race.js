@@ -5,7 +5,7 @@
 var Client = require('../../scripts/client/adapter'),
   Promise = require('bluebird'),
   clientUtils = require('../../scripts/client/utils'),
-  utils = require('../utils');
+  commonUtils = require('../common-utils');
 
 describe('race', function () {
 
@@ -64,7 +64,7 @@ describe('race', function () {
   });
 
   after(function () {
-    self.timeout(utils.TIMEOUT);
+    self.timeout(commonUtils.TIMEOUT);
   });
 
   var sendAndReceivePartialChanges = function () {

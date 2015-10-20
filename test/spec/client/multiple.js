@@ -1,6 +1,6 @@
 'use strict';
 
-var testUtils = require('../../utils'),
+var commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird');
 
@@ -38,7 +38,7 @@ describe('multiple', function () {
       return Promise.resolve();
     };
 
-    return testUtils.shouldDoAndNotOnce(promiseFactory, doc2, 'test-event');
+    return commonUtils.shouldDoAndNotOnce(promiseFactory, doc2, 'test-event');
   });
 
 });

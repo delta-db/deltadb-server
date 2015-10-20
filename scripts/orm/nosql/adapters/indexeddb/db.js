@@ -48,9 +48,7 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     };
 
     request.onsuccess = function () {
-      if (onSuccess) {
-        onSuccess(request, resolve);
-      }
+      onSuccess(request, resolve);
     };
 
     // TODO: how to test onerror as FF doesn't call onerror for VersionError?
@@ -177,13 +175,13 @@ DB.prototype.destroy = function () {
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onerror = function () {
-      reject("Couldn't destroy database: " + req.err);
+      reject(new Error("Couldn't destroy database: ") + req.err);
     };
 
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onblocked = function () {
-      reject("Couldn't destroy database as blocked: " + req.err);
+      reject(new Error("Couldn't destroy database as blocked: " + req.err));
     };
   });
 };
@@ -193,15 +191,19 @@ DB.prototype._destroyCol = function (colName) {
   // destroying the col. Oh the joys of IDB!
   var self = this;
 
-  var onUpgradeNeeded = function (request, resolve) {
+  var onUpgradeNeeded = function (request) {
     self._db = request.result;
     self._db.deleteObjectStore(colName);
+  };
+
+  var onSuccess = function (request, resolve) {
+    self._db = request.result;
     resolve();
   };
 
   return self.close().then(function () { // Close any existing connection
     self._version++; // Increment the version so that we can trigger an onupgradeneeded
-    return self._open(onUpgradeNeeded, null);
+    return self._open(onUpgradeNeeded, onSuccess);
   });
 };
 

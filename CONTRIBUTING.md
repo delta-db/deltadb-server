@@ -104,6 +104,7 @@ Running Tests In Any Browser Manually
 
     $ npm run build-test-coverage
     $ npm run new-dev-server
+    $ ./test/server # in a separate window
     Point any browser to http://127.0.0.1:8001/test/new-index.html
     You can also run a specific test, e.g. http://127.0.0.1:8001/test/new-index.html?grep=mytest
 
