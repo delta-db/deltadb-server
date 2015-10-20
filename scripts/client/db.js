@@ -299,6 +299,8 @@ DB.prototype._findAndEmitChanges = function () {
   return self._ready().then(function () { // ensure props have been loaded/created first
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
+    // The length could be zero if there is a race condition where two back-to-back changes result
+    // in the first change emitting all the changes with a single call to _localChanges.
     if (changes.length > 0) {
       self._emitChanges(changes);
     }

@@ -4,7 +4,8 @@ var DB = require('../../../scripts/client/db'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
   clientUtils = require('../../../scripts/client/utils'),
-  commonUtils = require('../../common-utils');
+  commonUtils = require('../../common-utils'),
+  utils = require('../../../scripts/utils');
 
 describe('db', function () {
 
@@ -52,6 +53,28 @@ describe('db', function () {
     return commonUtils.shouldNonPromiseThrow(function () {
       db._onDeltaError(new Error('my err'));
     }, new Error('my err'));
+  });
+
+  it('should find and emit when no changes', function () {
+    // It is very hard to reliably guarantee the following race condition using e2e testing so we
+    // test here
+    var emitted = false, client = new Client(true);
+
+    var db = client.db({
+      db: 'mydb'
+    });
+
+    db._ready = utils.resolveFactory(); // fake
+
+    db._localChanges = utils.resolveFactory([]); // fake
+
+    db._emitChanges = function () {
+      emitted = true;
+    };
+
+    db._findAndEmitChanges().then(function () {
+      emitted.should.eql(false);
+    });
   });
 
 });
