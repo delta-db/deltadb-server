@@ -100,11 +100,19 @@ Utils.prototype.sleep = function (sleepMs) {
 };
 
 Utils.prototype.allShouldEql = function (collection, expected) {
-  var allDocs = [];
+  // Index data as order is guaranteed
+
+  var allDocs = {};
+
+  var allExpDocs = {};
+  expected.forEach(function (exp) {
+    allExpDocs[exp.$id] = exp;
+  });
+
   return collection.all(function (item) {
-    allDocs.push(item.get());
+    allDocs[item.id()] = item.get();
   }).then(function () {
-    allDocs.should.eql(expected);
+    allDocs.should.eql(allExpDocs);
   });
 };
 
