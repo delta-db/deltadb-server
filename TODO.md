@@ -1,6 +1,5 @@
 Now
 ---
-- e2e with browser test
 - test browser code with IDB
 - generate client bundle
 - test with actual angular app - todomvc adaptation

@@ -13,9 +13,11 @@ describe('browser', function () {
 
   require('./adapters');
 
-  require('../spec/orm/nosql/common');
+  require('../spec/orm/nosql');
 
   require('../spec/utils/utils');
+
+  require('../spec/utils/log');
 
   require('../spec/client');
 

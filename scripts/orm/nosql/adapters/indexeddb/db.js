@@ -48,9 +48,7 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     };
 
     request.onsuccess = function () {
-      if (onSuccess) {
-        onSuccess(request, resolve);
-      }
+      onSuccess(request, resolve);
     };
 
     // TODO: how to test onerror as FF doesn't call onerror for VersionError?
