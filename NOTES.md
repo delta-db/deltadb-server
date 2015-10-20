@@ -206,7 +206,7 @@ DeltaDB Server Stack
 - Partitioner   = interface to partitions, i.e. Queue, Latest, Recent, Cached, All
 - System        = interface to system info, e.g. main accounts for creating DBs
 - Manager       = manages Partitoner
-- Server        = web socket and RESTful API (TODO)
+- Server        = web socket and RESTful API
 
 
 Tombstone Window (TODO)
@@ -232,6 +232,7 @@ Reserved Names (TODO: needs updating)
     * $user = for editing user
     * $role = for adding/removing user role
     * $policy = for setting policy
+    * $db = for creating DB
 * Col:
   * name: TODO
 
@@ -281,9 +282,9 @@ Another option is to use the queued log and sync the queued log file using some 
 Misc
 ==========
 
-1. DOCS (only latest updated/deletion wins--everything else ignored):
-  a. updated_at: changed when attribute changes (including attribute deletion), not when doc deleted
-  b. deleted_at: changed when doc deleted, not when attribute deleted
-2. ATTRS:
-  a. updated_at: changed when attribute changes (including attribute deletion), not when doc deleted
-  b. deleted_at: TODO: remove and just consider lack of name and value and use updated_at for date?
+- DOCS (only latest updated/deletion wins--everything else ignored):
+  - updated_at: changed when attribute changes (including attribute deletion), not when doc deleted
+  - deleted_at: changed when doc deleted, not when attribute deleted
+- ATTRS:
+  - updated_at: changed when attribute changes (including attribute deletion), not when doc deleted
+  - deleted_at: TODO: remove and just consider lack of name and value and use updated_at for date?
