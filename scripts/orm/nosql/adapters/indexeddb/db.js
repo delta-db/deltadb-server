@@ -193,7 +193,7 @@ DB.prototype._destroyCol = function (colName) {
   // destroying the col. Oh the joys of IDB!
   var self = this;
 
-  var onUpgradeNeeded = function (request, resolve) {
+  var onUpgradeNeeded = function (request) {
     self._db = request.result;
     self._db.deleteObjectStore(colName);
   };
