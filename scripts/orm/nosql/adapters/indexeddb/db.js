@@ -8,7 +8,8 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
-  utils = require('../../../../utils');
+  utils = require('../../../../utils'),
+  idbUtils = require('./utils');
 
 // TODO: disable when not testing in phantomjs!
 // Use a shim as phantomjs doesn't support indexedDB
@@ -22,13 +23,6 @@ var DB = function () {
 
 inherits(DB, CommonDB);
 
-DB.prototype._indexedDB = function () {
-  // The next line is browser dependent so it cannot be fully executed in any one browser
-  /* istanbul ignore next */
-  return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB ||
-    window.shimIndexedDB;
-};
-
 // Package open as a promise so that we can consolidate code and provide a single place to test the
 // error case
 DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
@@ -36,9 +30,9 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
   return new Promise(function (resolve, reject) {
     var request = null;
     if (self._version) {
-      request = self._indexedDB().open(self._name, self._version);
+      request = idbUtils.indexedDB().open(self._name, self._version);
     } else { // 1st time opening?
-      request = self._indexedDB().open(self._name);
+      request = idbUtils.indexedDB().open(self._name);
     }
 
     request.onupgradeneeded = function () {
@@ -166,7 +160,7 @@ DB.prototype.close = function () {
 DB.prototype.destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
-    var req = self._indexedDB().deleteDatabase(self._name);
+    var req = idbUtils.indexedDB().deleteDatabase(self._name);
 
     req.onsuccess = function () {
       resolve();
