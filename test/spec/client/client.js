@@ -565,7 +565,7 @@ describe('client', function () {
   });
 
   it('should preserve later change', function () {
-    var up = new Date('2014-01-01 08:00').toISOString();
+    var up = new Date('01/01/2014 08:00').toISOString();
     return db._setChanges(
         [{
           id: '1',
@@ -589,7 +589,7 @@ describe('client', function () {
           priority: 'high'
         }]);
       }).then(function () {
-        var old = new Date('2014-01-01 07:00').toISOString();
+        var old = new Date('01/01/2014 07:00').toISOString();
         return db._setChanges(
           [{
             id: '1',
