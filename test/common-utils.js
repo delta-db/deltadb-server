@@ -5,7 +5,7 @@ var utils = require('../scripts/utils'),
 
 var Utils = function () {};
 
-Utils.prototype.TIMEOUT = 10000;
+Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.never = function (msg) {
   throw new Error(utils.notDefined(msg) ? 'must never execute' : msg);

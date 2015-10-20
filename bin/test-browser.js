@@ -6,6 +6,8 @@ var wd = require('wd');
 var selenium = require('selenium-standalone');
 var querystring = require("querystring");
 
+var server = require('../test/browser-server');
+
 var devserver = require('./dev-server.js');
 
 var testTimeout = 30 * 60 * 1000;
@@ -57,7 +59,9 @@ function testError(e) {
 }
 
 function postResult(result) {
-  process.exit(!process.env.PERF && result.failed ? 1 : 0);
+  server.stop().then(function () {
+    process.exit(!process.env.PERF && result.failed ? 1 : 0);
+  });
 }
 
 function testComplete(result) {
@@ -144,10 +148,12 @@ function startTest() {
   });
 }
 
-devserver.start(function () {
-  if (client.runner === 'saucelabs') {
-    startSauceConnect(startTest);
-  } else {
-    startSelenium(startTest);
-  }
+server.start('browser-server.log').then(function () {
+  devserver.start(function () {
+    if (client.runner === 'saucelabs') {
+      startSauceConnect(startTest);
+    } else {
+      startSelenium(startTest);
+    }
+  });
 });
