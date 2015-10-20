@@ -33,7 +33,7 @@ describe('log', function () {
 
   it('should log stream', function () {
     var stream = { // mock
-      write: function () { }
+      write: function () {}
     };
 
     log.stream(stream);

@@ -68,7 +68,8 @@ describe('events', function () {
   };
 
   var attrShouldCreateLocal = function (emitter) {
-    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'attr:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'attr:create').then(function (
+      args) {
       createLocalShouldEql(args);
     });
   };
@@ -372,7 +373,8 @@ describe('events', function () {
   };
 
   var docShouldCreateLocal = function (emitter) {
-    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'doc:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createLocal, emitter, 'doc:create').then(function (
+      args) {
       docCreateShouldEql(args);
     });
   };
@@ -400,7 +402,8 @@ describe('events', function () {
   };
 
   var docShouldCreateRemote = function (emitter) {
-    return commonUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (args) {
+    return commonUtils.shouldDoAndOnce(createRemote, emitter, 'doc:create').then(function (
+      args) {
       return argsShouldEqlTask(args);
     });
   };
@@ -428,7 +431,8 @@ describe('events', function () {
   // ------------------------
 
   var docShouldUpdateLocal = function (emitter) {
-    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (args) {
+    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'doc:update').then(function (
+      args) {
       args[0].should.eql(task);
     });
   };
@@ -639,7 +643,8 @@ describe('events', function () {
   // ------------------------
 
   var colShouldUpdateLocal = function (emitter) {
-    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (args) {
+    return commonUtils.shouldDoAndOnce(updateLocal, emitter, 'col:update').then(function (
+      args) {
       return args[0].get('1');
     }).then(function (doc) {
       var obj = doc.get();

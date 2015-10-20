@@ -58,7 +58,8 @@ describe('db', function () {
   it('should find and emit when no changes', function () {
     // It is very hard to reliably guarantee the following race condition using e2e testing so we
     // test here
-    var emitted = false, client = new Client(true);
+    var emitted = false,
+      client = new Client(true);
 
     var db = client.db({
       db: 'mydb'

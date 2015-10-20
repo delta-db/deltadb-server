@@ -19,12 +19,12 @@ Utils.prototype.setUp = function (thisArg) {
   thisArg.timeout(this.TIMEOUT); // increase timeout
 };
 
-Utils.prototype.toTime = function (/* rows */) {
+Utils.prototype.toTime = function ( /* rows */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.toTime.apply(commonUtils, arguments);
 };
 
-Utils.prototype.eqls = function (/* expected, actual */) {
+Utils.prototype.eqls = function ( /* expected, actual */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.eqls.apply(commonUtils, arguments);
 };
@@ -96,7 +96,7 @@ Utils.prototype.timeout = function () {
   return clientUtils.timeout.apply(clientUtils, arguments);
 };
 
-Utils.prototype.sleep = function (/* sleepMs */) {
+Utils.prototype.sleep = function ( /* sleepMs */ ) {
   // TODO: change all callers to use utils
   return commonUtils.sleep.apply(clientUtils, arguments);
 };
@@ -105,7 +105,7 @@ Utils.prototype._toDate = function (val) {
   return val instanceof Date ? val : new Date(val);
 };
 
-Utils.prototype.allShouldEql = function (/* collection, expected */) {
+Utils.prototype.allShouldEql = function ( /* collection, expected */ ) {
   // TODO: change all callers to use utils
   return commonUtils.allShouldEql.apply(clientUtils, arguments);
 };
@@ -222,7 +222,7 @@ Utils.prototype.attrsShouldEql = function (db, partition, expected, quorum, wher
   });
 };
 
-Utils.prototype.sortChanges = function (/* changes */) {
+Utils.prototype.sortChanges = function ( /* changes */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.sortChanges.apply(commonUtils, arguments);
 };
@@ -318,7 +318,7 @@ Utils.prototype.promiseResolveFactory = function (data) {
   return utils.resolveFactory(data);
 };
 
-Utils.prototype.changesShouldEql = function (/* expected, actual */) {
+Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.changesShouldEql.apply(commonUtils, arguments);
 };
@@ -341,13 +341,13 @@ Utils.prototype.shouldOnce = function (emitter, evnt) {
   });
 };
 
-Utils.prototype.shouldDoAndOnce = function (/* promiseFactory, emitter, evnt */) {
+Utils.prototype.shouldDoAndOnce = function ( /* promiseFactory, emitter, evnt */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.shouldDoAndOnce.apply(commonUtils, arguments);
 };
 
 // Execute promise and wait to make sure that event is not emitted
-Utils.prototype.shouldDoAndNotOnce = function (/* promiseFactory, emitter, evnt */) {
+Utils.prototype.shouldDoAndNotOnce = function ( /* promiseFactory, emitter, evnt */ ) {
   // TODO: change all callers to use commonUtils
   return commonUtils.shouldDoAndNotOnce.apply(commonUtils, arguments);
 };
