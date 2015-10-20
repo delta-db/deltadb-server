@@ -59,7 +59,9 @@ function testError(e) {
 }
 
 function postResult(result) {
-  process.exit(!process.env.PERF && result.failed ? 1 : 0);
+  server.stop().then(function () {
+    process.exit(!process.env.PERF && result.failed ? 1 : 0);
+  });
 }
 
 function testComplete(result) {
@@ -132,17 +134,15 @@ function startTest() {
     /* jshint evil: true */
     var interval = setInterval(function () {
       sauceClient.eval('window.results', function (err, results) {
-        server.stop().then(function () {
-          if (err) {
-            clearInterval(interval);
-            testError(err);
-          } else if (results.completed || results.failures.length) {
-            clearInterval(interval);
-            testComplete(results);
-          } else {
-            console.log('=> ', results);
-          }
-        });
+        if (err) {
+          clearInterval(interval);
+          testError(err);
+        } else if (results.completed || results.failures.length) {
+          clearInterval(interval);
+          testComplete(results);
+        } else {
+          console.log('=> ', results);
+        }
       });
     }, 10 * 1000);
   });
