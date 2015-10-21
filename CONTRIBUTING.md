@@ -100,10 +100,19 @@ Currently, this cannot be done in the VM as this project has not been configured
 to test outside the VM, assuming you have Firefox and Chrome installed.
 
 
-Running Tests In Any Browser Manually
+Running Tests Without Code Coverage In Any Browser Manually
 
-    $ npm run build-test-coverage
-    $ npm run new-dev-server
+    $ npm run dev-server
+    $ ./test/server # in a separate window
+    Point any browser to http://127.0.0.1:8001/test/index.html
+    You can also run a specific test, e.g. http://127.0.0.1:8001/test/index.html?grep=mytest
+
+
+Running Tests With Code Coverage In Any Browser Manually
+
+TODO: get source maps working with this solution so that we can move away from the "without coverage" method above.
+
+    $ npm run build-test-coverage && npm run new-dev-server
     $ ./test/server # in a separate window
     Point any browser to http://127.0.0.1:8001/test/new-index.html
     You can also run a specific test, e.g. http://127.0.0.1:8001/test/new-index.html?grep=mytest

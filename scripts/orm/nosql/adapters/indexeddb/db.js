@@ -11,9 +11,10 @@ var Promise = require('bluebird'),
   utils = require('../../../../utils'),
   idbUtils = require('./utils');
 
-// TODO: disable when not testing in phantomjs!
-// Use a shim as phantomjs doesn't support indexedDB
-require('indexeddbshim'); // Automatically sets window.shimIndexedDB
+if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
+  // Use a shim as phantomjs doesn't support indexedDB
+  require('indexeddbshim'); // Automatically sets window.shimIndexedDB
+}
 
 var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor

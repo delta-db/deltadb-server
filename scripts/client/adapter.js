@@ -4,10 +4,12 @@
 
 var inherits = require('inherits'),
   MemAdapter = require('../orm/nosql/adapters/mem/adapter'),
+  IDBAdapter = require('../orm/nosql/adapters/indexeddb/adapter'),
   DB = require('./db'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  idbUtils = require('../orm/nosql/adapters/indexeddb/utils');
 
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
@@ -28,9 +30,17 @@ Adapter.prototype.uuid = function () {
   return utils.uuid();
 };
 
+Adapter.prototype._adapterStore = function () {
+  // in browser and have IndexedDB and not local only?
+  if (global.window && idbUtils.indexedDB() && !this._localOnly) {
+    return new IDBAdapter();
+  } else {
+    return new MemAdapter();
+  }
+};
+
 Adapter.prototype._dbStore = function (name) {
-  // TODO: if IndexedDB support available then use IDB adapter otherwise MemAdapter.
-  var adapterStore = new MemAdapter();
+  var adapterStore = this._adapterStore();
   return adapterStore.db({
     db: name
   });
