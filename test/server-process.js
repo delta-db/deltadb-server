@@ -49,6 +49,16 @@ Server.prototype._destroyAndCreateSystemDB = function () {
       throw err;
     }
   }).then(function () {
+    // Destroy "mydb" in case a previous set of tests failed and left it behind. This saves us from
+    // having to manually remove "mydb" when adding new code that breaks tests.
+    return self._partitioner.destroyAnotherDatabase('mydb');
+  }).catch(function (err) {
+    // Ignore errors caused from "mydb" missing which is actually the expected case as long as the
+    // previous set of tests passed
+    if (!(err instanceof DBMissingError)) {
+      throw err;
+    }
+  }).then(function () {
     return self._system.create(adminParty);
   }).then(function () {
     return self._partitioner.closeDatabase(); // close DB connection to return resources
