@@ -131,9 +131,14 @@ DB.prototype._queueAndCreateObjectStore = function (name, callback) {
 };
 
 DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
-  var queueAndCreateObjectStore = utils.promisify(this._queueAndCreateObjectStore, this);
-  return this._storeReady().then(function () {
-    return queueAndCreateObjectStore(name);
+  var self = this,
+    queueAndCreateObjectStore = utils.promisify(self._queueAndCreateObjectStore, self);
+  return self._storeReady().then(function () {
+    if (self._db.objectStoreNames.contains(name)) { // already exists?
+      return Promise.resolve();
+    } else {
+      return queueAndCreateObjectStore(name);
+    }
   });
 };
 
