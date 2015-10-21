@@ -63,6 +63,8 @@ describe('adapter', function () {
   });
 
   it('should disconnect when destroying', function () {
+
+    fakeResolveAfterDatabaseCreated();
     fakeResolveAfterDatabaseDestroyed();
 
     var db = client.db({
