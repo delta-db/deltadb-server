@@ -111,7 +111,7 @@ Doc.prototype.save = function () {
   // We don't register the doc (consider it created) until after it is saved. This way docs can be
   // instantiated but not committed to memory
   var self = this;
-  return self._save.apply(self, arguments).then(function () {
+  return self._save().then(function () {
     return self._register();
   });
 };

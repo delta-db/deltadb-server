@@ -387,6 +387,7 @@ Doc.prototype._include = function () {
 Doc.prototype._setAndSave = function (doc) {
   var self = this;
   return self.set(doc).then(function () {
+    // TODO: is the following line needed? Isn't it called by set?
     return self.save();
   }).then(function () {
     return self;

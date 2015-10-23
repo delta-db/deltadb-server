@@ -97,6 +97,10 @@ Collection.prototype._emitColDestroy = function () {
 };
 
 Collection.prototype._register = function (doc) {
+  // We need to notify the DB of the change as it isn't until the doc is registered that the DB
+  // can gather the changes. The sender will throttle any back-to-back change emissions.
+  doc._emitChange();
+
   doc._emitDocCreate();
   return MemCollection.prototype._register.apply(this, arguments);
 };

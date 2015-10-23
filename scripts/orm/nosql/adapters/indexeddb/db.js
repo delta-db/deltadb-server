@@ -20,9 +20,17 @@ var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor
   this._cols = {};
   this._pendingObjectStores = [];
+  this._load();
+
+  // Promise that guarantees that DB is open
+  this._opened = utils.once(this, 'open');
 };
 
 inherits(DB, CommonDB);
+
+DB.prototype._setDB = function (request) {
+  this._db = request.result;
+};
 
 // Package open as a promise so that we can consolidate code and provide a single place to test the
 // error case
@@ -37,13 +45,16 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     }
 
     request.onupgradeneeded = function () {
+      self._setDB(request);
       if (onUpgradeNeeded) {
         onUpgradeNeeded(request, resolve);
       }
     };
 
     request.onsuccess = function () {
+      self._setDB(request);
       onSuccess(request, resolve);
+      self.emit('open');
     };
 
     // TODO: how to test onerror as FF doesn't call onerror for VersionError?
@@ -57,7 +68,6 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
 DB.prototype._initStore = function () {
   var self = this;
   return self._open(null, function (request, resolve) {
-    self._db = request.result;
     self._version = parseInt(self._db.version);
     resolve();
   });
@@ -67,18 +77,17 @@ DB.prototype._openAndCreateObjectStore = function (name) {
   var self = this;
 
   var onUpgradeNeeded = function (request) {
-    var db = request.result;
-    db.createObjectStore(name, {
+    self._db.createObjectStore(name, {
       keyPath: self._idName
     });
   };
 
   var onSuccess = function (request, resolve) {
-    self._db = request.result;
     resolve();
   };
 
-  return self.close().then(function () { // Close any existing connection
+  // Close any existing connection. We cannot reopen until we close first
+  return self.close().then(function () {
     self._version++; // Increment the version that we can add the object store
     return self._open(onUpgradeNeeded, onSuccess);
   });
@@ -116,6 +125,29 @@ DB.prototype._processPendingObjectStores = function () {
     var os = self._pendingObjectStores.shift();
     chain = chain.then(self._openAndCreateObjectStoreFactory(os));
   }
+
+  return chain;
+};
+
+DB.prototype._startProcessingPendingObjectStores = function () {
+  var self = this;
+
+  // Already processing?
+  if (self._processingPendingObjectStores) {
+    return;
+  }
+
+  self._processingPendingObjectStores = true;
+
+  // Done with processing?
+  self._processPendingObjectStores().then(function () {
+    // We more objects added since processing started?
+    self._processingPendingObjectStores = false;
+    if (self._pendingObjectStores.length > 0) {
+      // Process again
+      self._startProcessingPendingObjectStores();
+    }
+  });
 };
 
 // We need to close the DB and reopen it to create new objectStores. To prevent race conditions on
@@ -127,7 +159,7 @@ DB.prototype._queueAndCreateObjectStore = function (name, callback) {
     name: name,
     callback: callback
   });
-  this._processPendingObjectStores();
+  this._startProcessingPendingObjectStores();
 };
 
 DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
@@ -158,12 +190,13 @@ DB.prototype.close = function () {
     if (self._db) { // db already opened?
       self._db.close(); // Close is synchronous
     }
+    self._opened = utils.once(self, 'open'); // Reset promise as DB now closed
     resolve();
   });
 };
 
 // TODO: unregister from adapter
-DB.prototype.destroy = function () {
+DB.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     var req = idbUtils.indexedDB().deleteDatabase(self._name);
@@ -186,18 +219,28 @@ DB.prototype.destroy = function () {
   });
 };
 
+DB.prototype.destroy = function () {
+  var self = this;
+  // Make sure DB is loaded before destroying so there isn't a race condition where we try to
+  // destroy the DB while opening it
+  return self._storeReady().then(function () {
+    // The DB must be closed before we destroy it
+    return self.close();
+  }).then(function () {
+    return self._destroy();
+  });
+};
+
 DB.prototype._destroyCol = function (colName) {
   // Handle the destroying at the DB layer as we need to first close and then reopen the DB before
   // destroying the col. Oh the joys of IDB!
   var self = this;
 
   var onUpgradeNeeded = function (request) {
-    self._db = request.result;
     self._db.deleteObjectStore(colName);
   };
 
   var onSuccess = function (request, resolve) {
-    self._db = request.result;
     resolve();
   };
 
@@ -211,8 +254,6 @@ DB.prototype.all = function (callback) {
   utils.each(this._cols, callback);
 };
 
-// Keeping this explicit instead of being called implicitly by all() so that a calling process can
-// trigger the loading and determine when it has completed
 DB.prototype._load = function () {
   var self = this,
     promises = [];

@@ -12,7 +12,7 @@ var Doc = function (doc, col) {
 
 inherits(Doc, CommonDoc);
 
-Doc.prototype._put = function (doc) {
+Doc.prototype._putTransaction = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
@@ -35,6 +35,14 @@ Doc.prototype._put = function (doc) {
   });
 };
 
+Doc.prototype._put = function (doc) {
+  var self = this;
+  // Make sure the DB is opened and not being closed temporarily when adding an object store
+  return self._col._db._opened.then(function () {
+    return self._putTransaction(doc);
+  });
+};
+
 Doc.prototype._insert = function () {
   var self = this;
   return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
@@ -46,7 +54,7 @@ Doc.prototype._update = function () {
   return this._put(this._data);
 };
 
-Doc.prototype._destroy = function () {
+Doc.prototype._destroyTransaction = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
@@ -63,6 +71,14 @@ Doc.prototype._destroy = function () {
     request.onerror = function () {
       reject(request.error);
     };
+  });
+};
+
+Doc.prototype._destroy = function () {
+  var self = this;
+  // Make sure the DB is opened and not being closed temporarily when adding an object store
+  return self._col._db._opened.then(function () {
+    return self._destroyTransaction();
   });
 };
 
