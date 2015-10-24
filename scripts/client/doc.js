@@ -9,9 +9,7 @@ var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
   this._initDat(data);
 
-  this._loaded = utils.once(this, 'load');
-
-  this._createStoreIfStoresImported();
+  this._initLoaded();
 
   this._changeDoc(data);
 };
@@ -26,6 +24,13 @@ Doc._roleName = '$role';
 
 Doc._roleUserName = '$ruser';
 
+Doc.prototype._initLoaded = function () {
+  var self = this;
+  self._loaded = utils.once(self, 'load').then(function () {
+    self._wasLoaded = true;
+  });
+};
+
 Doc.prototype._import = function (store) {
   this._store = store;
   this._initStore();
@@ -33,13 +38,6 @@ Doc.prototype._import = function (store) {
 
 Doc.prototype._createStore = function () {
   this._import(this._col._store.doc(this._dat));
-};
-
-Doc.prototype._createStoreIfStoresImported = function () {
-  // If the stores have already been imported then create a store for this doc now
-  if (this._col._db._storesImported) {
-    this._createStore();
-  }
 };
 
 Doc.prototype._pointToData = function () {
@@ -95,9 +93,24 @@ Doc.prototype._ensureId = function () {
   this._store.id(id); // use id from data
 };
 
+Doc.prototype._ensureStore = function () {
+  var self = this;
+
+  if (self._wasLoaded) { // already loaded?
+    return Promise.resolve();
+  } else {
+    // Wait until col is loaded and then create store
+    return self._col._ensureStore().then(function () {
+      self._createStore();
+    }).then(function () {
+      self._loaded; // resolves once doc has been loaded
+    });
+  }
+};
+
 Doc.prototype._saveStore = function () {
   var self = this;
-  return self._loaded.then(function () {
+  return self._ensureStore().then(function () {
     self._ensureId();
     return self._store.set(self._dat);
   });

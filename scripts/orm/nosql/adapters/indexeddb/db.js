@@ -9,7 +9,8 @@ var Promise = require('bluebird'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
   utils = require('../../../../utils'),
-  idbUtils = require('./utils');
+  idbUtils = require('./utils'),
+  clientUtils = require('../../../../client/utils');
 
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
@@ -69,6 +70,7 @@ DB.prototype._initStore = function () {
   var self = this;
   return self._open(null, function (request, resolve) {
     self._version = parseInt(self._db.version);
+    self.emit('load'); // store is loaded and ready
     resolve();
   });
 };
@@ -228,6 +230,8 @@ DB.prototype.destroy = function () {
     return self.close();
   }).then(function () {
     return self._destroy();
+  }).then(function () {
+    return self._adapter._unregister(self._name);
   });
 };
 

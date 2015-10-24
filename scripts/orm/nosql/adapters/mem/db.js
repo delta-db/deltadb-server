@@ -9,9 +9,15 @@ var Promise = require('bluebird'),
 var DB = function ( /* name, adapter */ ) {
   CommonDB.apply(this, arguments); // apply parent constructor
   this._cols = {};
+  this._emitLoad();
 };
 
 inherits(DB, CommonDB);
+
+DB.prototype._emitLoad = function () {
+  // We want to emit on this tick so that we don't trigger listeners on any parent objects
+  this.emit('load'); // immediately loaded
+};
 
 DB.prototype.col = function (name) {
   if (this._cols[name]) {

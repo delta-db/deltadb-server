@@ -1,7 +1,8 @@
 'use strict';
 
 var Client = require('../../../scripts/client/adapter'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('adapter', function () {
 
@@ -68,7 +69,8 @@ describe('adapter', function () {
     fakeResolveAfterDatabaseDestroyed();
 
     var db = client.db({
-      db: 'mydb'
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
 
     var disconnected = false;

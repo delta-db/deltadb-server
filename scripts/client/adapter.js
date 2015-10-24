@@ -32,7 +32,7 @@ Adapter.prototype.uuid = function () {
 
 Adapter.prototype._adapterStore = function () {
   // in browser and have IndexedDB and not local only?
-  if (global.window && idbUtils.indexedDB() && !this._localOnly) {
+  if (global.window && idbUtils.indexedDB()) {
     return new IDBAdapter();
   } else {
     return new MemAdapter();

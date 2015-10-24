@@ -10,6 +10,9 @@ var Doc = function (data, col) {
   this._data = data ? data : {};
   this._col = col;
   this._dirty = {};
+
+  // This id is used to uniquely identify any docs that have not been registered
+  this._pendingID = utils.uuid();
 };
 
 inherits(Doc, EventEmitter);

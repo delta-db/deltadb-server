@@ -72,10 +72,24 @@ DB.prototype._ready = function () {
 };
 
 DB.prototype._import = function (store) {
-  this._store = store;
-  this._initStore();
+  var self = this;
+
+  self._store = store;
+
+  // Make sure the store is ready, e.g. opened, before init
+  self._store._loaded.then(function () {
+    self._initStore();
+  });
 };
 
+/**
+ * Flows:
+ * - Data loaded from store, e.g. from IndexedDB. After which the 'load' event is emitted
+ * - When registering a doc:
+ *   - Wait for until DB has finished loading store so that we don't create a duplicate
+ *   - Get or create col store
+ *   - Get or create doc store
+ */
 DB.prototype._initStore = function () {
   var self = this,
     promises = [],
@@ -95,7 +109,7 @@ DB.prototype._initStore = function () {
   // All the stores have been imported
   self._storesImported = true;
 
-  self._loaded = Promise.all(promises).then(function () {
+  Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
     }

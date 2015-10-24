@@ -11,6 +11,7 @@ var DB = function (name, adapter) {
   this._name = name;
   this._adapter = adapter;
   this._idName = '$id'; // TODO: should every idName be moved to the DB layer?
+  this._loaded = utils.once(this, 'load'); // has the DB loaded? e.g. opened?
 };
 
 inherits(DB, EventEmitter);

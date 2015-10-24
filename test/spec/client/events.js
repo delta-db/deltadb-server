@@ -7,26 +7,34 @@
 var utils = require('../../../scripts/utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('events', function () {
 
   var client = null,
     db = null,
     tasks = null,
-    task = null;
+    task = null,
+    client2 = null,
+    db2 = null;
 
   beforeEach(function () {
     client = new Client(true);
 
     db = client.db({
-      db: 'mydb'
+      db: 'mydb',
+      store: new MemAdapter().db('mydb') // TODO: test with default store?
     });
 
     tasks = db.col('tasks');
 
     task = tasks.doc();
     task.id('1');
+  });
+
+  afterEach(function () {
+    return Promise.all([db.destroy(), db2 ? db.destroy() : null]);
   });
 
   var Server = function (changes) {
@@ -749,12 +757,10 @@ describe('events', function () {
 
   // ------------------------
 
-  var client2 = null,
-    db2 = null;
-
   var dbCreateLocal = function () {
     db2 = client2.db({
-      db: 'myotherdb'
+      db: 'myotherdb',
+      store: new MemAdapter().db('mydb') // TODO: test with default store?
     });
     return Promise.resolve();
   };

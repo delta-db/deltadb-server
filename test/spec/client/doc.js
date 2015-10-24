@@ -1,7 +1,8 @@
 'use strict';
 
 var Client = require('../../../scripts/client/adapter'),
-  Doc = require('../../../scripts/client/doc');
+  Doc = require('../../../scripts/client/doc'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('doc', function () {
 
@@ -14,12 +15,17 @@ describe('doc', function () {
     client = new Client(true);
 
     db = client.db({
-      db: 'mydb'
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
 
     tasks = db.col('tasks');
 
     task = tasks.doc();
+  });
+
+  afterEach(function () {
+    return db.destroy();
   });
 
   it('should record when remote change has seq', function () {

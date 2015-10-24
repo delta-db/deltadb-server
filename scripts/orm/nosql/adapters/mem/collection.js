@@ -8,19 +8,23 @@ var Promise = require('bluebird'),
   where = require('../../common/where'),
   order = require('../../common/order'),
   Cursor = require('./cursor'),
-  Doc = require('./doc');
+  Doc = require('./doc'),
+  utils = require('../../../../utils');
 
 var Collection = function (name, db) {
   CommonCollection.apply(this, arguments); // apply parent constructor
   this._name = name;
   this._db = db;
   this._docs = {};
+  this._pendingDocs = {}; // docs that have yet to be registered
 };
 
 inherits(Collection, CommonCollection);
 
 Collection.prototype.doc = function (data) {
-  return new Doc(data, this);
+  var doc = new Doc(data, this);
+  this._pendingDocs[doc._pendingID] = doc;
+  return doc;
 };
 
 Collection.prototype.get = function (id) {
@@ -48,12 +52,17 @@ Collection.prototype.find = function (query, callback) {
 
 Collection.prototype._register = function (doc) {
   this._docs[doc.id()] = doc;
+  delete this._pendingDocs[doc._pendingID]; // remove from list of pending docs
   return Promise.resolve();
 };
 
 Collection.prototype._unregister = function (doc) {
   delete this._docs[doc.id()];
   return Promise.resolve();
+};
+
+Collection.prototype._allPending = function (callback) {
+  utils.each(this._pendingDocs, callback);
 };
 
 module.exports = Collection;

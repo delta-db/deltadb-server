@@ -2,30 +2,36 @@
 
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
-  DB = require('../../../scripts/client/db');
+  DB = require('../../../scripts/client/db'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
-describe('client', function () {
+describe('persist', function () {
 
   var client = null,
     db = null,
     tasks = null,
     task = null,
-    propsReady = null;
+    propsReady = null,
+    db2 = null;
 
   beforeEach(function () {
     client = new Client(true);
     db = client.db({
-      db: 'mydb'
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
     propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
     task = tasks.doc();
   });
 
+  afterEach(function () {
+    return Promise.all([db.destroy(), db2 ? db2.destroy() : null ]);
+  });
+
   it('should restore from store', function () {
 
     var client2 = null,
-      db2 = null,
       tasks2 = null;
 
     var nowStr = (new Date()).getTime();
@@ -112,7 +118,6 @@ describe('client', function () {
     // What if write is already in the store and loads after we have the handles above?
 
     var client2 = null,
-      db2 = null,
       tasks2 = null,
       task2 = null;
 

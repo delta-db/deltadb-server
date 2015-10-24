@@ -5,9 +5,18 @@ var DB = require('../../../scripts/client/db'),
   Client = require('../../../scripts/client/adapter'),
   clientUtils = require('../../../scripts/client/utils'),
   commonUtils = require('../../common-utils'),
-  utils = require('../../../scripts/utils');
+  utils = require('../../../scripts/utils'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('db', function () {
+
+  var db = null;
+
+  afterEach(function () {
+    if (db) {
+      return db.destroy();
+    }
+  });
 
   it('should reload properties', function () {
     var store = new MemAdapter();
@@ -38,8 +47,9 @@ describe('db', function () {
     // Wait for load after next tick to ensure there is no race condition. The following code was
     // failing when the DB store loading was triggered at the adapter layer.
     return clientUtils.timeout().then(function () {
-      var db = client.db({
-        db: 'mydb'
+      db = client.db({
+        db: 'mydb',
+        store: new MemAdapter().db('mydb')
       });
       return clientUtils.once(db, 'load');
     });
@@ -47,8 +57,9 @@ describe('db', function () {
 
   it('should throw delta errors', function () {
     var client = new Client(true);
-    var db = client.db({
-      db: 'mydb'
+    db = client.db({
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
     return commonUtils.shouldNonPromiseThrow(function () {
       db._onDeltaError(new Error('my err'));
@@ -61,8 +72,9 @@ describe('db', function () {
     var emitted = false,
       client = new Client(true);
 
-    var db = client.db({
-      db: 'mydb'
+    db = client.db({
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
 
     db._ready = utils.resolveFactory(); // fake

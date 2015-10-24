@@ -20,23 +20,16 @@ Adapter.prototype.test = function () {
   describe('idb', function () {
 
     var db = null,
-      idb = null,
-      n = 1;
+      idb = null;
 
     beforeEach(function () {
-      // For some unknown reason, it appears that the Chrome and Firefox will return an error if we
-      // try to open a new DB with the same name as a DB that was just closed. Even if we wait for
-      // the onsuccess callback after executing indexedDB.deleteDatabase(). Therefore, we will make
-      // sure that DB name is unique per test.
       db = adapter.db({
-        db: 'mydb' + (n++)
+        db: 'mydb'
       });
     });
 
     afterEach(function () {
-      return db.close().then(function () {
-        return db.destroy();
-      });
+      return db.destroy();
     });
 
     it('should create doc', function () {
@@ -126,9 +119,9 @@ Adapter.prototype.test = function () {
         return db.close().then(function () {
           idb = new IDB(); // Simulate a fresh instance during an initial load
           db = idb.db({
-            db: 'mydb' + (n - 1) // n - 1 for previous db name
+            db: 'mydb'
           });
-          return db._load();
+          return oldUtils.once(db, 'load'); // wait for data to load
         }).then(function () {
           return all();
         }).then(function () {

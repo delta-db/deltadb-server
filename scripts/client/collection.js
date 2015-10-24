@@ -10,10 +10,17 @@ var inherits = require('inherits'),
 
 var Collection = function ( /* name, db */ ) {
   MemCollection.apply(this, arguments); // apply parent constructor
-  this._createStoreIfStoresImported();
+  this._initLoaded();
 };
 
 inherits(Collection, MemCollection);
+
+Collection.prototype._initLoaded = function () {
+  var self = this;
+  self._loaded = utils.once(self, 'load').then(function () {
+    self._wasLoaded = true;
+  });
+};
 
 Collection.prototype._import = function (store) {
   this._store = store;
@@ -24,10 +31,18 @@ Collection.prototype._createStore = function () {
   this._store = this._db._store.col(this._name);
 };
 
-Collection.prototype._createStoreIfStoresImported = function () {
-  // If the stores have already been imported then create a store for this col now
-  if (this._db._storesImported) {
-    this._createStore();
+Collection.prototype._ensureStore = function () {
+  var self = this;
+
+  if (self._wasLoaded) { // already loaded?
+    return Promise.resolve();
+  } else {
+    // Wait until db is loaded and then create store
+    return self._db._loaded.then(function () {
+      self._createStore();
+    }).then(function () {
+      self._loaded; // resolves once doc has been loaded
+    });
   }
 };
 
