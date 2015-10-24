@@ -10,13 +10,26 @@ var Promise = require('bluebird'),
   Collection = require('./collection'),
   utils = require('../../../../utils'),
   idbUtils = require('./utils'),
-  clientUtils = require('../../../../client/utils');
+  clientUtils = require('../../../../client/utils'),
+  UtilsCollection = require('../../../../utils/collection');
 
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
   require('indexeddbshim'); // Automatically sets window.shimIndexedDB
 }
 
+/**
+ * It appears that the IndexedDB spec takes some shortcuts. In order to create an object store, you
+ * need to first close any open DB then re-open while triggering a DB upgrade. Therefore, you need
+ * to worry about synchronizing transactions so that you are not executing a transaction while
+ * opening/closing a DB or vise-versa. We'll handle this detail in this adapter so that the end user
+ * doesn't have to.
+ *
+ * Synchronization:
+ * - if closing then check to make sure there aren't any executing transactions
+ * - before executing the transaction check to make sure we aren't closing. If we are closing then
+ *   we need to wait until the reopen
+ */
 var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor
   this._cols = {};
@@ -25,6 +38,8 @@ var DB = function () {
 
   // Promise that guarantees that DB is open
   this._opened = utils.once(this, 'open');
+
+  this._executingTransactions = new UtilsCollection(); // used for synchronizing transactions w/ open/closes
 };
 
 inherits(DB, CommonDB);
@@ -55,6 +70,7 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     request.onsuccess = function () {
       self._setDB(request);
       onSuccess(request, resolve);
+      self._wasOpened = true;
       self.emit('open');
     };
 
@@ -186,18 +202,78 @@ DB.prototype.col = function (name) {
   }
 };
 
-DB.prototype.close = function () {
+DB.prototype._close = function () {
   var self = this;
   return new Promise(function (resolve) {
     if (self._db) { // db already opened?
       self._db.close(); // Close is synchronous
     }
+    self._wasOpened = false;
     self._opened = utils.once(self, 'open'); // Reset promise as DB now closed
     resolve();
   });
 };
 
-// TODO: unregister from adapter
+DB.prototype.close = function () {
+  var self = this;
+
+  if (!self._wasOpened) { // already closed?
+    return Promise.resolve(); // just ignore close
+  } else if (self._closing) { // already closing?
+    return utils.once(self, 'close'); // wait to be notified
+  }
+
+  var promise = null;
+
+  self._closing = true; // allow others to know that we are closing
+
+  if (!self._executingTransactions.empty()) { // are any transactions being executed?
+    // Wait to be notified that all transactions have completed
+    promise = utils.once(self, 'transactions-done');
+  } else {
+    promise = Promise.resolve();
+  }
+
+  return promise.then(function () {
+    return self._close(); // close the DB
+  }).then(function () {
+    self._closing = false; // just closed so no longer in the process of closing
+    self.emit('close'); // alert everyone that we have closed
+  });
+};
+
+DB.prototype._executeTransaction = function (promiseFactory, id) {
+  var self = this;
+
+  return promiseFactory().then(function () {
+    self._executingTransactions.remove(id); // unregister executing transaction
+
+    // Trying to close and no more transactions?
+    if (self._closing && self._executingTransactions.empty()) {
+      self.emit('transactions-done'); // notify any ticks waiting to close
+    }
+
+    return arguments[0];
+  });
+};
+
+/**
+ * If the DB is closing then register the pending transaction and wait until it is reopened
+ */
+ DB.prototype._transaction = function (promiseFactory) {
+   var self = this;
+
+   // Make sure the DB is open
+   return self._opened.then(function () {
+
+     // We may just been told that the DB has been opened so we register the executing transaction
+     // immediately and then execute it
+     var id = self._executingTransactions.add(true); // register executing transaction
+
+     return self._executeTransaction(promiseFactory, id);
+   });
+};
+
 DB.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
@@ -248,6 +324,8 @@ DB.prototype._destroyCol = function (colName) {
     resolve();
   };
 
+  // Close will coordinate with any existing DB transactions and by the time it resolves there will
+  // be a clear path to reopen the DB
   return self.close().then(function () { // Close any existing connection
     self._version++; // Increment the version so that we can trigger an onupgradeneeded
     return self._open(onUpgradeNeeded, onSuccess);

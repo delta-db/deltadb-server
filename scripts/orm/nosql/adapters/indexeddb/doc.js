@@ -35,10 +35,16 @@ Doc.prototype._putTransaction = function (doc) {
   });
 };
 
+Doc.prototype._transaction = function (promiseFactory) {
+  var self = this;
+  return self._col._opened.then(function () { // col opened?
+    return self._col._db._transaction(promiseFactory); // synchronize transaction
+  });
+};
+
 Doc.prototype._put = function (doc) {
   var self = this;
-  // Make sure the DB is opened and not being closed temporarily when adding an object store
-  return self._col._db._opened.then(function () {
+  return self._transaction(function () { // synchronize transaction
     return self._putTransaction(doc);
   });
 };
@@ -76,8 +82,7 @@ Doc.prototype._destroyTransaction = function () {
 
 Doc.prototype._destroy = function () {
   var self = this;
-  // Make sure the DB is opened and not being closed temporarily when adding an object store
-  return self._col._db._opened.then(function () {
+  return self._transaction(function () { // synchronize transaction
     return self._destroyTransaction();
   });
 };
@@ -85,7 +90,7 @@ Doc.prototype._destroy = function () {
 Doc.prototype._save = function () {
   var self = this,
     args = arguments;
-  return self._col._opened().then(function () {
+  return self._col._opened.then(function () {
     return CommonDoc.prototype._save.apply(self, args);
   });
 };

@@ -15,6 +15,8 @@ var Collection = function (db, name) {
   CommonCollection.apply(this, arguments); // apply parent constructor
   this._db = db;
   this._name = name;
+
+  this._opened = this._open();
 };
 
 inherits(Collection, CommonCollection);
@@ -23,27 +25,34 @@ Collection.prototype.doc = function (obj) {
   return new Doc(obj, this);
 };
 
+Collection.prototype._get = function (id) {
+  var self = this;
+  return new Promise(function (resolve, reject) {
+    var tx = self._db._db.transaction(self._name, 'readwrite'),
+      store = tx.objectStore(self._name),
+      request = store.get(id);
+
+    request.onsuccess = function () {
+      resolve(request.result ? new Doc(request.result, self) : null);
+    };
+
+    // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't
+    // trigger it.
+    /* istanbul ignore next */
+    request.onerror = function () {
+      reject(request.error);
+    };
+
+    // TODO: do we also need tx.oncomplete and tx.onerror and if so can we use them instead of
+    // request.onsuccess and request.onerror??
+  });
+};
+
 Collection.prototype.get = function (id) {
   var self = this;
-  return self._opened().then(function () {
-    return new Promise(function (resolve, reject) {
-      var tx = self._db._db.transaction(self._name, 'readwrite'),
-        store = tx.objectStore(self._name),
-        request = store.get(id);
-
-      request.onsuccess = function () {
-        resolve(request.result ? new Doc(request.result, self) : null);
-      };
-
-      // TODO: how to generate this error in unit testing? Even a get() with a bad key doesn't
-      // trigger it.
-      /* istanbul ignore next */
-      request.onerror = function () {
-        reject(request.error);
-      };
-
-      // TODO: do we also need tx.oncomplete and tx.onerror and if so can we use them instead of
-      // request.onsuccess and request.onerror??
+  return self._opened.then(function () { // col opened?
+    return self._db._transaction(function () { // synchronize transaction
+      return self._get(id);
     });
   });
 };
@@ -54,8 +63,8 @@ Collection.prototype.get = function (id) {
 // http://stackoverflow.com/questions/12084177/in-indexeddb-is-there-a-way-to-make-a-sorted-
 // compound-query . We may want to use one of these methods if ALL the attrs are indexed and
 // then fall back to the SortCursor & FilterCursor approaches when any of the attrs are not
-// indexed. 
-Collection.prototype.find = function (query, callback) {
+// indexed.
+Collection.prototype._find = function (query, callback) {
   var self = this;
   return new Promise(function (resolve, reject) {
 
@@ -103,22 +112,23 @@ Collection.prototype.find = function (query, callback) {
   });
 };
 
-Collection.prototype.destroy = function () {
+Collection.prototype.find = function (query, callback) {
   var self = this;
-  return self._opened().then(function () {
-    return self._db._destroyCol(self._name);
+  return self._opened.then(function () { // col opened?
+    return self._db._transaction(function () { // synchronize transaction
+      return self._find(query, callback);
+    });
   });
+};
+
+Collection.prototype.destroy = function () {
+  // destroyCol does all the transaction synchronization as it closes and then reopens the DB so we
+  // don't need to use db._transaction()
+  return this._db._destroyCol(self._name);
 };
 
 Collection.prototype._open = function () {
   return this._db._openAndCreateObjectStoreWhenReady(this._name);
-};
-
-Collection.prototype._opened = function () {
-  if (!this._openPromise) {
-    this._openPromise = this._open();
-  }
-  return this._openPromise;
 };
 
 module.exports = Collection;
