@@ -124,7 +124,7 @@ Collection.prototype.find = function (query, callback) {
 Collection.prototype.destroy = function () {
   // destroyCol does all the transaction synchronization as it closes and then reopens the DB so we
   // don't need to use db._transaction()
-  return this._db._destroyCol(self._name);
+  return this._db._destroyCol(this._name);
 };
 
 Collection.prototype._open = function () {

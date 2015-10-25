@@ -166,20 +166,26 @@ DB.prototype.close = function () {
   });
 };
 
-DB.prototype._queueOpenClose = function (promiseFactory) {
-  this._opensCloses.push(promiseFactory);
+DB.prototype._queueOpenClose = function (promise) {
+  this._opensCloses.push(promise);
 };
 
-DB.prototype._queueTransaction = function (promiseFactory) {
-  this._transactions.push(promiseFactory);
+DB.prototype._queueTransaction = function (promise) {
+  this._transactions.push(promise);
+};
+
+DB.prototype._promiseFactory = function (promise) {
+  return function () {
+    return promise();
+  };
 };
 
 DB.prototype._processOpensCloses = function () {
   // We need to process these sequentially as we can only open/close the DB in a synchronized way
   var chain = Promise.resolve();
   while (this._opensCloses.length > 0) { // more?
-    var promiseFactory = this._opensCloses.shift();
-    chain = chain.then(promiseFactory);
+    var promise = this._opensCloses.shift();
+    chain = chain.then(this._promiseFactory(promise));
   }
   return chain;
 };
@@ -188,8 +194,8 @@ DB.prototype._processTransactions = function () {
   // We can process transactions simulatenously
   var promises = [];
   while (this._transactions.length > 0) { // more?
-    var promiseFactory = this._transactions.shift();
-    promises.push(promiseFactory()); // Need to execute the promise
+    var promise = this._transactions.shift();
+    promises.push(promise()); // Need to execute the promise
   }
   return Promise.all(promises);
 };
@@ -222,25 +228,29 @@ DB.prototype._processQueue = function () {
   }
 };
 
-DB.prototype._transaction = function (promiseFactory) {
+DB.prototype._transaction = function (promise) {
   var self = this;
   return new Promise(function (resolve) {
     self._queueTransaction(function () {
-      var promise = promiseFactory();
-      resolve(promise); // resolve with promise so that caller can wait for it to finish
-      return promise; // return promise so that processQueue() can wait for it to finish
+      // Return promise so caller can wait for resolution
+      return promise().then(function () {
+        // Resolve after promise resolves so that processQueue() can wait for resolution
+        resolve();
+      });
     });
     self._processQueue();
   });
 };
 
-DB.prototype._openClose = function (promiseFactory) {
+DB.prototype._openClose = function (promise) {
   var self = this;
   return new Promise(function (resolve) {
     self._queueOpenClose(function () {
-      var promise = promiseFactory();
-      resolve(promise); // resolve with promise so that caller can wait for it to finish
-      return promise; // return promise so that processQueue() can wait for it to finish
+      // Return promise so caller can wait for resolution
+      return promise().then(function () {
+        // Resolve after promise resolves so that processQueue() can wait for resolution
+        resolve();
+      });
     });
     self._processQueue();
   });
@@ -286,7 +296,7 @@ DB.prototype.destroy = function () {
   });
 };
 
-DB.prototype._destroyCol = function (colName) {
+DB.prototype._closeDBAndDestroyCol = function (colName) {
   // Handle the destroying at the DB layer as we need to first close and then reopen the DB before
   // destroying the col. Oh the joys of IDB!
   var self = this;
@@ -304,6 +314,17 @@ DB.prototype._destroyCol = function (colName) {
   return self._close().then(function () { // Close any existing connection
     self._version++; // Increment the version so that we can trigger an onupgradeneeded
     return self._open(onUpgradeNeeded, onSuccess);
+  });
+};
+
+DB.prototype._destroyCol = function (colName) {
+  var self = this;
+  // We wait for the store to be loaded before closing the store as we wait for this same event when
+  // creating a store and we don't want to try to close a store before we have opened it.
+  return self._loaded.then(function () {
+    return self._openClose(function () {
+      return self._closeDBAndDestroyCol(colName);
+    });
   });
 };
 
