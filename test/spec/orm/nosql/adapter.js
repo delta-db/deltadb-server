@@ -13,25 +13,20 @@ Adapter.prototype.test = function () {
 
   var adapter = this._adapter; // for convenience
 
+  // TODO: fix adapter name here. Is there a way to make this automatic or do we need to pass the
+  // name into the test
   describe('adapter ' + adapter.constructor.name, function () {
 
-    var db = null,
-      n = 1;
+    var db = null;
 
     beforeEach(function () {
-      // For some unknown reason, it appears that the Chrome and Firefox will return an error if we
-      // try to open a new DB with the same name as a DB that was just closed. Even if we wait for
-      // the onsuccess callback after executing indexedDB.deleteDatabase(). Therefore, we will make
-      // sure that DB name is unique per test.
       db = adapter.db({
-        db: 'mydb' + (n++)
+        db: 'mydb'
       });
     });
 
     afterEach(function () {
-      return db.close().then(function () {
-        return db.destroy();
-      });
+      return db.destroy();
     });
 
     it('should work', function () {
@@ -140,7 +135,7 @@ Adapter.prototype.test = function () {
 
     it('should retrieve existing db', function () {
       var db2 = adapter.db({
-        db: 'mydb' + (n - 1)
+        db: 'mydb'
       });
       db2.should.eql(db);
     });

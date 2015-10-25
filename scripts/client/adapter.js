@@ -128,6 +128,11 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
   });
 };
 
+Adapter.prototype._unregister = function (dbName) {
+  delete this._dbs[dbName];
+  return Promise.resolve();
+};
+
 Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
   var self = this;
 
@@ -143,11 +148,8 @@ Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
       return self._systemDB()._destroyDatabase(dbName);
     }).then(function (doc) {
       return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
-    }).then(function () {
-      delete self._dbs[dbName];
     });
   } else {
-    delete self._dbs[dbName];
     return Promise.resolve();
   }
 };

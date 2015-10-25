@@ -276,8 +276,25 @@ DB.prototype._destroyDatabase = function (dbName) {
   return col._destroyDatabase(dbName);
 };
 
-DB.prototype.destroy = function () {
-  return this._adapter._destroyDatabase(this._name, this._localOnly);
+DB.prototype.destroy = function (keepRemote, keepLocal) {
+  var self = this, promise = null;
+
+  if (keepRemote) {
+    promise = Promise.resolve();
+  } else {
+    promise = self._adapter._destroyDatabase(this._name, this._localOnly);
+  }
+
+  return promise.then(function () {
+    if (keepLocal) {
+      // We'll just close the store
+      return self._store.close();
+    } else {
+      return self._store.destroy();
+    }
+  }).then(function () {
+    return self._adapter._unregister(self._name);
+  });
 };
 
 DB.prototype._emitInit = function () {

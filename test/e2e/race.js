@@ -50,7 +50,10 @@ describe('race', function () {
 
   var destroyBoth = function () {
     // TODO: make destroy disconnect so there aren't any more data exchanges?
-    return b.destroy().then(function () {
+    //
+    // IndexedDB doesn't allow us to destroy a DB that is in use. Therefore, we use keepLocal=true
+    // so that we can close connection b first.
+    return b.destroy(false, true).then(function () {
       return a.destroy();
     });
   };

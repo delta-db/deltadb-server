@@ -214,7 +214,7 @@ DB.prototype._close = function () {
   });
 };
 
-DB.prototype.close = function () {
+DB.prototype._closeWhenReady = function () {
   var self = this;
 
   if (!self._wasOpened) { // already closed?
@@ -239,6 +239,13 @@ DB.prototype.close = function () {
   }).then(function () {
     self._closing = false; // just closed so no longer in the process of closing
     self.emit('close'); // alert everyone that we have closed
+  });
+};
+
+DB.prototype.close = function () {
+  var self = this;
+  return self._storeReady().then(function () {
+    return self._closeWhenReady();
   });
 };
 
@@ -297,6 +304,9 @@ DB.prototype._destroy = function () {
   });
 };
 
+// !!!!!!!!!!
+// TODO: why are there 2 opens happening? Shouldn't they be synchronized?
+// TODO: destroying needs to do something similar to close with waiting as appears a race with another open will cause a problem!!
 DB.prototype.destroy = function () {
   var self = this;
   // Make sure DB is loaded before destroying so there isn't a race condition where we try to
