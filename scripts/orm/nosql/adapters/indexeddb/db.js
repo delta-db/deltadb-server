@@ -10,8 +10,7 @@ var Promise = require('bluebird'),
   Collection = require('./collection'),
   utils = require('../../../../utils'),
   idbUtils = require('./utils'),
-  clientUtils = require('../../../../client/utils'),
-  UtilsCollection = require('../../../../utils/collection');
+  clientUtils = require('../../../../client/utils');
 
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
@@ -26,26 +25,36 @@ if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB sup
  * doesn't have to.
  *
  * Synchronization:
- * - if closing then check to make sure there aren't any executing transactions
- * - before executing the transaction check to make sure we aren't closing. If we are closing then
- *   we need to wait until the reopen
+ * - The initial open is triggered by the constructor and the 'open' event is fired when the open
+ *   has completed
+ * - All open/close operations are queued together as they need to be executed in sequence as the
+ *   same IndexedDB cannot be opened/closed simulatenously
+ * - All transactions are queued together as they can be executed simulatenously, but not during any
+ *   open/closes
+ * - Upon queuing a open/close or transaction the _processQueue() is triggered, which ensures that
+ *   the above rules are followed
+ * - After the first open has completed, _processQueue() is called in case any processes have been
+ *   queued before the initial open
  */
 var DB = function () {
   CommonDB.apply(this, arguments); // apply parent constructor
   this._cols = {};
   this._pendingObjectStores = [];
-  this._load();
 
   // Promise that guarantees that DB is open
   this._opened = utils.once(this, 'open');
 
-  this._executingTransactions = new UtilsCollection(); // used for synchronizing transactions w/ open/closes
+  this._opensCloses = []; // used to synchronize open/close transactions
+  this._transactions = []; // used to synchronize transactions
+
+  this._load();
 };
 
 inherits(DB, CommonDB);
 
 DB.prototype._setDB = function (request) {
   this._db = request.result;
+  this._version = parseInt(this._db.version);
 };
 
 // Package open as a promise so that we can consolidate code and provide a single place to test the
@@ -70,8 +79,10 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
     request.onsuccess = function () {
       self._setDB(request);
       onSuccess(request, resolve);
-      self._wasOpened = true;
       self.emit('open');
+
+      // Process queue in case transactions have been waiting for this open
+      self._processQueue();
     };
 
     // TODO: how to test onerror as FF doesn't call onerror for VersionError?
@@ -85,8 +96,6 @@ DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
 DB.prototype._initStore = function () {
   var self = this;
   return self._open(null, function (request, resolve) {
-    self._version = parseInt(self._db.version);
-    self.emit('load'); // store is loaded and ready
     resolve();
   });
 };
@@ -105,90 +114,28 @@ DB.prototype._openAndCreateObjectStore = function (name) {
   };
 
   // Close any existing connection. We cannot reopen until we close first
-  return self.close().then(function () {
+  return self._close().then(function () {
     self._version++; // Increment the version that we can add the object store
     return self._open(onUpgradeNeeded, onSuccess);
   });
 };
 
-DB.prototype._storeReady = function () {
-  // We need to increment the version to fire an 'onupgradeneeded' event so that we can create a new
-  // collection.
-  if (!this._storePromise) { // not initialized?
-    this._storePromise = this._initStore(); // Get the latest version stored in the DB
+DB.prototype._getOrCreateObjectStore = function (name) {
+  if (this._db.objectStoreNames.contains(name)) { // exists?
+    return Promise.resolve();
+  } else {
+    return this._openAndCreateObjectStore(name);
   }
-
-  return this._storePromise;
 };
 
-DB.prototype._openAndCreateObjectStoreFactory = function (os) {
+DB.prototype._createObjectStore = function (name) {
   var self = this;
-  return function () {
-    return self._openAndCreateObjectStore(os.name).then(function (col) {
-      os.callback(null, col);
-    }).catch(function (err) {
-      os.callback(err);
+  // Make sure cols have been loaded before trying to create cols so that we don't create a col that
+  // already exists
+  return self._loaded.then(function () {
+    return self._openClose(function () {
+      return self._getOrCreateObjectStore(name);
     });
-  };
-};
-
-DB.prototype._processPendingObjectStores = function () {
-  var self = this;
-
-  // Process pending object stores sequentially as the DB cannot be closed and opened
-  // simulatenously. TODO: create all the missing stores at once.
-  var chain = Promise.resolve();
-
-  while (self._pendingObjectStores.length > 0) { // more items?
-    var os = self._pendingObjectStores.shift();
-    chain = chain.then(self._openAndCreateObjectStoreFactory(os));
-  }
-
-  return chain;
-};
-
-DB.prototype._startProcessingPendingObjectStores = function () {
-  var self = this;
-
-  // Already processing?
-  if (self._processingPendingObjectStores) {
-    return;
-  }
-
-  self._processingPendingObjectStores = true;
-
-  // Done with processing?
-  self._processPendingObjectStores().then(function () {
-    // We more objects added since processing started?
-    self._processingPendingObjectStores = false;
-    if (self._pendingObjectStores.length > 0) {
-      // Process again
-      self._startProcessingPendingObjectStores();
-    }
-  });
-};
-
-// We need to close the DB and reopen it to create new objectStores. To prevent race conditions on
-// the DB, we synchronize the objectStore creation by adding the request to a queue and then kicking
-// off a function to process the queue. In the future, this code could be optimized by enhancing
-// _openAndCreateObjectStore() to create all the queued stores at once.
-DB.prototype._queueAndCreateObjectStore = function (name, callback) {
-  this._pendingObjectStores.push({
-    name: name,
-    callback: callback
-  });
-  this._startProcessingPendingObjectStores();
-};
-
-DB.prototype._openAndCreateObjectStoreWhenReady = function (name) {
-  var self = this,
-    queueAndCreateObjectStore = utils.promisify(self._queueAndCreateObjectStore, self);
-  return self._storeReady().then(function () {
-    if (self._db.objectStoreNames.contains(name)) { // already exists?
-      return Promise.resolve();
-    } else {
-      return queueAndCreateObjectStore(name);
-    }
   });
 };
 
@@ -208,77 +155,86 @@ DB.prototype._close = function () {
     if (self._db) { // db already opened?
       self._db.close(); // Close is synchronous
     }
-    self._wasOpened = false;
-    self._opened = utils.once(self, 'open'); // Reset promise as DB now closed
     resolve();
-  });
-};
-
-DB.prototype._closeWhenReady = function () {
-  var self = this;
-
-  if (!self._wasOpened) { // already closed?
-    return Promise.resolve(); // just ignore close
-  } else if (self._closing) { // already closing?
-    return utils.once(self, 'close'); // wait to be notified
-  }
-
-  var promise = null;
-
-  self._closing = true; // allow others to know that we are closing
-
-  if (!self._executingTransactions.empty()) { // are any transactions being executed?
-    // Wait to be notified that all transactions have completed
-    promise = utils.once(self, 'transactions-done');
-  } else {
-    promise = Promise.resolve();
-  }
-
-  return promise.then(function () {
-    return self._close(); // close the DB
-  }).then(function () {
-    self._closing = false; // just closed so no longer in the process of closing
-    self.emit('close'); // alert everyone that we have closed
   });
 };
 
 DB.prototype.close = function () {
   var self = this;
-  return self._storeReady().then(function () {
-    return self._closeWhenReady();
+  return self._openClose(function () {
+    return self._close();
   });
 };
 
-DB.prototype._executeTransaction = function (promiseFactory, id) {
+DB.prototype._queueOpenClose = function (promiseFactory) {
+  this._opensCloses.push(promiseFactory);
+};
+
+DB.prototype._queueTransaction = function (promiseFactory) {
+  this._transactions.push(promiseFactory);
+};
+
+DB.prototype._processOpensCloses = function () {
+  // We need to process these sequentially as we can only open/close the DB in a synchronized way
+  var chain = Promise.resolve();
+  while (this._opensCloses.length > 0) { // more?
+    var promiseFactory = this._opensCloses.shift();
+    chain = chain.then(promiseFactory);
+  }
+  return chain;
+};
+
+DB.prototype._processTransactions = function () {
+  // We can process transactions simulatenously
+  var promises = [];
+  while (this._transactions.length > 0) { // more?
+    var promiseFactory = this._transactions.shift();
+    promises.push(promiseFactory()); // Need to execute the promise
+  }
+  return Promise.all(promises);
+};
+
+DB.prototype._processQueue = function () {
   var self = this;
 
-  return promiseFactory().then(function () {
-    self._executingTransactions.remove(id); // unregister executing transaction
+  if (!self._processingQueue) { // not already processing?
+    self._processingQueue = true; // allow others to know that we are processing the queue
 
-    // Trying to close and no more transactions?
-    if (self._closing && self._executingTransactions.empty()) {
-      self.emit('transactions-done'); // notify any ticks waiting to close
-    }
+    // Make sure the DB is open
+    return self._opened.then(function () {
+      // First process any opens/closes
+      return self._processOpensCloses();
+    }).then(function () {
+      // Then process any executing transactions
+      return self._processTransactions();
+    }).then(function () {
+      self._processingQueue = false; // allow others to know we are done
+    });
+  }
+};
 
-    return arguments[0];
+DB.prototype._transaction = function (promiseFactory) {
+  var self = this;
+  return new Promise(function (resolve) {
+    self._queueTransaction(function () {
+      var promise = promiseFactory();
+      resolve(promise); // resolve with promise so that caller can wait for it to finish
+      return promise; // return promise so that processQueue() can wait for it to finish
+    });
+    self._processQueue();
   });
 };
 
-/**
- * If the DB is closing then register the pending transaction and wait until it is reopened
- */
- DB.prototype._transaction = function (promiseFactory) {
-   var self = this;
-
-   // Make sure the DB is open
-   return self._opened.then(function () {
-
-     // We may just been told that the DB has been opened so we register the executing transaction
-     // immediately and then execute it
-     var id = self._executingTransactions.add(true); // register executing transaction
-
-     return self._executeTransaction(promiseFactory, id);
-   });
+DB.prototype._openClose = function (promiseFactory) {
+  var self = this;
+  return new Promise(function (resolve) {
+    self._queueOpenClose(function () {
+      var promise = promiseFactory();
+      resolve(promise); // resolve with promise so that caller can wait for it to finish
+      return promise; // return promise so that processQueue() can wait for it to finish
+    });
+    self._processQueue();
+  });
 };
 
 DB.prototype._destroy = function () {
@@ -304,20 +260,20 @@ DB.prototype._destroy = function () {
   });
 };
 
-// !!!!!!!!!!
-// TODO: why are there 2 opens happening? Shouldn't they be synchronized?
-// TODO: destroying needs to do something similar to close with waiting as appears a race with another open will cause a problem!!
-DB.prototype.destroy = function () {
+DB.prototype._closeDestroyUnregister = function () {
   var self = this;
-  // Make sure DB is loaded before destroying so there isn't a race condition where we try to
-  // destroy the DB while opening it
-  return self._storeReady().then(function () {
-    // The DB must be closed before we destroy it
-    return self.close();
-  }).then(function () {
+  // The DB must be closed before we destroy it
+  return self._close().then(function () {
     return self._destroy();
   }).then(function () {
     return self._adapter._unregister(self._name);
+  });
+};
+
+DB.prototype.destroy = function () {
+  var self = this;
+  return self._openClose(function () {
+    return self._closeDestroyUnregister();
   });
 };
 
@@ -336,7 +292,7 @@ DB.prototype._destroyCol = function (colName) {
 
   // Close will coordinate with any existing DB transactions and by the time it resolves there will
   // be a clear path to reopen the DB
-  return self.close().then(function () { // Close any existing connection
+  return self._close().then(function () { // Close any existing connection
     self._version++; // Increment the version so that we can trigger an onupgradeneeded
     return self._open(onUpgradeNeeded, onSuccess);
   });
@@ -349,14 +305,17 @@ DB.prototype.all = function (callback) {
 DB.prototype._load = function () {
   var self = this,
     promises = [];
-  return self._storeReady().then(function () {
+  // Init DB store and then load object stores
+  return self._initStore().then(function () {
     utils.each(self._db.objectStoreNames, function (name, i) {
       // indexeddbshim creates a 'length' attr that should be ignored
       if (i !== 'length') {
         promises.push(self.col(name));
       }
     });
-    return Promise.all(promises);
+    return Promise.all(promises).then(function () {
+      self.emit('load');
+    });
   });
 };
 
