@@ -15,7 +15,8 @@ Adapter.prototype.test = function () {
 
   // TODO: fix adapter name here. Is there a way to make this automatic or do we need to pass the
   // name into the test
-  describe('adapter ' + adapter.constructor.name, function () {
+  // describe('adapter ' + adapter.constructor.name, function () {
+  describe('adapter', function () {
 
     var db = null;
 

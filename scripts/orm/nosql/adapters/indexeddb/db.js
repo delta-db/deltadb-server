@@ -194,6 +194,10 @@ DB.prototype._processTransactions = function () {
   return Promise.all(promises);
 };
 
+DB.prototype._moreToProcess = function () {
+  return this._transactions.length > 0 || this._opensCloses.length > 0;
+};
+
 DB.prototype._processQueue = function () {
   var self = this;
 
@@ -209,6 +213,11 @@ DB.prototype._processQueue = function () {
       return self._processTransactions();
     }).then(function () {
       self._processingQueue = false; // allow others to know we are done
+
+      // Has anything been queued since we started processing?
+      if (self._moreToProcess()) {
+        self._processQueue(); // process again
+      }
     });
   }
 };

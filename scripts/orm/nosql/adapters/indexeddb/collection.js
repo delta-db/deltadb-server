@@ -127,10 +127,6 @@ Collection.prototype.destroy = function () {
   return this._db._destroyCol(self._name);
 };
 
-// Collection.prototype._open = function () {
-//   return this._db._openAndCreateObjectStoreWhenReady(this._name);
-// };
-
 Collection.prototype._open = function () {
   return this._db._createObjectStore(this._name);
 };
