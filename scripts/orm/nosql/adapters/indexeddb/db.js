@@ -232,11 +232,13 @@ DB.prototype._transaction = function (promise) {
   var self = this;
   return new Promise(function (resolve) {
     self._queueTransaction(function () {
+      var resolvedPromise = promise();
+
+      // Resolve after promise resolves so that processQueue() can wait for resolution
+      resolve(resolvedPromise);
+
       // Return promise so caller can wait for resolution
-      return promise().then(function () {
-        // Resolve after promise resolves so that processQueue() can wait for resolution
-        resolve();
-      });
+      return resolvedPromise;
     });
     self._processQueue();
   });
@@ -246,11 +248,13 @@ DB.prototype._openClose = function (promise) {
   var self = this;
   return new Promise(function (resolve) {
     self._queueOpenClose(function () {
+      var resolvedPromise = promise();
+
+      // Resolve after promise resolves so that processQueue() can wait for resolution
+      resolve(resolvedPromise);
+
       // Return promise so caller can wait for resolution
-      return promise().then(function () {
-        // Resolve after promise resolves so that processQueue() can wait for resolution
-        resolve();
-      });
+      return resolvedPromise;
     });
     self._processQueue();
   });
