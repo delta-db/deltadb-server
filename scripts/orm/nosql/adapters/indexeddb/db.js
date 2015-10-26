@@ -246,7 +246,7 @@ DB.prototype._transaction = function (promise) {
 
 DB.prototype._openClose = function (promise) {
   var self = this;
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     self._queueOpenClose(function () {
       // Resolve after promise resolves so that processQueue() can wait for resolution
       return promise().then(function () {
