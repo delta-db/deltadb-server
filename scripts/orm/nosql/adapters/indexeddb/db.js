@@ -230,15 +230,15 @@ DB.prototype._processQueue = function () {
 
 DB.prototype._transaction = function (promise) {
   var self = this;
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     self._queueTransaction(function () {
-      var resolvedPromise = promise();
-
       // Resolve after promise resolves so that processQueue() can wait for resolution
-      resolve(resolvedPromise);
-
-      // Return promise so caller can wait for resolution
-      return resolvedPromise;
+      return promise().then(function () {
+        resolve(arguments[0]); // Return promise so caller can wait for resolution
+      }).catch(function (err) {
+        // Don't throw error here so that processQueue() can continue processing
+        reject(err); // Reject with error so that caller can receive error
+      });
     });
     self._processQueue();
   });
@@ -248,13 +248,13 @@ DB.prototype._openClose = function (promise) {
   var self = this;
   return new Promise(function (resolve) {
     self._queueOpenClose(function () {
-      var resolvedPromise = promise();
-
       // Resolve after promise resolves so that processQueue() can wait for resolution
-      resolve(resolvedPromise);
-
-      // Return promise so caller can wait for resolution
-      return resolvedPromise;
+      return promise().then(function () {
+        resolve(arguments[0]); // Return promise so caller can wait for resolution
+      }).catch(function (err) {
+        // Don't throw error here so that processQueue() can continue processing
+        reject(err); // Reject with error so that caller can receive error
+      });
     });
     self._processQueue();
   });
