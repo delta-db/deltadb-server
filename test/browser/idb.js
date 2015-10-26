@@ -159,22 +159,6 @@ Adapter.prototype.test = function () {
       }, new Error());
     });
 
-    it('should catch error when creating object store', function () {
-      return new Promise(function (resolve) {
-        var err = new Error('err');
-        db._openAndCreateObjectStore = oldUtils.promiseErrorFactory(err); // stub
-
-        var os = {
-          callback: function (_err) {
-            _err.should.eql(err);
-            resolve();
-          }
-        };
-
-        db._openAndCreateObjectStoreFactory(os)();
-      });
-    });
-
   });
 
 };
