@@ -295,8 +295,12 @@ DB.prototype._closeDestroyUnregister = function () {
 
 DB.prototype.destroy = function () {
   var self = this;
-  return self._openClose(function () {
-    return self._closeDestroyUnregister();
+  // We wait for the store to be loaded before closing the store as we wait for this same event when
+  // creating a store and we don't want to try to close a store before we have opened it.
+  return self._loaded.then(function () {
+    return self._openClose(function () {
+      return self._closeDestroyUnregister();
+    });
   });
 };
 
