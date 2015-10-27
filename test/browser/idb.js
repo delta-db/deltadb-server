@@ -6,7 +6,8 @@ var commonUtils = require('../common-utils'),
   oldUtils = require('../../scripts/utils'),
   Promise = require('bluebird'),
   IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
-  utils = require('../new-utils');
+  newUtils = require('../new-utils'),
+  utils = require('../../scripts/utils');
 
 var Adapter = function (AdapterClass) {
   this._Adapter = AdapterClass;
@@ -112,11 +113,13 @@ Adapter.prototype.test = function () {
             }
           }
         };
-        utils.eql(expCols, cols);
+        newUtils.eql(expCols, cols);
       };
 
+      db._destroy = utils.resolveFactory(); // fake as we want to preserve for reload
+
       var restore = function () {
-        return db.close().then(function () {
+        return db.destroy().then(function () {
           idb = new IDB(); // Simulate a fresh instance during an initial load
           db = idb.db({
             db: 'mydb'

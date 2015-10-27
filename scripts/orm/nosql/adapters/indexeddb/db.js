@@ -221,7 +221,7 @@ DB.prototype._processQueue = function () {
       // First process any opens/closes
       return self._processOpensCloses();
     }).then(function () {
-      // Then process any executing transactions if not destroying or closed
+      // Then process any executing transactions if not closed
       if (!self._closed) {
         return self._processTransactions();
       }
