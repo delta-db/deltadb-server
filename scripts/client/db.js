@@ -282,10 +282,15 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
   if (keepRemote) {
     promise = Promise.resolve();
   } else {
-    promise = self._adapter._destroyDatabase(this._name, this._localOnly);
+    promise = self._adapter._destroyDatabase(this._name);
   }
 
   return promise.then(function () {
+    if (!self._localOnly) {
+      // Stop listening to the server entirely
+      return self._disconnect();
+    }
+  }).then(function () {
     if (keepLocal) {
       // We'll just close the store
       return self._store.close();

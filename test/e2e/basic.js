@@ -16,7 +16,9 @@ describe('basic', function () {
   });
 
   afterEach(function () {
-    return a.destroy();
+    return a.destroy().then(function () {
+      return DeltaDB._systemDB().destroy(true, false);
+    });
   });
 
   it('should send and receive changes', function () {

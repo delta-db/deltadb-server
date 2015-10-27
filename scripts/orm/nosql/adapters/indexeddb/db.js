@@ -161,7 +161,12 @@ DB.prototype._close = function () {
 
 DB.prototype.close = function () {
   var self = this;
+
   return self._openClose(function () {
+    // close() is meant to be called when the database is to be permanently closed. At this point
+    // we'll set _closed so that processQueue no longer executes any transactions
+    self._closed = true;
+
     return self._close();
   });
 };
@@ -207,7 +212,8 @@ DB.prototype._moreToProcess = function () {
 DB.prototype._processQueue = function () {
   var self = this;
 
-  if (!self._processingQueue) { // not already processing?
+  // not already processing or closed?
+  if (!self._processingQueue && !self._closed) {
     self._processingQueue = true; // allow others to know that we are processing the queue
 
     // Make sure the DB is open
@@ -215,8 +221,10 @@ DB.prototype._processQueue = function () {
       // First process any opens/closes
       return self._processOpensCloses();
     }).then(function () {
-      // Then process any executing transactions
-      return self._processTransactions();
+      // Then process any executing transactions if not destroying or closed
+      if (!self._closed) {
+        return self._processTransactions();
+      }
     }).then(function () {
       self._processingQueue = false; // allow others to know we are done
 
@@ -285,6 +293,7 @@ DB.prototype._destroy = function () {
 
 DB.prototype._closeDestroyUnregister = function () {
   var self = this;
+  self._closed = true; // prevent any more queue processing
   // The DB must be closed before we destroy it
   return self._close().then(function () {
     return self._destroy();
