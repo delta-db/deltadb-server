@@ -25,7 +25,7 @@ describe('doc', function () {
   });
 
   afterEach(function () {
-    return db.destroy();
+    return db.destroy(true);
   });
 
   it('should record when remote change has seq', function () {

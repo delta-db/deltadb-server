@@ -14,7 +14,7 @@ describe('db', function () {
 
   afterEach(function () {
     if (db) {
-      return db.destroy();
+      return db.destroy(true);
     }
   });
 

@@ -30,7 +30,7 @@ describe('client', function () {
   });
 
   afterEach(function () {
-    return db.destroy();
+    return db.destroy(true);
   });
 
   var latestShouldEql = function (expected) {

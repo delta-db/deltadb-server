@@ -26,7 +26,7 @@ describe('persist', function () {
   });
 
   afterEach(function () {
-    return Promise.all([db.destroy(), db2 ? db2.destroy() : null ]);
+    return Promise.all([db.destroy(true), db2 ? db2.destroy(true) : null ]);
   });
 
   it('should restore from store', function () {

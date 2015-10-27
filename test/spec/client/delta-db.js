@@ -7,7 +7,7 @@ describe('delta-db', function () {
 
   it('should create and destroy locally only', function () {
     var db = new DeltaDB('mydb');
-    return db.destroy();
+    return db.destroy(true);
   });
 
   it('should uuid', function () {
@@ -19,7 +19,7 @@ describe('delta-db', function () {
     var adapter = new MemAdapter();
     var dbStore = adapter.db('mydb');
     var db = new DeltaDB('mydb', null, dbStore);
-    return db.destroy();
+    return db.destroy(true);
   });
 
 });

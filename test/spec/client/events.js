@@ -34,7 +34,7 @@ describe('events', function () {
   });
 
   afterEach(function () {
-    return Promise.all([db.destroy(), db2 ? db.destroy() : null]);
+    return Promise.all([db.destroy(true), db2 ? db.destroy(true) : null]);
   });
 
   var Server = function (changes) {

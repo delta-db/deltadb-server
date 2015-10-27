@@ -35,7 +35,7 @@ describe('multiple', function () {
   });
 
   afterEach(function () {
-    return Promise.all([db1.destroy(), db2.destroy()]);
+    return Promise.all([db1.destroy(true), db2.destroy(true)]);
   });
 
   // Note: don't need afterEach as everything created in mem and therefore doesn't need to be purged
