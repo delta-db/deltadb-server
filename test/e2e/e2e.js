@@ -1,5 +1,7 @@
 'use strict';
 
+/* global before */
+
 var idbUtils = require('../../scripts/orm/nosql/adapters/indexeddb/utils'),
   IDBAdapter = require('../../scripts/orm/nosql/adapters/indexeddb');
 
@@ -19,7 +21,7 @@ describe('e2e', function () {
       return system.destroy().then(function () {
         return mydb.destroy();
       });
-    };
+    }
   });
 
   require('./basic');

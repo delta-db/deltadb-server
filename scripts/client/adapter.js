@@ -137,13 +137,7 @@ Adapter.prototype._destroyDatabase = function (dbName) {
   var self = this;
 
   if (this.exists(dbName)) {
-    // If the db exists then close it first!! I don't think we have to worry about a race condition
-    // where the client re-creates this DB while trying to destroy as the destroy will just fail as
-    // the db is in use and will be retried later.
     var ts = new Date();
-    var db = this.db({
-      db: dbName
-    });
     return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
       return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
     });

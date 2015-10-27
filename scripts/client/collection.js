@@ -37,11 +37,11 @@ Collection.prototype._ensureStore = function () {
   if (self._wasLoaded) { // already loaded?
     return Promise.resolve();
   } else {
-    // Wait until db is loaded and then create store
+    // Wait until db is loaded and then create store. We don't need to return _loaded as this
+    // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
+    // the 'load'
     return self._db._loaded.then(function () {
       self._createStore();
-    }).then(function () {
-      self._loaded; // resolves once doc has been loaded
     });
   }
 };

@@ -1,14 +1,14 @@
 'use strict';
 
-var Client = require('../../../scripts/client/adapter'),
-  Promise = require('bluebird'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+// TODO: remove or refactor as was creating issues with IndexedDB
+
+// var Client = require('../../../scripts/client/adapter'),
+//   Promise = require('bluebird'),
+//   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('adapter', function () {
 
-  var client = null;
-
-  // TODO: remove or refactor as was creating issues with IndexedDB
+  // var client = null;
 
   // beforeEach(function () {
   //   client = new Client(true);

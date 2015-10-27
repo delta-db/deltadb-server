@@ -3,7 +3,8 @@
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
   DB = require('../../../scripts/client/db'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
+  Promise = require('bluebird');
 
 describe('persist', function () {
 

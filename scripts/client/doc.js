@@ -3,7 +3,8 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  MemDoc = require('../orm/nosql/adapters/mem/doc');
+  MemDoc = require('../orm/nosql/adapters/mem/doc'),
+  Promise = require('bluebird');
 
 var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
@@ -103,7 +104,7 @@ Doc.prototype._ensureStore = function () {
     return self._col._ensureStore().then(function () {
       self._createStore();
     }).then(function () {
-      self._loaded; // resolves once doc has been loaded
+      return self._loaded; // resolves once doc has been loaded
     });
   }
 };

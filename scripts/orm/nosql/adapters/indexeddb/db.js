@@ -9,8 +9,7 @@ var Promise = require('bluebird'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
   utils = require('../../../../utils'),
-  idbUtils = require('./utils'),
-  clientUtils = require('../../../../client/utils');
+  idbUtils = require('./utils');
 
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
@@ -103,7 +102,7 @@ DB.prototype._initStore = function () {
 DB.prototype._openAndCreateObjectStore = function (name) {
   var self = this;
 
-  var onUpgradeNeeded = function (request) {
+  var onUpgradeNeeded = function () {
     self._db.createObjectStore(name, {
       keyPath: self._idName
     });
@@ -318,7 +317,7 @@ DB.prototype._closeDBAndDestroyCol = function (colName) {
   // destroying the col. Oh the joys of IDB!
   var self = this;
 
-  var onUpgradeNeeded = function (request) {
+  var onUpgradeNeeded = function () {
     self._db.deleteObjectStore(colName);
   };
 
