@@ -9,7 +9,8 @@ var Promise = require('bluebird'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
   utils = require('../../../../utils'),
-  idbUtils = require('./utils');
+  idbUtils = require('./utils'),
+  clientUtils = require('../../../../../scripts/client/utils');
 
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
@@ -298,6 +299,11 @@ DB.prototype._closeDestroyUnregister = function () {
     return self._destroy();
   }).then(function () {
     return self._adapter._unregister(self._name);
+  }).then(function () {
+    // The Safari IndexedDB implementation still has some bugs and we need to sleep for a little bit
+    // to make sure that we don't get any blocking errors when we open a DB immediately after
+    // deleting one.
+    return clientUtils.timeout(100);
   });
 };
 

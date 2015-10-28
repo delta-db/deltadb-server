@@ -444,9 +444,13 @@ DB.prototype._connect = function () {
 };
 
 DB.prototype._disconnect = function () {
-  var promise = utils.once(this, 'disconnect');
-  this._socket.disconnect();
-  return promise;
+  if (this._socket) { // is there already a connection?
+    var promise = utils.once(this, 'disconnect');
+    this._socket.disconnect();
+    return promise;
+  } else {
+    return Promise.resolve();
+  }
 };
 
 DB.prototype._connectWhenReady = function () {
