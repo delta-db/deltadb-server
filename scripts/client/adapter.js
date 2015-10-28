@@ -4,12 +4,11 @@
 
 var inherits = require('inherits'),
   MemAdapter = require('../orm/nosql/adapters/mem/adapter'),
-  IDBAdapter = require('../orm/nosql/adapters/indexeddb/adapter'),
   DB = require('./db'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
   Promise = require('bluebird'),
-  idbUtils = require('../orm/nosql/adapters/indexeddb/utils');
+  adapterStore = require('./adapter-store');
 
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
@@ -31,12 +30,7 @@ Adapter.prototype.uuid = function () {
 };
 
 Adapter.prototype._adapterStore = function () {
-  // in browser and have IndexedDB and not local only?
-  if (global.window && idbUtils.indexedDB()) {
-    return new IDBAdapter();
-  } else {
-    return new MemAdapter();
-  }
+  return adapterStore.newAdapter();
 };
 
 Adapter.prototype._dbStore = function (name) {

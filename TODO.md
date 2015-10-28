@@ -1,10 +1,10 @@
 Now
 ---
+- test browser code with IDB
 - create construct under store db that called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
-- test browser code with IDB
 - generate client bundle
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
