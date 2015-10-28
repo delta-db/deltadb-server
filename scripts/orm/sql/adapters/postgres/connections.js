@@ -59,10 +59,12 @@ Connections.prototype._unregisterAll = function (db, host, username, password, p
 Connections.prototype._unregister = function (id, db, host, username, password, port) {
   var connString = this._connString(db, host, username, password, port);
 
+  // TODO: should this code be removed? Are we seeing "partitioners ids missing" errors in the
+  // server log?
   // Prevent against race conditions during close
-  if (!this._connections[connString]) {
-    return Promise.resolve();
-  }
+  // if (!this._connections[connString]) {
+  // return Promise.resolve();
+  // }
 
   delete this._connections[connString].ids[id];
 

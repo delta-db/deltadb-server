@@ -17,9 +17,7 @@ inherits(Collection, MemCollection);
 
 Collection.prototype._initLoaded = function () {
   var self = this;
-  self._loaded = utils.once(self, 'load').then(function () {
-    self._wasLoaded = true;
-  });
+  self._loaded = utils.once(self, 'load');
 };
 
 Collection.prototype._import = function (store) {
@@ -33,17 +31,12 @@ Collection.prototype._createStore = function () {
 
 Collection.prototype._ensureStore = function () {
   var self = this;
-
-  if (self._wasLoaded) { // already loaded?
-    return Promise.resolve();
-  } else {
-    // Wait until db is loaded and then create store. We don't need to return _loaded as this
-    // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
-    // the 'load'
-    return self._db._loaded.then(function () {
-      self._createStore();
-    });
-  }
+  // Wait until db is loaded and then create store. We don't need to return _loaded as this
+  // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
+  // the 'load'
+  return self._db._loaded.then(function () {
+    self._createStore();
+  });
 };
 
 Collection.prototype._doc = function (data) {

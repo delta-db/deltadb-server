@@ -112,6 +112,10 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
     // corresponds to the destroying delta id.
     originatingDoc._col.on('doc:destroy', function (doc) {
       var data = doc.get();
+      // TODO: only using istanbul ignore here as assuming that this code will be replaced when we
+      // create a new construct for creating/destroy DBs, users, etc... If this code remains then
+      // remove this istanbul annotation and test!
+      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
@@ -128,16 +132,10 @@ Adapter.prototype._unregister = function (dbName) {
 };
 
 Adapter.prototype._destroyDatabase = function (dbName) {
-  var self = this;
-
-  if (this.exists(dbName)) {
-    var ts = new Date();
-    return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
-      return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
-    });
-  } else {
-    return Promise.resolve();
-  }
+  var self = this, ts = new Date();
+  return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
+    return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
+  });
 };
 
 module.exports = Adapter;

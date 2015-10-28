@@ -28,8 +28,8 @@ Adapter.prototype.db = function (opts) {
 //   utils.each(this._dbs, callback);
 // };
 
-Adapter.prototype.exists = function (dbName) {
-  return this._dbs[dbName] ? true : false;
-};
+// Adapter.prototype.exists = function (dbName) {
+//   return this._dbs[dbName] ? true : false;
+// };
 
 module.exports = Adapter;

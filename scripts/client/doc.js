@@ -3,8 +3,7 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  MemDoc = require('../orm/nosql/adapters/mem/doc'),
-  Promise = require('bluebird');
+  MemDoc = require('../orm/nosql/adapters/mem/doc');
 
 var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
@@ -27,9 +26,7 @@ Doc._roleUserName = '$ruser';
 
 Doc.prototype._initLoaded = function () {
   var self = this;
-  self._loaded = utils.once(self, 'load').then(function () {
-    self._wasLoaded = true;
-  });
+  self._loaded = utils.once(self, 'load');
 };
 
 Doc.prototype._import = function (store) {
@@ -96,17 +93,12 @@ Doc.prototype._ensureId = function () {
 
 Doc.prototype._ensureStore = function () {
   var self = this;
-
-  if (self._wasLoaded) { // already loaded?
-    return Promise.resolve();
-  } else {
-    // Wait until col is loaded and then create store
-    return self._col._ensureStore().then(function () {
-      self._createStore();
-    }).then(function () {
-      return self._loaded; // resolves once doc has been loaded
-    });
-  }
+  // Wait until col is loaded and then create store
+  return self._col._ensureStore().then(function () {
+    self._createStore();
+  }).then(function () {
+    return self._loaded; // resolves once doc has been loaded
+  });
 };
 
 Doc.prototype._saveStore = function () {
