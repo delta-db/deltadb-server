@@ -18,6 +18,13 @@ Committing Changes
 	git push
 
 
+Updating Dependencies
+---
+This requires having david installed globally, which is already handled by our vagrant setup.
+
+	david update
+
+
 Building
 ---
 
