@@ -1,7 +1,5 @@
 Now
 ---
-- test browser code with IDB
-- generate client bundle
 - impl todomvc example
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
