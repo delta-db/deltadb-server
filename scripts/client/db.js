@@ -279,7 +279,7 @@ DB.prototype._destroyDatabase = function (dbName) {
 DB.prototype.destroy = function (keepRemote, keepLocal) {
   var self = this, promise = null;
 
-  if (keepRemote) {
+  if (keepRemote || self._localOnly) {
     promise = Promise.resolve();
   } else {
     promise = self._adapter._destroyDatabase(this._name);

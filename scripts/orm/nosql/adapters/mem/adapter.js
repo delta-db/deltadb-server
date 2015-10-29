@@ -32,4 +32,8 @@ Adapter.prototype.db = function (opts) {
 //   return this._dbs[dbName] ? true : false;
 // };
 
+Adapter.prototype._unregister = function (dbName) {
+  delete this._dbs[dbName];
+};
+
 module.exports = Adapter;

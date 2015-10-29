@@ -1,14 +1,14 @@
 Now
 ---
 - test browser code with IDB
-- create construct under store db that called system_queue that is used to create/destroy dbs, create/destroy users, set policies
+- generate client bundle
+- impl todomvc example
+- create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
-- generate client bundle
 - test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
-- impl todomvc example
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
