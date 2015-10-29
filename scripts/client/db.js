@@ -445,15 +445,11 @@ DB.prototype._connect = function () {
 
 DB.prototype._disconnect = function () {
   var self = this;
-  if (this._socket) { // is there already a connection?
-    return self._ready().then(function () {
-      var promise = utils.once(self, 'disconnect');
-      self._socket.disconnect();
-      return promise;
-    });
-  } else {
-    return Promise.resolve();
-  }
+  return self._ready().then(function () {
+    var promise = utils.once(self, 'disconnect');
+    self._socket.disconnect();
+    return promise;
+  });
 };
 
 DB.prototype._connectWhenReady = function () {
