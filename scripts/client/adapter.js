@@ -13,6 +13,8 @@ var inherits = require('inherits'),
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
   this._localOnly = localOnly;
+
+  this._store = adapterStore.getAdapter();
 };
 
 // We inherit from MemAdapter so that we can have singular references in memory to items like Docs.
@@ -29,13 +31,8 @@ Adapter.prototype.uuid = function () {
   return utils.uuid();
 };
 
-Adapter.prototype._adapterStore = function () {
-  return adapterStore.newAdapter();
-};
-
 Adapter.prototype._dbStore = function (name) {
-  var adapterStore = this._adapterStore();
-  return adapterStore.db({
+  return this._store.db({
     db: name
   });
 };

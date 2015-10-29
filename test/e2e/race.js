@@ -5,7 +5,8 @@
 var Client = require('../../scripts/client/adapter'),
   Promise = require('bluebird'),
   clientUtils = require('../../scripts/client/utils'),
-  commonUtils = require('../common-utils');
+  commonUtils = require('../common-utils'),
+  MemAdapter = require('../../scripts/orm/nosql/adapters/mem');
 
 describe('race', function () {
 
@@ -15,7 +16,8 @@ describe('race', function () {
     aTasks = null,
     clientB = null,
     b = null,
-    bTasks = null;
+    bTasks = null,
+    systemDBLoaded = null;
 
   // A lot of time is needed as we destroy and create the dbs several times. Unfortunately, it
   // appears that mocha doesn't support embedding this in a before() or beforeEach().
@@ -61,7 +63,7 @@ describe('race', function () {
   };
 
   beforeEach(function () {
-    createBoth();
+    return createBoth();
   });
 
   afterEach(function () {

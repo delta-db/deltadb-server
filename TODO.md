@@ -88,6 +88,10 @@ Next
 - Make sure cannot create a DB that conflicts with the System DB
 - What if lose connection to underlying DB when doing things like creating tables? Need a way of wiping out tables and retrying?
 - add concept of foreign keys to SQL ORM and use it for cleaner deletions of records and their children
+- multiple instances of same IDB in 2 tabs:
+	- We use shared adapters within the same app to support this functionality, but don't have a good solution for multiple tabs. We could just no support this at this time. We could detect the use in two browsers using some instance id and a timestamp and then display an alert to the user if we detect two tabs
+	- Future option: have IDB be fault tolerant so if say creating same DB at same time then handle errors and try to reopen. Simulate with unit tests on IDB.
+	- could also develop concept of session instance of DB, e.g. prefix DB with '1', '2', etc... but then how to coordinate which tab gets with DB?
 
 
 NoSQL support

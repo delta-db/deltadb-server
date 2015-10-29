@@ -3,7 +3,8 @@
 var Client = require('../../scripts/client/adapter'),
   DB = require('../../scripts/client/db'),
   Promise = require('bluebird'),
-  commonUtils = require('../common-utils');
+  commonUtils = require('../common-utils'),
+  MemAdapter = require('../../scripts/orm/nosql/adapters/mem');
 
 describe('separate', function () {
 
