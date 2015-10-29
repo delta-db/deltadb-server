@@ -58,7 +58,14 @@ Connections.prototype._unregisterAll = function (db, host, username, password, p
 
 Connections.prototype._unregister = function (id, db, host, username, password, port) {
   var connString = this._connString(db, host, username, password, port);
+
+  // Prevent against race conditions during close
+  if (!this._connections[connString]) {
+    return Promise.resolve();
+  }
+
   delete this._connections[connString].ids[id];
+
   if (utils.empty(this._connections[connString].ids)) { // last connection?
     return this._unregisterAll(db, host, username, password, port);
   } else { // remove id as still being used by others

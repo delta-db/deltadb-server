@@ -6,7 +6,8 @@ var utils = require('../../../scripts/utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  clientUtils = require('../../../scripts/client/utils');
+  clientUtils = require('../../../scripts/client/utils'),
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('client', function () {
 
@@ -21,10 +22,15 @@ describe('client', function () {
     client = new Client(true);
 
     db = client.db({
-      db: 'mydb'
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
     });
 
     tasks = db.col('tasks');
+  });
+
+  afterEach(function () {
+    return db.destroy(true);
   });
 
   var latestShouldEql = function (expected) {

@@ -12,7 +12,7 @@ var Doc = function (doc, col) {
 
 inherits(Doc, CommonDoc);
 
-Doc.prototype._put = function (doc) {
+Doc.prototype._putTransaction = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
@@ -35,6 +35,20 @@ Doc.prototype._put = function (doc) {
   });
 };
 
+Doc.prototype._transaction = function (promiseFactory) {
+  var self = this;
+  return self._col._opened.then(function () { // col opened?
+    return self._col._db._transaction(promiseFactory); // synchronize transaction
+  });
+};
+
+Doc.prototype._put = function (doc) {
+  var self = this;
+  return self._transaction(function () { // synchronize transaction
+    return self._putTransaction(doc);
+  });
+};
+
 Doc.prototype._insert = function () {
   var self = this;
   return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
@@ -46,7 +60,7 @@ Doc.prototype._update = function () {
   return this._put(this._data);
 };
 
-Doc.prototype._destroy = function () {
+Doc.prototype._destroyTransaction = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
@@ -66,10 +80,17 @@ Doc.prototype._destroy = function () {
   });
 };
 
+Doc.prototype._destroy = function () {
+  var self = this;
+  return self._transaction(function () { // synchronize transaction
+    return self._destroyTransaction();
+  });
+};
+
 Doc.prototype._save = function () {
   var self = this,
     args = arguments;
-  return self._col._opened().then(function () {
+  return self._col._opened.then(function () {
     return CommonDoc.prototype._save.apply(self, args);
   });
 };

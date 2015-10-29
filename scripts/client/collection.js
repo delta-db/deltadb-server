@@ -10,10 +10,15 @@ var inherits = require('inherits'),
 
 var Collection = function ( /* name, db */ ) {
   MemCollection.apply(this, arguments); // apply parent constructor
-  this._createStoreIfStoresImported();
+  this._initLoaded();
 };
 
 inherits(Collection, MemCollection);
+
+Collection.prototype._initLoaded = function () {
+  var self = this;
+  self._loaded = utils.once(self, 'load');
+};
 
 Collection.prototype._import = function (store) {
   this._store = store;
@@ -24,11 +29,14 @@ Collection.prototype._createStore = function () {
   this._store = this._db._store.col(this._name);
 };
 
-Collection.prototype._createStoreIfStoresImported = function () {
-  // If the stores have already been imported then create a store for this col now
-  if (this._db._storesImported) {
-    this._createStore();
-  }
+Collection.prototype._ensureStore = function () {
+  var self = this;
+  // Wait until db is loaded and then create store. We don't need to return _loaded as this
+  // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
+  // the 'load'
+  return self._db._loaded.then(function () {
+    self._createStore();
+  });
 };
 
 Collection.prototype._doc = function (data) {
@@ -97,6 +105,10 @@ Collection.prototype._emitColDestroy = function () {
 };
 
 Collection.prototype._register = function (doc) {
+  // We need to notify the DB of the change as it isn't until the doc is registered that the DB
+  // can gather the changes. The sender will throttle any back-to-back change emissions.
+  doc._emitChange();
+
   doc._emitDocCreate();
   return MemCollection.prototype._register.apply(this, arguments);
 };

@@ -2,7 +2,14 @@
 
 /* global before */
 
-var log = require('../../scripts/client/log');
+var log = require('../../scripts/client/log'),
+  IDBAdapter = require('../../scripts/orm/nosql/adapters/indexeddb/adapter'),
+  adapterStore = require('../../scripts/client/adapter-store');
+
+// Use IndexedDB
+adapterStore.newAdapter = function () {
+  return new IDBAdapter();
+};
 
 describe('browser', function () {
 

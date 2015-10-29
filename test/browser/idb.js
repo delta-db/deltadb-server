@@ -6,7 +6,8 @@ var commonUtils = require('../common-utils'),
   oldUtils = require('../../scripts/utils'),
   Promise = require('bluebird'),
   IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
-  utils = require('../new-utils');
+  newUtils = require('../new-utils'),
+  utils = require('../../scripts/utils');
 
 var Adapter = function (AdapterClass) {
   this._Adapter = AdapterClass;
@@ -20,23 +21,16 @@ Adapter.prototype.test = function () {
   describe('idb', function () {
 
     var db = null,
-      idb = null,
-      n = 1;
+      idb = null;
 
     beforeEach(function () {
-      // For some unknown reason, it appears that the Chrome and Firefox will return an error if we
-      // try to open a new DB with the same name as a DB that was just closed. Even if we wait for
-      // the onsuccess callback after executing indexedDB.deleteDatabase(). Therefore, we will make
-      // sure that DB name is unique per test.
       db = adapter.db({
-        db: 'mydb' + (n++)
+        db: 'mydb'
       });
     });
 
     afterEach(function () {
-      return db.close().then(function () {
-        return db.destroy();
-      });
+      return db.destroy();
     });
 
     it('should create doc', function () {
@@ -119,16 +113,18 @@ Adapter.prototype.test = function () {
             }
           }
         };
-        utils.eql(expCols, cols);
+        newUtils.eql(expCols, cols);
       };
 
+      db._destroy = utils.resolveFactory(); // fake as we want to preserve for reload
+
       var restore = function () {
-        return db.close().then(function () {
+        return db.destroy().then(function () {
           idb = new IDB(); // Simulate a fresh instance during an initial load
           db = idb.db({
-            db: 'mydb' + (n - 1) // n - 1 for previous db name
+            db: 'mydb'
           });
-          return db._load();
+          return oldUtils.once(db, 'load'); // wait for data to load
         }).then(function () {
           return all();
         }).then(function () {
@@ -166,20 +162,18 @@ Adapter.prototype.test = function () {
       }, new Error());
     });
 
-    it('should catch error when creating object store', function () {
-      return new Promise(function (resolve) {
-        var err = new Error('err');
-        db._openAndCreateObjectStore = oldUtils.promiseErrorFactory(err); // stub
-
-        var os = {
-          callback: function (_err) {
-            _err.should.eql(err);
-            resolve();
-          }
-        };
-
-        db._openAndCreateObjectStoreFactory(os)();
+    it('should close when not yet opened', function () {
+      return db.close().then(function () {
+        // We need to reopen the DB so that it can be destroyed. TODO: Is there a cleaner way?
+        return db._reopen();
       });
+    });
+
+    it('should throw error when opening or closing', function () {
+      var err = new Error('my err');
+      return commonUtils.shouldThrow(function () {
+        return db._openClose(utils.promiseErrorFactory(err));
+      }, err);
     });
 
   });

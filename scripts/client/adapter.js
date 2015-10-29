@@ -7,11 +7,14 @@ var inherits = require('inherits'),
   DB = require('./db'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  adapterStore = require('./adapter-store');
 
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
   this._localOnly = localOnly;
+
+  this._store = adapterStore.getAdapter();
 };
 
 // We inherit from MemAdapter so that we can have singular references in memory to items like Docs.
@@ -29,9 +32,7 @@ Adapter.prototype.uuid = function () {
 };
 
 Adapter.prototype._dbStore = function (name) {
-  // TODO: if IndexedDB support available then use IDB adapter otherwise MemAdapter.
-  var adapterStore = new MemAdapter();
-  return adapterStore.db({
+  return this._store.db({
     db: name
   });
 };
@@ -108,6 +109,10 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
     // corresponds to the destroying delta id.
     originatingDoc._col.on('doc:destroy', function (doc) {
       var data = doc.get();
+      // TODO: only using istanbul ignore here as assuming that this code will be replaced when we
+      // create a new construct for creating/destroy DBs, users, etc... If this code remains then
+      // remove this istanbul annotation and test!
+      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
@@ -118,28 +123,17 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
   });
 };
 
-Adapter.prototype._destroyDatabase = function (dbName, localOnly) {
-  var self = this;
+Adapter.prototype._unregister = function (dbName) {
+  delete this._dbs[dbName];
+  return Promise.resolve();
+};
 
-  if (this.exists(dbName) && !localOnly) {
-    // If the db exists then close it first!! I don't think we have to worry about a race condition
-    // where the client re-creates this DB while trying to destroy as the destroy will just fail as
-    // the db is in use and will be retried later.
-    var ts = new Date();
-    var db = this.db({
-      db: dbName
-    });
-    return db._disconnect().then(function () {
-      return self._systemDB()._destroyDatabase(dbName);
-    }).then(function (doc) {
-      return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
-    }).then(function () {
-      delete self._dbs[dbName];
-    });
-  } else {
-    delete self._dbs[dbName];
-    return Promise.resolve();
-  }
+Adapter.prototype._destroyDatabase = function (dbName) {
+  var self = this,
+    ts = new Date();
+  return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
+    return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
+  });
 };
 
 module.exports = Adapter;

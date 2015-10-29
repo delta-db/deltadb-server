@@ -10,6 +10,7 @@ describe('adapters', function () {
 
   adapter.test();
 
+  // TODO: move idb test to "spec"
   // TODO: want to test all applicable adapters in browser, but only execute certain tests for
   // certain browsers
   var IDBAdapter = require('./idb');

@@ -72,10 +72,24 @@ DB.prototype._ready = function () {
 };
 
 DB.prototype._import = function (store) {
-  this._store = store;
-  this._initStore();
+  var self = this;
+
+  self._store = store;
+
+  // Make sure the store is ready, e.g. opened, before init
+  self._store._loaded.then(function () {
+    self._initStore();
+  });
 };
 
+/**
+ * Flows:
+ * - Data loaded from store, e.g. from IndexedDB. After which the 'load' event is emitted
+ * - When registering a doc:
+ *   - Wait for until DB has finished loading store so that we don't create a duplicate
+ *   - Get or create col store
+ *   - Get or create doc store
+ */
 DB.prototype._initStore = function () {
   var self = this,
     promises = [],
@@ -95,7 +109,7 @@ DB.prototype._initStore = function () {
   // All the stores have been imported
   self._storesImported = true;
 
-  self._loaded = Promise.all(promises).then(function () {
+  Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
     }
@@ -262,8 +276,31 @@ DB.prototype._destroyDatabase = function (dbName) {
   return col._destroyDatabase(dbName);
 };
 
-DB.prototype.destroy = function () {
-  return this._adapter._destroyDatabase(this._name, this._localOnly);
+DB.prototype.destroy = function (keepRemote, keepLocal) {
+  var self = this,
+    promise = null;
+
+  if (keepRemote || self._localOnly) {
+    promise = Promise.resolve();
+  } else {
+    promise = self._adapter._destroyDatabase(this._name);
+  }
+
+  return promise.then(function () {
+    if (!self._localOnly) {
+      // Stop listening to the server entirely
+      return self._disconnect();
+    }
+  }).then(function () {
+    if (keepLocal) {
+      // We'll just close the store
+      return self._store.close();
+    } else {
+      return self._store.destroy();
+    }
+  }).then(function () {
+    return self._adapter._unregister(self._name);
+  });
 };
 
 DB.prototype._emitInit = function () {
@@ -408,9 +445,12 @@ DB.prototype._connect = function () {
 };
 
 DB.prototype._disconnect = function () {
-  var promise = utils.once(this, 'disconnect');
-  this._socket.disconnect();
-  return promise;
+  var self = this;
+  return self._ready().then(function () {
+    var promise = utils.once(self, 'disconnect');
+    self._socket.disconnect();
+    return promise;
+  });
 };
 
 DB.prototype._connectWhenReady = function () {

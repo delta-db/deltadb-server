@@ -30,6 +30,16 @@ describe('e2e-no-socket', function () {
     aTasks = a.col('tasks');
   });
 
+  afterEach(function () {
+    // Even though we are working with MemAdapter, we need to destroy the DB's so that they aren't
+    // reused by the proceeding test
+    return b.destroy().then(function () {
+      return a.destroy();
+    }).then(function () {
+      return client._systemDB().destroy();
+    });
+  });
+
   var syncAndProcess = function (localDB) {
     // quorum=true as we are simulating a single DB
     return localDB.sync(args.db, true).then(function () {
