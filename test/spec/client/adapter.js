@@ -1,24 +1,28 @@
 'use strict';
 
-// TODO: remove or refactor as was creating issues with IndexedDB
-
-// var Client = require('../../../scripts/client/adapter'),
-//   Promise = require('bluebird'),
-//   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+var Client = require('../../../scripts/client/adapter');
 
 describe('adapter', function () {
 
-  // var client = null;
+  var client = null;
 
-  // beforeEach(function () {
-  //   client = new Client(true);
-  // });
-  //
-  // afterEach(function () {
-  //   var db = client.db({ db: 'mydb' });
-  //   return db.destroy();
-  // });
-  //
+  beforeEach(function () {
+    client = new Client(true);
+  });
+
+  afterEach(function () {
+    var db = client.db({ db: 'mydb' });
+    return db.destroy();
+  });
+
+  it('should reuse dbs', function () {
+    var db1 = client.db({ db: 'mydb' });
+    var db2 = client.db({ db: 'mydb' });
+    db2.should.eql(db1);
+  });
+
+  // TODO: remove or refactor rest as was creating issues with IndexedDB
+
   // var fakeResolveAfterDatabaseCreated = function () {
   //   client._resolveAfterDatabaseCreated = function (dbName, originatingDoc) {
   //     // Create promise and listen for new doc before syncing

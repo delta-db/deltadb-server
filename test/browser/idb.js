@@ -162,6 +162,20 @@ Adapter.prototype.test = function () {
       }, new Error());
     });
 
+    it('should close when not yet opened', function () {
+      return db.close().then(function () {
+        // We need to reopen the DB so that it can be destroyed. TODO: Is there a cleaner way?
+        return db._reopen();
+      });
+    });
+
+    it('should throw error when opening or closing', function () {
+      var err = new Error('my err');
+      return commonUtils.shouldThrow(function () {
+        return db._openClose(utils.promiseErrorFactory(err));
+      }, err);
+    });
+
   });
 
 };

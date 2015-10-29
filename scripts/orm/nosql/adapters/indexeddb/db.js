@@ -12,6 +12,9 @@ var Promise = require('bluebird'),
   idbUtils = require('./utils'),
   clientUtils = require('../../../../../scripts/client/utils');
 
+// Ignore the next line as we only want to execute it if IndexedDB is not supported and this depends
+// on the browser being used.
+/* istanbul ignore next */
 if (global.window && !idbUtils.indexedDB()) { // in browser and no IndexedDB support?
   // Use a shim as phantomjs doesn't support indexedDB
   require('indexeddbshim'); // Automatically sets window.shimIndexedDB
@@ -152,9 +155,7 @@ DB.prototype.col = function (name) {
 DB.prototype._close = function () {
   var self = this;
   return new Promise(function (resolve) {
-    if (self._db) { // db already opened?
-      self._db.close(); // Close is synchronous
-    }
+    self._db.close(); // Close is synchronous
     resolve();
   });
 };
@@ -169,6 +170,12 @@ DB.prototype.close = function () {
 
     return self._close();
   });
+};
+
+DB.prototype._reopen = function () {
+  this._closed = false;
+  this._initLoaded();
+  return this._load();
 };
 
 DB.prototype._queueOpenClose = function (promise) {
