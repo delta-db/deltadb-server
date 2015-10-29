@@ -11,13 +11,19 @@ describe('adapter', function () {
   });
 
   afterEach(function () {
-    var db = client.db({ db: 'mydb' });
+    var db = client.db({
+      db: 'mydb'
+    });
     return db.destroy();
   });
 
   it('should reuse dbs', function () {
-    var db1 = client.db({ db: 'mydb' });
-    var db2 = client.db({ db: 'mydb' });
+    var db1 = client.db({
+      db: 'mydb'
+    });
+    var db2 = client.db({
+      db: 'mydb'
+    });
     db2.should.eql(db1);
   });
 

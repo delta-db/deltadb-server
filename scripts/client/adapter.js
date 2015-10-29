@@ -129,7 +129,8 @@ Adapter.prototype._unregister = function (dbName) {
 };
 
 Adapter.prototype._destroyDatabase = function (dbName) {
-  var self = this, ts = new Date();
+  var self = this,
+    ts = new Date();
   return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
     return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
   });
