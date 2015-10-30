@@ -100,6 +100,7 @@ describe('race', function () {
     if (i > 0) {
       promise = destroyBoth().then(function () {
         createBoth();
+        return null; // prevent runaway promise warning
       });
     }
     return promise.then(function () {

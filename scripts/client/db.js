@@ -292,10 +292,7 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
       return self._disconnect();
     }
   }).then(function () {
-    if (keepLocal) {
-      // We'll just close the store
-      return self._store.close();
-    } else {
+    if (!keepLocal) {
       return self._store.destroy();
     }
   }).then(function () {
@@ -387,7 +384,8 @@ DB.prototype._registerDisconnectListener = function () {
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
   return self._adapter._createDatabase(self._name).then(function () {
-    return self._init();
+    self._init();
+    return null; // prevent runaway promise warning
   });
 };
 
