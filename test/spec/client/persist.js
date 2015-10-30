@@ -135,7 +135,8 @@ describe('persist', function () {
     return task.set({
       thing: 'sing'
     }).then(function () {
-      return setUpClient2();
+      setUpClient2();
+      return null; // prevent runaway promise warning
     }).then(function () {
       return utils.once(db2, 'load');
     }).then(function () {
@@ -153,6 +154,7 @@ describe('persist', function () {
         $id: task.id(),
         thing: 'sing'
       });
+      return null; // prevent runaway promise warning
     });
 
   });

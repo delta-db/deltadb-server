@@ -125,7 +125,8 @@ Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
     return args;
   });
 
-  return clientUtils.timeout(100).then(function () {
+  // 100 ms appears to be too short on Chrome for ost of our tests
+  return clientUtils.timeout(200).then(function () {
     if (err) {
       self.never('should have emitted event ' + evnt);
     }
