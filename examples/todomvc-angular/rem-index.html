@@ -17,6 +17,17 @@
 			var system = new DeltaDB('$system', 'http://localhost:8080');
 
 			var things = db.col('things');
+
+			// things.doc({ foo: 'bar' }).save().then(function () {
+			// 	console.log('saved');
+			// });
+
+			things.on('load', function () {
+				things.all(function (thing) {
+					console.log('thing=', thing.get());
+				});
+			});
+
 		</script>
 
 	</body>

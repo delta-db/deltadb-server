@@ -36,6 +36,7 @@ Collection.prototype._ensureStore = function () {
   // the 'load'
   return self._db._loaded.then(function () {
     self._createStore();
+    return null; // prevent runaway promise warnings
   });
 };
 
@@ -65,6 +66,7 @@ Collection.prototype._initStore = function () {
 
   self._loaded = Promise.all(promises).then(function () {
     self.emit('load');
+    return null; // prevent runaway promise warning
   });
 };
 
@@ -77,7 +79,7 @@ Collection.prototype._setChange = function (change) {
       doc = self.doc();
       doc.id(change.id);
     }
-  }).then(function () {
+
     // TODO: in future, if sequence of changes for same doc then set for all changes and then issue
     // a single save?
     return doc._setChange(change);

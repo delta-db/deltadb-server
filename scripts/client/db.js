@@ -77,8 +77,8 @@ DB.prototype._import = function (store) {
   self._store = store;
 
   // Make sure the store is ready, e.g. opened, before init
-  self._store._loaded.then(function () {
-    self._initStore();
+  return self._store._loaded.then(function () {
+    return self._initStore();
   });
 };
 
@@ -109,7 +109,7 @@ DB.prototype._initStore = function () {
   // All the stores have been imported
   self._storesImported = true;
 
-  Promise.all(promises).then(function () {
+  return Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
     }
@@ -371,6 +371,7 @@ DB.prototype._registerSenderListener = function () {
     // already been made; therefore, we need to make sure the _initDone promise has resolved first.
     self._initDone.then(function () {
       self._sender.send();
+      return null; // prevent runaway promise warnings
     });
   });
 };

@@ -192,6 +192,7 @@ describe('events', function () {
       task.set({
         'priority': 'high'
       }); // use _set so we can force a timestamp
+      return null; // prevent runaway promise warnings
     });
   };
 
@@ -265,6 +266,7 @@ describe('events', function () {
   var destroyLocal = function () {
     return commonUtils.sleep().then(function () { // sleep so destroy is after create
       task.unset('priority'); // use _set so we can force a timestamp
+      return null; // prevent runaway promise warnings
     });
   };
 

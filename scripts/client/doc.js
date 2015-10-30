@@ -96,7 +96,6 @@ Doc.prototype._ensureStore = function () {
   // Wait until col is loaded and then create store
   return self._col._ensureStore().then(function () {
     self._createStore();
-  }).then(function () {
     return self._loaded; // resolves once doc has been loaded
   });
 };

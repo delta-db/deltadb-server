@@ -7,6 +7,7 @@
  *
  * @type {angular.Module}
  */
+// TODO: remove firebase dep
 var todomvc = angular.module('todomvc', ['firebase']);
 
 todomvc.filter('todoFilter', function ($location) {

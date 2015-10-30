@@ -2,7 +2,7 @@
 <html lang="en" ng-app="todomvc" data-framework="firebase">
 	<head>
 		<meta charset="utf-8">
-		<title>Firebase &amp; AngularJS • TodoMVC</title>
+		<title>DeltaDB &amp; AngularJS • TodoMVC</title>
 		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
 		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
 		<style>[ng-cloak] { display: none; }</style>
@@ -21,7 +21,7 @@
 				<ul id="todo-list">
 					<li ng-repeat="(id, todo) in todos | todoFilter" ng-class="{completed: todo.completed, editing: todo == editedTodo}">
 						<div class="view">
-							<input class="toggle" type="checkbox" ng-model="todo.completed" ng-change="todos.$save(todo)">
+							<input class="toggle" type="checkbox" ng-model="todo.completed" ng-change="save(todo)">
 							<label ng-dblclick="editTodo(todo)">{{todo.title}}</label>
 							<button class="destroy" ng-click="removeTodo(todo)"></button>
 						</div>
@@ -60,7 +60,13 @@
 			</p>
 			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
 		</footer>
-		<script src="//cdn.firebase.com/js/client/2.2.2/firebase.js"></script>
+<!-- TODO: remove FB dep -->
+<script src="//cdn.firebase.com/js/client/2.2.2/firebase.js"></script>
+
+<!-- Use the min version -->
+<!-- <script src="dist/deltadb.min.js"></script> -->
+<script src="../../dist/deltadb.js"></script>
+
 		<script src="node_modules/todomvc-common/base.js"></script>
 		<script src="node_modules/angular/angular.js"></script>
 		<script src="node_modules/angularfire/dist/angularfire.js"></script>

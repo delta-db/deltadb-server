@@ -11,15 +11,16 @@ var MemAdapter = require('../orm/nosql/adapters/mem/adapter');
  * same app can share the same adapters, which allows us to synchronize reads/writes from/to the
  * adapters.
  */
-var AdapterStore = function () {
-  this._adapter = this.newAdapter();
-};
+var AdapterStore = function () {};
 
 AdapterStore.prototype.newAdapter = function () {
   return new MemAdapter();
 };
 
 AdapterStore.prototype.getAdapter = function () {
+  if (!this._adapter) {
+    this._adapter = this.newAdapter();
+  }
   return this._adapter;
 };
 
