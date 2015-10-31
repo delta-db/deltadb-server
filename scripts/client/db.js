@@ -18,8 +18,6 @@ var inherits = require('inherits'),
   log = require('../client/log'),
   config = require('./config');
 
-console.log('db0: config=', config);
-
 var DB = function (name, adapter, url, localOnly) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 

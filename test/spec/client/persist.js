@@ -18,8 +18,7 @@ describe('persist', function () {
   beforeEach(function () {
     client = new Client(true);
     db = client.db({
-      db: 'mydb',
-      store: new MemAdapter().db('mydb')
+      db: 'mydb'
     });
     propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
@@ -86,11 +85,13 @@ describe('persist', function () {
     }).then(function () {
       return task.save();
     }).then(function () {
-      // Simulate a reload from store, e.g. when an app restarts, by reloading the store
+      // Simulate a reload from store, e.g. when an app restarts, by destroying the DB, but keeping
+      // the local store and then reloading the store
+      return db.destroy(true, true);
+    }).then(function () {
       client2 = new Client(true);
       db2 = client2.db({
-        db: 'mydb',
-        store: db._store // simulate a reload by using the same store as db
+        db: 'mydb'
       });
 
       // Wait until all the docs have been loaded from the store

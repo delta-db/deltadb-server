@@ -38701,10 +38701,7 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
       return self._disconnect();
     }
   }).then(function () {
-    if (keepLocal) {
-      // We'll just close the store
-      return self._store.close();
-    } else {
+    if (!keepLocal) {
       return self._store.destroy();
     }
   }).then(function () {
@@ -38796,7 +38793,8 @@ DB.prototype._registerDisconnectListener = function () {
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
   return self._adapter._createDatabase(self._name).then(function () {
-    return self._init();
+    self._init();
+    return null; // prevent runaway promise warning
   });
 };
 
@@ -39577,17 +39575,38 @@ Utils.prototype.timeout = function (ms) {
   });
 };
 
+// // Executes promise and then resolves after event emitted once
+// Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
+//   // TODO: refactor to not use defer!!
+//   var defer = Promise.defer();
+//
+//   emitter.once(evnt, function () {
+//     defer.resolve(arguments);
+//   });
+//
+//   return promiseFactory().then(function () {
+//     return defer.promise;
+//   });
+// };
+
+// // Executes promise and then resolves after event emitted once
+// Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
+//   return new Promise(function (resolve, reject) {
+//     emitter.once(evnt, function () {
+//       resolve(arguments);
+//     });
+//
+//     promiseFactory().catch(function (err) {
+//       reject(err);
+//     });
+//   });
+// };
+
 // Executes promise and then resolves after event emitted once
-Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
-  // TODO: refactor to not use defer!!
-  var defer = Promise.defer();
-
-  emitter.once(evnt, function () {
-    defer.resolve(arguments);
-  });
-
-  return promiseFactory().then(function () {
-    return defer.promise;
+Utils.prototype.doAndOnce = function (promise, emitter, evnt) {
+  var once = this.once(emitter, evnt);
+  return promise().then(function () {
+    return once;
   });
 };
 
