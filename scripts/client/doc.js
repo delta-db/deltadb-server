@@ -213,8 +213,11 @@ Doc.prototype._emit = function (evnt, name, value) {
 };
 
 Doc.prototype._emitDocCreate = function () {
-  // Always emit the id as the creating attr
-  this._emit('doc:create', this._idName, this.id());
+  // Don't emit if the doc was destroyed
+  if (!this._dat.destroyedAt) {
+    // Always emit the id as the creating attr
+    this._emit('doc:create', this._idName, this.id());
+  }
 };
 
 Doc.prototype._saveRecording = function (name, value, recorded) {

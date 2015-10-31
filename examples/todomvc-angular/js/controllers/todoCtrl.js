@@ -6,6 +6,8 @@
 
 // TODO: when mark as completed, why is title change also being sent to server?
 
+// TODO: when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?
+
 /*global todomvc, angular, Firebase */
 'use strict';
 
