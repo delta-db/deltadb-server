@@ -1,5 +1,11 @@
 // TODO: update all references to FB with DDB
 
+// TODO: fix destroy
+
+// TODO: test with two browsers
+
+// TODO: when mark as completed, why is title change also being sent to server?
+
 /*global todomvc, angular, Firebase */
 'use strict';
 
@@ -8,7 +14,7 @@
  * - retrieves and persists the model via the $firebaseArray service
  * - exposes the model to the template and provides event handlers
  */
-todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location) {
+todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	var db = new DeltaDB('todosdb', 'http://localhost:8080');
 
 	// The following will go away when we move to not have a system DB tracked by the client
@@ -30,13 +36,11 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location) {
 // TODO: remove after fix booleans
 		data.completed = data.completed === 'true';
 		$scope.todos.push(data);
+		$scope.$apply(); // update UI
 	};
 
-	todos.all(function (todo) {
-		pushTodo(todo);
-	});
-
 	todos.on('doc:create', function (todo) {
+		// Doc was created so add to array
 		pushTodo(todo);
 	});
 
@@ -48,6 +52,13 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location) {
 			}
 		});
 		return index;
+	};
+
+	var destroyTodo = function (todo) {
+		var index = findIndex(todo.$id);
+		if (index !== null) { // found?
+			$scope.todos.splice(index, 1);
+		}
 	};
 
 	todos.on('doc:update', function (todo) {
@@ -78,68 +89,6 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location) {
 		$scope.allChecked = remaining === 0;
 	}, true);
 
-// TODO: need to maintain todos array for angular!!
-
-// $scope.render = function () {
-// 	var total = 0;
-// 	var remaining = 0;
-// 	$scope.todos.all(function (todo) {
-// 		var data = todo.get();
-//
-// 		// Skip invalid entries so they don't break the entire app.
-// 		if (!data || !data.title) {
-// 			return;
-// 		}
-//
-// 		total++;
-// 		if (data.completed === false) {
-// 			remaining++;
-// 		}
-// 	});
-// 	$scope.totalCount = total;
-// 	$scope.remainingCount = remaining;
-// 	$scope.completedCount = total - remaining;
-// 	$scope.allChecked = remaining === 0;
-// };
-
-// $scope.todos
-// 	.on('doc:create', $scope.render)
-// 	.on('doc:update', $scope.render);
-
-// TODO: how to handle watcher properly?
-// 	$scope.$watch('todos', function () {
-// 		var total = 0;
-// 		var remaining = 0;
-// 		$scope.todos.all(function (todo) {
-// 			var data = todo.get();
-//
-// 			// Skip invalid entries so they don't break the entire app.
-// 			if (!data || !data.title) {
-// 				return;
-// 			}
-//
-// 			total++;
-// 			if (data.completed === false) {
-// 				remaining++;
-// 			}
-// 		});
-// // $scope.todos.forEach(function (todo) {
-// // 	// Skip invalid entries so they don't break the entire app.
-// // 	if (!todo || !todo.title) {
-// // 		return;
-// // 	}
-// //
-// // 	total++;
-// // 	if (todo.completed === false) {
-// // 		remaining++;
-// // 	}
-// // });
-// 		$scope.totalCount = total;
-// 		$scope.remainingCount = remaining;
-// 		$scope.completedCount = total - remaining;
-// 		$scope.allChecked = remaining === 0;
-// 	}, true);
-
 	$scope.addTodo = function () {
 		var newTodo = $scope.newTodo.trim();
 		if (!newTodo.length) {
@@ -163,54 +112,49 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location) {
 		$scope.originalTodo = angular.extend({}, $scope.editedTodo);
 	};
 
+	$scope.save = function (todo) {
+		todos.get(todo.$id).then(function (todoDoc) {
+// TODO: remove after fix booleans
+			var formattedTodo = angular.extend({}, todo);
+			formattedTodo.completed = formattedTodo.completed ? 'true' : 'false';
+			return todoDoc.set(formattedTodo);
+		});
+	};
+
 	$scope.doneEditing = function (todo) {
 		$scope.editedTodo = null;
 		var title = todo.title.trim();
 		if (title) {
-			$scope.todo.save();
-//			$scope.todos.$save(todo);
+			$scope.save(todo);
 		} else {
 			$scope.removeTodo(todo);
-//			$scope.todo.destroy();
 		}
 	};
 
 	$scope.revertEditing = function (todo) {
 		todo.title = $scope.originalTodo.title;
-//		$scope.doneEditing(todo);
+		$scope.doneEditing(todo);
 	};
 
 	$scope.removeTodo = function (todo) {
-//		$scope.todos.$remove(todo);
-		todo.destroy();
+		destroyTodo(todo);
+		todos.get(todo.$id).then(function (todoDoc) {
+			return todoDoc.destroy();
+		});
 	};
 
 	$scope.clearCompletedTodos = function () {
-		$scope.todos.all(function (todo) {
-
-// TODO: restore after fix DDB to work with booleans
-			// if (todo.get().completed) {
-			if (todo.get().completed !== 'false') {
+		$scope.todos.forEach(function (todo) {
+			if (todo.completed) {
 				$scope.removeTodo(todo);
 			}
 		});
-// $scope.todos.forEach(function (todo) {
-// 	if (todo.completed) {
-// 		$scope.removeTodo(todo);
-// 	}
-// });
 	};
 
 	$scope.markAll = function (allCompleted) {
-// $scope.todos.forEach(function (todo) {
-// 	todo.completed = allCompleted;
-// 	$scope.todos.$save(todo);
-// });
-		$scope.todos.all(function (todo) {
-			todo.set({ completed: allCompleted ? 'true' : 'false' });
-// TODO: restore after fix DDB to work with booleans
-//			todo.set({ completed: allCompleted });
-			todo.save();
+		$scope.todos.forEach(function (todo) {
+			todo.completed = allCompleted;
+			$scope.save(todo);
 		});
 	};
 
