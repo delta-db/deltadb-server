@@ -8,6 +8,9 @@
 
 // TODO: when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?
 
+// TODO: why does server say the following when the DB already exists?? "creating another DB todosdb"
+
+
 /*global todomvc, angular, Firebase */
 'use strict';
 
@@ -34,7 +37,12 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	$scope.editedTodo = null;
 
 	var pushTodo = function (todo) {
-		var data = todo.get();
+		var todoDat = todo.get();
+
+// TODO: is there a better way??
+		// We have to duplicate the data or else we will get recursion in angular
+		var data = JSON.parse(JSON.stringify(todoDat));
+
 // TODO: remove after fix booleans
 		data.completed = data.completed === 'true';
 		$scope.todos.push(data);
@@ -64,9 +72,25 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	};
 
 	todos.on('doc:update', function (todo) {
-		var i = findIndex(todo.id());
-// TODO: need to merge with todos? What does todo contain?
-//		$scope.todos[i]
+		var index = findIndex(todo.id());
+		if (index !== null) { // found?
+
+			var todoDat = todo.get();
+
+// TODO: is there a better way??
+			// We have to duplicate the data or else we will get recursion in angular
+			var data = JSON.parse(JSON.stringify(todoDat));
+
+// TODO: remove after fix booleans
+			data.completed = data.completed === 'true';
+
+// TODO: need to merge?
+			$scope.todos[index] = data;
+
+// TODO: need to merge?
+//			$scope.todos[index] = todo.get();
+			$scope.$apply(); // update UI
+		}
 	});
 
 	$scope.$watch('todos', function () {

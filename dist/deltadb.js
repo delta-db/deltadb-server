@@ -39235,20 +39235,42 @@ Doc.prototype._allEvents = function (name, value, updated) {
   return evnts;
 };
 
+// Doc.prototype._set = function (name, value, updated, recorded, untracked) {
+//   this._change(name, value, updated, recorded, untracked);
+//
+//   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
+//     this._dat.updatedAt = updated;
+//   }
+//
+//   return MemDoc.prototype._set.apply(this, arguments);
+// };
+
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
+  // Set the value before any events are emitted by _change()
+  var ret = MemDoc.prototype._set.apply(this, arguments);
+
   this._change(name, value, updated, recorded, untracked);
 
   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
     this._dat.updatedAt = updated;
   }
 
-  return MemDoc.prototype._set.apply(this, arguments);
+  return ret;
 };
 
+// Doc.prototype.unset = function (name, updated, recorded, untracked) {
+//   this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
+//
+//   return MemDoc.prototype.unset.apply(this, arguments);
+// };
+
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
+  // Unset the value before any events are emitted by _change()
+  var ret = MemDoc.prototype.unset.apply(this, arguments);
+
   this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
 
-  return MemDoc.prototype.unset.apply(this, arguments);
+  return ret;
 };
 
 // TODO: remove this after enhance id-less docs to reconcile with ids?
