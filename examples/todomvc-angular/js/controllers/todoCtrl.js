@@ -1,4 +1,3 @@
-// TODO: update all references to FB with DDB
 
 // TODO: fix destroy
 
@@ -11,12 +10,12 @@
 // TODO: why does server say the following when the DB already exists?? "creating another DB todosdb"
 
 
-/*global todomvc, angular, Firebase */
+/*global todomvc, angular, DeltaDB */
 'use strict';
 
 /**
  * The main controller for the app. The controller:
- * - retrieves and persists the model via the $firebaseArray service
+ * - retrieves and persists the model via DeltaDB
  * - exposes the model to the template and provides event handlers
  */
 todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
@@ -24,14 +23,8 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 
 	// The following will go away when we move to not have a system DB tracked by the client
 	var system = new DeltaDB('$system', 'http://localhost:8080');
-
-//	var url = 'https://todomvc-angular.firebaseio.com/todos';
-//	var fireRef = new Firebase(url);
-
-	// Bind the todos to the firebase provider.
-//	$scope.todos = $firebaseArray(fireRef);
-//	$scope.todos = db.col('todos');
 	var todos = db.col('todos');
+
 	$scope.todos = [];
 	$scope.newTodo = '';
 	$scope.editedTodo = null;
@@ -68,16 +61,6 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 		var index = findIndex(todo.$id);
 		if (index !== null) { // found?
 			$scope.todos.splice(index, 1);
-
-//			// We cannot put this in $timeout or else there will be race conditions when destroying multiple items
-//			$scope.todos.splice(index, 1);
-
-// $scope.$apply(); // update UI - we can't use this or else we will get $apply already in
-// progress errors when destroying multiple todos
-// $timeout(function () {}); // so schedule $apply for later.
-// $timeout(function () { // wrap in $timeout so that UI is updated
-// 	$scope.todos.splice(index, 1);
-// 	});
 		}
 	};
 
