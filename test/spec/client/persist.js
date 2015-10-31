@@ -105,10 +105,15 @@ describe('persist', function () {
         version: DB.VERSION
       });
     }).then(function () {
-      tasks2 = db2.col('tasks');
-      return tasks2.find(null, function (doc) {
-        doc._dat.should.eql(dat);
-      }, true); // include destroyed docs
+      var found = false;
+      db2.all(function (tasks) {
+        // Assuming only col is tasks
+        tasks.find(null, function (task) {
+          task._dat.should.eql(dat);
+          found = true;
+        }, true); // include destroyed docs
+      });
+      found.should.eql(true);
     });
   });
 
