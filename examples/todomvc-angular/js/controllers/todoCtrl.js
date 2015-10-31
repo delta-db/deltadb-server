@@ -68,6 +68,16 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 		var index = findIndex(todo.$id);
 		if (index !== null) { // found?
 			$scope.todos.splice(index, 1);
+
+//			// We cannot put this in $timeout or else there will be race conditions when destroying multiple items
+//			$scope.todos.splice(index, 1);
+
+// $scope.$apply(); // update UI - we can't use this or else we will get $apply already in
+// progress errors when destroying multiple todos
+// $timeout(function () {}); // so schedule $apply for later.
+// $timeout(function () { // wrap in $timeout so that UI is updated
+// 	$scope.todos.splice(index, 1);
+// 	});
 		}
 	};
 
@@ -91,6 +101,11 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 //			$scope.todos[index] = todo.get();
 			$scope.$apply(); // update UI
 		}
+	});
+
+	todos.on('doc:destroy', function (todo) {
+		destroyTodo({ $id: todo.id() });
+		$scope.$apply();
 	});
 
 	$scope.$watch('todos', function () {
@@ -170,11 +185,14 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	};
 
 	$scope.clearCompletedTodos = function () {
-		$scope.todos.forEach(function (todo) {
-			if (todo.completed) {
-				$scope.removeTodo(todo);
+		// Loop in reverse order, instead of using .forEach() as each time we remove an array element via
+		// splice() we shift the indexes and this can lead to problems.
+		var len = $scope.todos.length;
+		for (var i = len - 1; i >= 0; i--) {
+			if ($scope.todos[i].completed) {
+				$scope.removeTodo($scope.todos[i]);
 			}
-		});
+		}
 	};
 
 	$scope.markAll = function (allCompleted) {
