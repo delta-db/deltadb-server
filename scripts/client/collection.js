@@ -58,13 +58,18 @@ Collection.prototype._initStore = function () {
   var self = this,
     promises = [];
 
-  self._store.all(function (docStore) {
+  var all = self._store.all(function (docStore) {
     var doc = self._doc();
     doc._import(docStore);
     promises.push(doc._loaded);
   });
 
-  self._loaded = Promise.all(promises).then(function () {
+  // all resolves when we have executed the callback for all docs and Promise.all(promises) resolves
+  // after all the docs have been loaded. We need to wait for all first so that we have promises
+  // set.
+  self._loaded = all.then(function () {
+    return Promise.all(promises);
+  }).then(function () {
     self.emit('load');
     return null; // prevent runaway promise warning
   });
