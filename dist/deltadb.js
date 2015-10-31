@@ -38737,14 +38737,18 @@ DB.prototype._emitChanges = function (changes) {
 // TODO: it appears that the local changes don't get cleared until they are recorded, which is
 // correct, but investigate further to make sure that changes won't be duplicated back and forth.
 DB.prototype._findAndEmitChanges = function () {
-  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do
-  // we need a _connected flag to determine whether to skip the following?
-
   // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
   // code?
   var self = this;
 
+  // If we aren't connected then wait for reconnect to send changes during init.
+  if (!self._connected) {
+    return Promise.resolve();
+  }
+
   return self._ready().then(function () { // ensure props have been loaded/created first
+    // If we happen to disconnect when reading _localChanges then we'll rely on the retry to send
+    // the deltas later
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
     // The length could be zero if there is a race condition where two back-to-back changes result
@@ -38791,6 +38795,7 @@ DB.prototype._registerDisconnectListener = function () {
   var self = this;
   self._socket.on('disconnect', function () {
     log.info(self._id + ' server disconnected');
+    self._connected = false;
     self.emit('disconnect');
   });
 };
@@ -38833,6 +38838,7 @@ DB.prototype._registerInitDoneListener = function () {
 };
 
 DB.prototype._init = function () {
+  this._connected = true;
   this._emitInit();
 };
 
