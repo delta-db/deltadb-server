@@ -35725,7 +35725,11 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     change.val = value;
   }
 
-  if (!untracked) { // tracking?
+  // Is the value changing? We also need to consider it changing if there is no latest value as this
+  // can happen when auto restoring
+  var changing = this._changing(name, value) || !this._dat.latest[name];
+
+  if (!untracked && changing) { // tracking and value changing?
     this._dat.changes.push(change);
     this._emitChange();
   }
@@ -36724,8 +36728,12 @@ Doc.prototype.clean = function (name) {
   }
 };
 
+Doc.prototype._changing = function (name, value) {
+  return typeof this._data[name] === 'undefined' || value !== this._data[name];
+};
+
 Doc.prototype._set = function (name, value, clean) {
-  if (!clean && (typeof this._data[name] === 'undefined' || value !== this._data[name])) {
+  if (!clean && this._changing(name, value)) {
     this.taint(name);
   }
   this._data[name] = value;

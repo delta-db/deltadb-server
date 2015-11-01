@@ -157,7 +157,11 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     change.val = value;
   }
 
-  if (!untracked) { // tracking?
+  // Is the value changing? We also need to consider it changing if there is no latest value as this
+  // can happen when auto restoring
+  var changing = this._changing(name, value) || !this._dat.latest[name];
+
+  if (!untracked && changing) { // tracking and value changing?
     this._dat.changes.push(change);
     this._emitChange();
   }
