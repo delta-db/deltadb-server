@@ -30,7 +30,8 @@ describe('persist', function () {
 
   it('should restore from store', function () {
 
-    var client2 = null, found = false;
+    var client2 = null,
+      found = false;
 
     var nowStr = (new Date()).getTime();
 
