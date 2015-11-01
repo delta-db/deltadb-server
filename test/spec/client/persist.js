@@ -30,7 +30,7 @@ describe('persist', function () {
 
   it('should restore from store', function () {
 
-    var client2 = null;
+    var client2 = null, found = false;
 
     var nowStr = (new Date()).getTime();
 
@@ -102,8 +102,7 @@ describe('persist', function () {
         since: nowStr,
         version: DB.VERSION
       });
-    }).then(function () {
-      var found = false;
+
       db2.all(function (tasks) {
         // Assuming only col is tasks
         tasks.find(null, function (task) {
@@ -111,7 +110,9 @@ describe('persist', function () {
           found = true;
         }, true); // include destroyed docs
       });
+    }).then(function () {
       found.should.eql(true);
+      return null; // prevent runaway promise warning
     });
   });
 

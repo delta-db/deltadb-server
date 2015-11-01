@@ -289,7 +289,7 @@ DB.prototype._destroy = function () {
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onerror = function () {
-      reject(new Error("Couldn't destroy database: ") + req.err);
+      reject(new Error("Couldn't destroy database: " + req.err));
     };
 
     // TODO: how to trigger this for testing?
