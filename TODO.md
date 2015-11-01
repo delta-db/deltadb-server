@@ -1,6 +1,6 @@
 Now
 ---
-- impl todomvc example
+- todomvc example:
 	- when mark as completed, why is title change also being sent to server?
 	- when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?
 	- why does server say the following when the DB already exists?? "creating another DB todosdb"
@@ -9,17 +9,14 @@ Now
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
-- test with actual angular app - todomvc adaptation
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
-	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
-	- event for connect. Disconnect event already exists, but add info about both to wiki
-- Admin UI, e.g. "Delta Admin"
-- impl deltadb-ng
+- event for connect. Disconnect event already exists, but add info about both to wiki
 - use lie instead of bluebird
-- how to make it so that you don't have to download all dbs to client in order to create new db? Only want to get updates for db created by this client and during this session
+- impl deltadb-ng
+- Admin UI, e.g. "Delta Admin"
 - Roadmap
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 	- use Sequelize to abstract all adapters?
@@ -32,10 +29,10 @@ Now
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
-- investigate use of logger package for both server and client--replace use of in-house log
 
 Next
 ---
+- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 - semver pkg
 - codeclimate.com
 - alternative ORM query structure using a new object called Query that inherits from Promise, e.g.
@@ -94,6 +91,7 @@ Next
 	- We use shared adapters within the same app to support this functionality, but don't have a good solution for multiple tabs. We could just no support this at this time. We could detect the use in two browsers using some instance id and a timestamp and then display an alert to the user if we detect two tabs
 	- Future option: have IDB be fault tolerant so if say creating same DB at same time then handle errors and try to reopen. Simulate with unit tests on IDB.
 	- could also develop concept of session instance of DB, e.g. prefix DB with '1', '2', etc... but then how to coordinate which tab gets with DB?
+- investigate use of logger package for both server and client--replace use of in-house log
 
 
 NoSQL support
