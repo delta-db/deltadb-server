@@ -1,7 +1,5 @@
 Now
 ---
-- todomvc example:
-	- when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?
 - fix to work with booleans
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
