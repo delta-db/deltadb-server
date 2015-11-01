@@ -151,9 +151,18 @@ Partitioners.prototype._doPoll = function (partitioner) {
 Partitioners.prototype._hasChanges = function (partitioner, since) {
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
-  var all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  var self = this,
+    all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
   return partitioner.changes(since, null, 1, null, all).then(function (changes) {
     return changes.length > 0;
+  }).catch(function (err) {
+    if (err instanceof SocketClosedError) {
+      // TODO: why do we randomly get these errors w/ postgres? Is there a better way to handle
+      // them, e.g. reconnect?
+      self._unregisterPartitioner(partitioner._dbName);
+    } else {
+      throw err;
+    }
   });
 };
 

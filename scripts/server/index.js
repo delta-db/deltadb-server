@@ -20,9 +20,10 @@ var ensureSystemDBCreated = function () {
   var partitioner = new Partitioner();
   var manager = new Manager(partitioner);
   var system = new System(manager);
+  var adminParty = true; // allow everyone to CRUD by default
   return partitioner.dbExists(partitioner._dbName).then(function (exists) {
     if (!exists) {
-      return system.create().then(function () {
+      return system.create(adminParty).then(function () {
         return partitioner.closeDatabase(); // close DB connection to return resources
       });
     }

@@ -1,8 +1,11 @@
 Now
 ---
-- test browser code with IDB
-- generate client bundle
+- Errors when running npm run new-test-phantomjs: Warning: a promise was rejected with a non-error: [object Error]
 - impl todomvc example
+	- when mark as completed, why is title change also being sent to server?
+	- when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?
+	- why does server say the following when the DB already exists?? "creating another DB todosdb"
+- fix to work with booleans
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
@@ -15,7 +18,7 @@ Now
 	- complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 	- event for connect. Disconnect event already exists, but add info about both to wiki
 - Admin UI, e.g. "Delta Admin"
-- impl deltadb-ng and modify todo example
+- impl deltadb-ng
 - use lie instead of bluebird
 - how to make it so that you don't have to download all dbs to client in order to create new db? Only want to get updates for db created by this client and during this session
 - Roadmap

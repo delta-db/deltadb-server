@@ -33,7 +33,7 @@
     "test-firefox": "npm run jshint && CLIENT=selenium:firefox npm run test-browser",
     "test-chrome": "npm run jshint && CLIENT=selenium:chrome npm run test-browser",
     "test-phantomjs": "npm run jshint && CLIENT=selenium:phantomjs npm run test-browser",
-    "build": "mkdir -p dist && browserify index.js -o dist/deltadb.js && npm run min",
+    "build": "mkdir -p dist && browserify index.js -s DeltaDB -o dist/deltadb.js && npm run min",
     "min": "uglifyjs dist/deltadb.js -mc > dist/deltadb.min.js",
     "dev": "browserify test/test.js > test/test-bundle.js && npm run dev-server",
     "dev-server": "./bin/dev-server.js",

@@ -3,7 +3,6 @@
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
   DB = require('../../../scripts/client/db'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Promise = require('bluebird');
 
 describe('persist', function () {
@@ -18,8 +17,7 @@ describe('persist', function () {
   beforeEach(function () {
     client = new Client(true);
     db = client.db({
-      db: 'mydb',
-      store: new MemAdapter().db('mydb')
+      db: 'mydb'
     });
     propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
@@ -32,8 +30,7 @@ describe('persist', function () {
 
   it('should restore from store', function () {
 
-    var client2 = null,
-      tasks2 = null;
+    var client2 = null;
 
     var nowStr = (new Date()).getTime();
 
@@ -86,11 +83,13 @@ describe('persist', function () {
     }).then(function () {
       return task.save();
     }).then(function () {
-      // Simulate a reload from store, e.g. when an app restarts, by reloading the store
+      // Simulate a reload from store, e.g. when an app restarts, by destroying the DB, but keeping
+      // the local store and then reloading the store
+      return db.destroy(true, true);
+    }).then(function () {
       client2 = new Client(true);
       db2 = client2.db({
-        db: 'mydb',
-        store: db._store // simulate a reload by using the same store as db
+        db: 'mydb'
       });
 
       // Wait until all the docs have been loaded from the store
@@ -104,10 +103,15 @@ describe('persist', function () {
         version: DB.VERSION
       });
     }).then(function () {
-      tasks2 = db2.col('tasks');
-      return tasks2.find(null, function (doc) {
-        doc._dat.should.eql(dat);
-      }, true); // include destroyed docs
+      var found = false;
+      db2.all(function (tasks) {
+        // Assuming only col is tasks
+        tasks.find(null, function (task) {
+          task._dat.should.eql(dat);
+          found = true;
+        }, true); // include destroyed docs
+      });
+      found.should.eql(true);
     });
   });
 
@@ -135,7 +139,8 @@ describe('persist', function () {
     return task.set({
       thing: 'sing'
     }).then(function () {
-      return setUpClient2();
+      setUpClient2();
+      return null; // prevent runaway promise warning
     }).then(function () {
       return utils.once(db2, 'load');
     }).then(function () {
@@ -153,6 +158,7 @@ describe('persist', function () {
         $id: task.id(),
         thing: 'sing'
       });
+      return null; // prevent runaway promise warning
     });
 
   });

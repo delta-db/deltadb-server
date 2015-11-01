@@ -1,6 +1,5 @@
 'use strict';
 
-// TODO: restructure after create server API
-var DeltaDB = require('./scripts/partitioner/sql');
+var DeltaDB = require('./scripts/client/delta-db');
 
 module.exports = DeltaDB;

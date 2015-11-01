@@ -44,6 +44,10 @@ Because it doesn't exist and true support for offline environments needs to be e
 ---
 
 
+[Examples](EXAMPLES.md)
+---
+
+
 [API](https://github.com/delta-db/deltadb-server/wiki)
 ---
 
@@ -66,4 +70,3 @@ Because it doesn't exist and true support for offline environments needs to be e
 
 [Ideas](IDEAS.md)
 ---
-

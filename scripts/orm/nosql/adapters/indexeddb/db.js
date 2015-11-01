@@ -239,6 +239,8 @@ DB.prototype._processQueue = function () {
       if (self._moreToProcess()) {
         self._processQueue(); // process again
       }
+
+      return null; // prevent runaway promise warning
     });
   }
 };

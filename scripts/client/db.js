@@ -77,8 +77,8 @@ DB.prototype._import = function (store) {
   self._store = store;
 
   // Make sure the store is ready, e.g. opened, before init
-  self._store._loaded.then(function () {
-    self._initStore();
+  return self._store._loaded.then(function () {
+    return self._initStore();
   });
 };
 
@@ -109,7 +109,7 @@ DB.prototype._initStore = function () {
   // All the stores have been imported
   self._storesImported = true;
 
-  Promise.all(promises).then(function () {
+  return Promise.all(promises).then(function () {
     if (!loadingProps) { // no props? nothing in store
       return self._initProps();
     }
@@ -292,10 +292,7 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
       return self._disconnect();
     }
   }).then(function () {
-    if (keepLocal) {
-      // We'll just close the store
-      return self._store.close();
-    } else {
+    if (!keepLocal) {
       return self._store.destroy();
     }
   }).then(function () {
@@ -326,14 +323,18 @@ DB.prototype._emitChanges = function (changes) {
 // TODO: it appears that the local changes don't get cleared until they are recorded, which is
 // correct, but investigate further to make sure that changes won't be duplicated back and forth.
 DB.prototype._findAndEmitChanges = function () {
-  // TODO: what happens if there are client changes and we are offline, does _emitChanges fail? Do
-  // we need a _connected flag to determine whether to skip the following?
-
   // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
   // code?
   var self = this;
 
+  // If we aren't connected then wait for reconnect to send changes during init.
+  if (!self._connected) {
+    return Promise.resolve();
+  }
+
   return self._ready().then(function () { // ensure props have been loaded/created first
+    // If we happen to disconnect when reading _localChanges then we'll rely on the retry to send
+    // the deltas later
     return self._localChanges(self._retryAfterMSecs);
   }).then(function (changes) {
     // The length could be zero if there is a race condition where two back-to-back changes result
@@ -371,6 +372,7 @@ DB.prototype._registerSenderListener = function () {
     // already been made; therefore, we need to make sure the _initDone promise has resolved first.
     self._initDone.then(function () {
       self._sender.send();
+      return null; // prevent runaway promise warnings
     });
   });
 };
@@ -379,6 +381,7 @@ DB.prototype._registerDisconnectListener = function () {
   var self = this;
   self._socket.on('disconnect', function () {
     log.info(self._id + ' server disconnected');
+    self._connected = false;
     self.emit('disconnect');
   });
 };
@@ -386,7 +389,8 @@ DB.prototype._registerDisconnectListener = function () {
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
   return self._adapter._createDatabase(self._name).then(function () {
-    return self._init();
+    self._init();
+    return null; // prevent runaway promise warning
   });
 };
 
@@ -420,6 +424,7 @@ DB.prototype._registerInitDoneListener = function () {
 };
 
 DB.prototype._init = function () {
+  this._connected = true;
   this._emitInit();
 };
 

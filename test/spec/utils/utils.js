@@ -124,13 +124,13 @@ describe('utils', function () {
         foo: 'bar'
       };
 
-    var promiseFactory = function () {
+    var promise = function () {
       return Promise.resolve().then(function () {
         emitter.emit('my-event', args);
       });
     };
 
-    return utils.doAndOnce(promiseFactory, emitter, 'my-event').then(function (_args) {
+    return utils.doAndOnce(promise, emitter, 'my-event').then(function (_args) {
       _args[0].should.eql(args);
     });
   });

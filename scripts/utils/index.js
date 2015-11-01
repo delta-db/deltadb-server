@@ -15,8 +15,25 @@ var Utils = function () {
   this._bcrypt = bcrypt; // only for unit testing
 };
 
+Utils.prototype._fixDates = function (orig, copy) {
+  var self = this;
+  self.each(copy, function (value, name) {
+    if (orig[name] instanceof Date) { // Date?
+      copy[name] = new Date(copy[name]); // convert to Date
+    } else if (Array.isArray(value) || typeof value === 'object') {
+      // If the value is an Array or object then recursively fix
+      self._fixDates(orig[name], copy[name]);
+    }
+  });
+};
+
+/**
+ * Clones data and also preserves Dates
+ */
 Utils.prototype.clone = function (obj) {
-  return JSON.parse(JSON.stringify(obj));
+  var copy = JSON.parse(JSON.stringify(obj));
+  this._fixDates(obj, copy);
+  return copy;
 };
 
 // callback = function (item, key, obj)

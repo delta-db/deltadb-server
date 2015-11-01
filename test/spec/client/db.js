@@ -37,6 +37,7 @@ describe('db', function () {
       client.db({
         db: 'mydb '
       });
+      return null; // prevent runaway promise warning
     });
   });
 

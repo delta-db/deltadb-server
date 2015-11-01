@@ -4,7 +4,8 @@
 
 var program = require('commander'),
   fs = require('fs'),
-  config = require('../config');
+  config = require('../config'),
+  clientConfig = require('../scripts/client/config');
 
 // Options
 program
@@ -25,7 +26,14 @@ for (var opt in configOpts) {
   if (program[opt]) { // opt val specified?
     var configName = configOpts[opt];
     config[configName] = program[opt];
+    clientConfig[configName] = program[opt];
   }
+}
+
+if (program.port) {
+  // Use port to construct URL for client used internally by server
+  // TODO: probably need to separate out host and other parts of URL in config
+  clientConfig.URL = 'http://localhost:' + program.port;
 }
 
 // Start server

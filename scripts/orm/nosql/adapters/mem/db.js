@@ -1,7 +1,6 @@
 'use strict';
 
-var Promise = require('bluebird'),
-  inherits = require('inherits'),
+var inherits = require('inherits'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
   utils = require('../../../../utils');
@@ -34,9 +33,7 @@ DB.prototype.all = function (callback) {
   utils.each(this._cols, callback);
 };
 
-DB.prototype.close = function () {
-  return Promise.resolve();
-};
+DB.prototype.close = utils.resolveFactory();
 
 DB.prototype.destroy = function () {
   return this._adapter._unregister(this._name);

@@ -5,7 +5,7 @@
 
 var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
-  Client = require('../client'),
+  Client = require('../client/adapter'),
   clientUtils = require('../client/utils'),
   utils = require('../utils'),
   Promise = require('bluebird'),
@@ -30,7 +30,8 @@ Process.prototype._initSystemDB = function () {
 
   // TODO: doesn't url need to be set here?
   self._systemDB = self._client.db({
-    db: clientUtils.SYSTEM_DB_NAME
+    db: clientUtils.SYSTEM_DB_NAME,
+    // , url: 'http://localhost:8080'
   });
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
