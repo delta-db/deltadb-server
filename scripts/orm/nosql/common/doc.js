@@ -79,8 +79,12 @@ Doc.prototype.clean = function (name) {
   }
 };
 
+Doc.prototype._changing = function (name, value) {
+  return typeof this._data[name] === 'undefined' || value !== this._data[name];
+};
+
 Doc.prototype._set = function (name, value, clean) {
-  if (!clean && (typeof this._data[name] === 'undefined' || value !== this._data[name])) {
+  if (!clean && this._changing(name, value)) {
     this.taint(name);
   }
   this._data[name] = value;
