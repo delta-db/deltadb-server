@@ -5,7 +5,7 @@
 
 var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
-  Client = require('../client'),
+  Client = require('../client/adapter'),
   clientUtils = require('../client/utils'),
   utils = require('../utils'),
   Promise = require('bluebird'),

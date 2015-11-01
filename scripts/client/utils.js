@@ -91,33 +91,6 @@ Utils.prototype.timeout = function (ms) {
   });
 };
 
-// // Executes promise and then resolves after event emitted once
-// Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
-//   // TODO: refactor to not use defer!!
-//   var defer = Promise.defer();
-//
-//   emitter.once(evnt, function () {
-//     defer.resolve(arguments);
-//   });
-//
-//   return promiseFactory().then(function () {
-//     return defer.promise;
-//   });
-// };
-
-// // Executes promise and then resolves after event emitted once
-// Utils.prototype.doAndOnce = function (promiseFactory, emitter, evnt) {
-//   return new Promise(function (resolve, reject) {
-//     emitter.once(evnt, function () {
-//       resolve(arguments);
-//     });
-//
-//     promiseFactory().catch(function (err) {
-//       reject(err);
-//     });
-//   });
-// };
-
 // Executes promise and then resolves after event emitted once
 Utils.prototype.doAndOnce = function (promise, emitter, evnt) {
   var once = this.once(emitter, evnt);
