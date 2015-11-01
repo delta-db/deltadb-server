@@ -3,7 +3,6 @@
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
   DB = require('../../../scripts/client/db'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Promise = require('bluebird');
 
 describe('persist', function () {
@@ -31,8 +30,7 @@ describe('persist', function () {
 
   it('should restore from store', function () {
 
-    var client2 = null,
-      tasks2 = null;
+    var client2 = null;
 
     var nowStr = (new Date()).getTime();
 

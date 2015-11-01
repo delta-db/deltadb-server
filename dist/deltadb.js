@@ -38987,7 +38987,8 @@ Doc.prototype._initDat = function (data) {
 Doc.prototype._loadFromStore = function () {
   // TODO: use timestamps of existing data to determine whether data from store should replace
   // existing data as the store might load after the data has already been set
-  this._dat = this._store.get();
+  // this._dat = this._store.get();
+  this._dat = this._store.getRef(); // actually point to data instead of copy
 
   this._pointToData();
 };
@@ -39106,10 +39107,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     }
   }
 
-  if (evnts.length > 0) {
-    this._emitEvents(evnts, name);
-  }
-
+  return evnts.length > 0 ? evnts : null;
 };
 
 Doc.prototype._emitEvents = function (evnts, name) {
@@ -39241,40 +39239,34 @@ Doc.prototype._allEvents = function (name, value, updated) {
   return evnts;
 };
 
-// Doc.prototype._set = function (name, value, updated, recorded, untracked) {
-//   this._change(name, value, updated, recorded, untracked);
-//
-//   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
-//     this._dat.updatedAt = updated;
-//   }
-//
-//   return MemDoc.prototype._set.apply(this, arguments);
-// };
-
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
-  // Set the value before any events are emitted by _change()
-  var ret = MemDoc.prototype._set.apply(this, arguments);
 
-  this._change(name, value, updated, recorded, untracked);
+  var events = this._change(name, value, updated, recorded, untracked);
 
   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
     this._dat.updatedAt = updated;
   }
 
+  // Set the value before any events are emitted by _change()
+  var ret = MemDoc.prototype._set.apply(this, arguments);
+
+  if (events) {
+    this._emitEvents(events, name);
+  }
+
   return ret;
 };
 
-// Doc.prototype.unset = function (name, updated, recorded, untracked) {
-//   this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
-//
-//   return MemDoc.prototype.unset.apply(this, arguments);
-// };
-
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
+  // TODO: really set value to null?
+  var events = this._change(name, null, updated, recorded, untracked);
+
   // Unset the value before any events are emitted by _change()
   var ret = MemDoc.prototype.unset.apply(this, arguments);
 
-  this._change(name, null, updated, recorded, untracked); // TODO: really set value to null?
+  if (events) {
+    this._emitEvents(events, name);
+  }
 
   return ret;
 };
@@ -39288,7 +39280,13 @@ Doc.prototype.destroy = function (destroyedAt, untracked) {
   // Doesn't actually remove data as we need to preserve tombstone so that we can ignore any
   // outdated changes received for destroyed data
   this._dat.destroyedAt = destroyedAt ? destroyedAt : new Date();
-  this._change(null, null, this._dat.destroyedAt, null, untracked);
+
+  var events = this._change(null, null, this._dat.destroyedAt, null, untracked);
+
+  if (events) {
+    this._emitEvents(events, null);
+  }
+
   return this.save();
 };
 
@@ -40772,25 +40770,34 @@ Doc.prototype.id = function (id) {
   }
 };
 
+Doc.prototype.getRef = function () {
+  return this._data;
+};
+
 // Usage: get(name) or get(dirty)
 Doc.prototype.get = function (name, dirty) {
   var self = this;
+
+  // Copy the data so that caller cannot modify our internal representation accidentially
+  var data = utils.clone(self._data);
+
   if (typeof name === 'boolean') {
     dirty = name;
     name = null;
   }
+
   if (name) {
-    return self._data[name];
+    return data[name];
   } else if (dirty) {
     var doc = {};
-    utils.each(self._data, function (value, name) {
+    utils.each(data, function (value, name) {
       if (self.dirty(name)) {
         doc[name] = value;
       }
     });
     return doc;
   } else {
-    return self._data;
+    return data;
   }
 };
 
@@ -41008,8 +41015,25 @@ var Utils = function () {
   this._bcrypt = bcrypt; // only for unit testing
 };
 
+Utils.prototype._fixDates = function (orig, copy) {
+  var self = this;
+  self.each(copy, function (value, name) {
+    if (orig[name] instanceof Date) { // Date?
+      copy[name] = new Date(copy[name]); // convert to Date
+    } else if (Array.isArray(value) || typeof value === 'object') {
+      // If the value is an Array or object then recursively fix
+      self._fixDates(orig[name], copy[name]);
+    }
+  });
+};
+
+/**
+ * Clones data and also preserves Dates
+ */
 Utils.prototype.clone = function (obj) {
-  return JSON.parse(JSON.stringify(obj));
+  var copy = JSON.parse(JSON.stringify(obj));
+  this._fixDates(obj, copy);
+  return copy;
 };
 
 // callback = function (item, key, obj)

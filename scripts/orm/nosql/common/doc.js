@@ -25,25 +25,34 @@ Doc.prototype.id = function (id) {
   }
 };
 
+Doc.prototype.getRef = function () {
+  return this._data;
+};
+
 // Usage: get(name) or get(dirty)
 Doc.prototype.get = function (name, dirty) {
   var self = this;
+
+  // Copy the data so that caller cannot modify our internal representation accidentially
+  var data = utils.clone(self._data);
+
   if (typeof name === 'boolean') {
     dirty = name;
     name = null;
   }
+
   if (name) {
-    return self._data[name];
+    return data[name];
   } else if (dirty) {
     var doc = {};
-    utils.each(self._data, function (value, name) {
+    utils.each(data, function (value, name) {
       if (self.dirty(name)) {
         doc[name] = value;
       }
     });
     return doc;
   } else {
-    return self._data;
+    return data;
   }
 };
 
