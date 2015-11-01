@@ -1,6 +1,6 @@
 Now
 ---
-- 100% code coverage
+- Errors when running npm run new-test-phantomjs: Warning: a promise was rejected with a non-error: [object Error]
 - impl todomvc example
 	- when mark as completed, why is title change also being sent to server?
 	- when refresh todos, very little should be exchanged with server. Why is all the data being transfered? Is the since property being set properly?

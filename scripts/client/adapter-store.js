@@ -13,6 +13,8 @@ var MemAdapter = require('../orm/nosql/adapters/mem/adapter');
  */
 var AdapterStore = function () {};
 
+// TODO: test!
+/* istanbul ignore next */
 AdapterStore.prototype.newAdapter = function () {
   return new MemAdapter();
 };
