@@ -2,7 +2,8 @@
 
 var Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
+  utils = require('../../../scripts/utils');
 
 describe('doc', function () {
 
@@ -26,6 +27,23 @@ describe('doc', function () {
 
   afterEach(function () {
     return db.destroy(true);
+  });
+
+  it('should save change', function () {
+    return task.set({ priority: 'high' }).then(function () {
+      var change = task._dat.changes[0];
+
+      // Simulate recording
+      return task._saveChange({
+        name: change.name,
+        val: JSON.stringify(change.val),
+        up: change.up,
+        re: change.up
+      });
+    }).then(function () {
+      // Make sure change was removed
+      utils.empty(task._dat.changes).should.eql.true;
+    });
   });
 
   it('should record when remote change has seq', function () {
