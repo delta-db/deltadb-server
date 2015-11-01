@@ -405,11 +405,9 @@ Doc.prototype._saveChange = function (change) {
 };
 
 Doc.prototype._setChange = function (change) {
-  // TODO: Is this ever needed?
-  // if (!this.id()) { // no id?
-  // this.id(change.id);
-  // }
-  return this._saveChange(change);
+  this._saveChange(change);
+  // Commit the changes to the store so that they aren't lost
+  return this._saveStore();
 };
 
 Doc.prototype._include = function () {
