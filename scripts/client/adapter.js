@@ -67,7 +67,7 @@ Adapter.prototype._systemDB = function () {
   if (!this._sysDB) {
     this._sysDB = this.db({
       db: clientUtils.SYSTEM_DB_NAME
-//, url: 'http://localhost:8080'
+        //, url: 'http://localhost:8080'
     }); // TODO: pass url here
   }
   return this._sysDB;
