@@ -12,8 +12,15 @@ Now
 - event for connect. Disconnect event already exists, but add info about both to wiki
 - use lie instead of bluebird
 - impl deltadb-ng
+- ability for DB to sync from system layer so that all DBs are synced
+- create managed service
+- website
+- examples
+
+
+Next 1
+---
 - Admin UI, e.g. "Delta Admin"
-- Roadmap
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 	- use Sequelize to abstract all adapters?
 - Doc for example use cases:
@@ -21,12 +28,13 @@ Now
 	- Groups can read and write
 	- Owners can read and write
 	- DB per user
-- ability for DB to sync from system layer so that all DBs are synced
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
+- todomvc example w/ react and another w/ ember
 
-Next
+
+Next 2
 ---
 - complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 - semver pkg
