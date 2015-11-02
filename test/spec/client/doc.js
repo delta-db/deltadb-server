@@ -29,7 +29,7 @@ describe('doc', function () {
     return db.destroy(true);
   });
 
-  it('should save change', function () {
+  var shouldSaveChange = function () {
     return task.set({
       priority: 'high'
     }).then(function () {
@@ -49,12 +49,14 @@ describe('doc', function () {
       // Make sure change was removed
       utils.empty(task._dat.changes).should.eql(true);
     });
+  };
+
+  it('should save change', function () {
+    return shouldSaveChange();
   });
 
   it('should save destroy change', function () {
-    return task.set({
-      priority: 'high'
-    }).then(function () {
+    return shouldSaveChange().then(function () {
       return task.destroy();
     }).then(function () {
 
