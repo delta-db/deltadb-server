@@ -30,8 +30,13 @@ describe('doc', function () {
   });
 
   it('should save change', function () {
-    return task.set({ priority: 'high' }).then(function () {
-      var change = task._dat.changes[0];
+    return task.set({
+      priority: 'high'
+    }).then(function () {
+
+      // Get the last change as we are using delete to delete the array items so the first index may
+      // not be 0
+      var change = task._dat.changes[task._dat.changes.length - 1];
 
       // Simulate recording
       return task._saveChange({
@@ -42,7 +47,30 @@ describe('doc', function () {
       });
     }).then(function () {
       // Make sure change was removed
-      utils.empty(task._dat.changes).should.eql.true;
+      utils.empty(task._dat.changes).should.eql(true);
+    });
+  });
+
+  it('should save destroy change', function () {
+    return task.set({
+      priority: 'high'
+    }).then(function () {
+      return task.destroy();
+    }).then(function () {
+
+      // Get the last change as we are using delete to delete the array items so the first index may
+      // not be 0
+      var change = task._dat.changes[task._dat.changes.length - 1];
+
+      // Simulate recording of destroy
+      return task._saveChange({
+        name: change.name,
+        up: change.up,
+        re: change.up
+      });
+    }).then(function () {
+      // Make sure change was removed
+      utils.empty(task._dat.changes).should.eql(true);
     });
   });
 

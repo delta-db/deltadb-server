@@ -38932,7 +38932,8 @@ module.exports = DeltaDB;
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  MemDoc = require('../orm/nosql/adapters/mem/doc');
+  MemDoc = require('../orm/nosql/adapters/mem/doc'),
+  Promise = require('bluebird');
 
 var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
@@ -39186,6 +39187,8 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
 
       self._saveRecording(name, value, recorded);
 
+      // TODO: is it better to use splice here? If so we'd need to iterate through the array
+      // backwards so that we process all elements
       delete self._dat.changes[i]; // the change was recorded with a quorum of servers so destroy it
     }
   });
@@ -39279,7 +39282,10 @@ Doc.prototype.unset = function (name, updated, recorded, untracked) {
 
 // TODO: remove this after enhance id-less docs to reconcile with ids?
 Doc.prototype._destroyLocally = function () {
-  return MemDoc.prototype.destroy.apply(this, arguments);
+  var self = this;
+  return MemDoc.prototype.destroy.apply(this, arguments).then(function () {
+    return self._store.destroy();
+  });
 };
 
 Doc.prototype.destroy = function (destroyedAt, untracked) {
@@ -39330,13 +39336,17 @@ Doc.prototype._saveChange = function (change) {
     }); // don't track as coming from server
   }
 
-  return self._record(change.name, val, updated, change.seq, recorded);
+  return Promise.resolve().then(function () {
+    self._record(change.name, val, updated, change.seq, recorded);
+  });
 };
 
 Doc.prototype._setChange = function (change) {
-  this._saveChange(change);
-  // Commit the changes to the store so that they aren't lost
-  return this._saveStore();
+  var self = this;
+  return self._saveChange(change).then(function () {
+    // Commit the changes to the store so that they aren't lost
+    return self._saveStore();
+  });
 };
 
 Doc.prototype._include = function () {
@@ -39443,7 +39453,7 @@ Doc.prototype._localChanges = function (retryAfter, returnSent) {
 
 module.exports = Doc;
 
-},{"../orm/nosql/adapters/mem/doc":204,"../utils":215,"./utils":193,"inherits":119}],190:[function(require,module,exports){
+},{"../orm/nosql/adapters/mem/doc":204,"../utils":215,"./utils":193,"bluebird":23,"inherits":119}],190:[function(require,module,exports){
 require('./auto-adapter-store'); // automatically select default store
 
 module.exports = require('./delta-db');

@@ -1,8 +1,5 @@
 Now
 ---
-- todo:
-	- client not deleting change when it receives recording
-	- when 2 browsers still transmitting too much when init
 - fix to work with booleans
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
