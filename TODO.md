@@ -5,6 +5,7 @@ Now
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
+- basic authentication -- just needed during init w/ server? Use token after authentication
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
@@ -13,13 +14,14 @@ Now
 - use lie instead of bluebird
 - impl deltadb-ng
 - ability for DB to sync from system layer so that all DBs are synced
-- create managed service
+- create managed service on AWS
 - website
 - examples
 
 
 Next 1
 ---
+- test in all browsers using saucelabs
 - Admin UI, e.g. "Delta Admin"
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 	- use Sequelize to abstract all adapters?
@@ -56,15 +58,10 @@ Next 2
 - run on Amazon lambda and other similar services
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
 - create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable
-- convert all .db({}) to .db(name)? Really, because probably need to pass host, user-uuid and password
 - server and client pagination for when there are a large amount of changes (partitioner already supports pagination)
 - client: ability to disconnect and leave disconnected until prompted to connect
 - faster to use bcrypt instead of bcryptjs for server side only?
 - create tour like slack product tour
-- Split into projects:
-	- SQL ORM
-	- deltadb-server
-	- deltadb (client)
 - clean up SQL error handling. Only ignore SQL errors when the exact error is known, e.g. doing a createOrUpdate and race condition from someone else creating doc first then should generate DuplicateError and if caught then can move on to doing the update
 - some of the tests, e.g. nosql/common/where don't really test the functionality they just satisfy the 100% code coverage--they should test functionality
 - consistency test:
@@ -109,7 +106,6 @@ NoSQL support
 
 Future?
 ---
-- test in all browsers using saucelabs
 - does ring of servers provide enough syncing speed, e.g. A->B->C->A or need a star, star of rings or star of stars? Or variation of star where two servers are in middle, e.g. A<->M1, B<->M1, C<->M1, A<->M2, B<->M2, C<->M2
 - https://github.com/axemclion/IndexedDBShim?
 - use deltadb to sync different types of DBs, e.g. Mongo with MySQL
