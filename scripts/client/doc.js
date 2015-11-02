@@ -3,7 +3,8 @@
 var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
-  MemDoc = require('../orm/nosql/adapters/mem/doc');
+  MemDoc = require('../orm/nosql/adapters/mem/doc'),
+  Promise = require('bluebird');
 
 var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
@@ -250,13 +251,17 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
     var changeSeq = utils.notDefined(change.seq) ? 0 : change.seq;
     seq = utils.notDefined(seq) ? 0 : seq;
 
-    if (change.name === name && val === value && change.up.getTime() === updated.getTime() &&
+    // Compare UTC strings as the timestamps with getTime() may be different
+    if (change.name === name && val === value &&
+      change.up.toUTCString() === updated.toUTCString() &&
       changeSeq === seq) {
 
       found = true; // TODO: stop looping once the change has been found
 
       self._saveRecording(name, value, recorded);
 
+      // TODO: is it better to use splice here? If so we'd need to iterate through the array
+      // backwards so that we process all elements
       delete self._dat.changes[i]; // the change was recorded with a quorum of servers so destroy it
     }
   });
@@ -350,7 +355,10 @@ Doc.prototype.unset = function (name, updated, recorded, untracked) {
 
 // TODO: remove this after enhance id-less docs to reconcile with ids?
 Doc.prototype._destroyLocally = function () {
-  return MemDoc.prototype.destroy.apply(this, arguments);
+  var self = this;
+  return MemDoc.prototype.destroy.apply(this, arguments).then(function () {
+    return self._store.destroy();
+  });
 };
 
 Doc.prototype.destroy = function (destroyedAt, untracked) {
@@ -368,13 +376,14 @@ Doc.prototype.destroy = function (destroyedAt, untracked) {
 };
 
 Doc.prototype._saveChange = function (change) {
+  var self = this;
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
   var val = change.val ? JSON.parse(change.val) : null; // val is JSON
-  var latest = this._dat.latest[change.name];
-  var self = this;
+  var latest = self._dat.latest[change.name];
+  var promise = Promise.resolve();
 
-  this._markedAt = null;
+  self._markedAt = null;
   if (latest) {
     delete latest.markedAt;
   }
@@ -390,26 +399,24 @@ Doc.prototype._saveChange = function (change) {
       } else {
         self.unset(change.name, updated, recorded, true);
       }
-      return self.save().then(function () {
-        self._record(change.name, val, updated, change.seq, recorded);
-      });
+      promise = self.save();
     }
-  } else if (!this._dat.updatedAt ||
-    updated.getTime() > this._dat.updatedAt.getTime()) { // destroying doc?
-    return self.destroy(updated, true).then(function () {
-      self._record(change.name, val, updated, change.seq, recorded);
-    }); // don't track as coming from server
+  } else if (!self._dat.updatedAt ||
+    updated.getTime() > self._dat.updatedAt.getTime()) { // destroying doc?
+    promise = self.destroy(updated, true); // don't track as coming from server
   }
 
-  return self._record(change.name, val, updated, change.seq, recorded);
+  return promise.then(function () {
+    self._record(change.name, val, updated, change.seq, recorded);
+  });
 };
 
 Doc.prototype._setChange = function (change) {
-  // TODO: Is this ever needed?
-  // if (!this.id()) { // no id?
-  // this.id(change.id);
-  // }
-  return this._saveChange(change);
+  var self = this;
+  return self._saveChange(change).then(function () {
+    // Commit the changes to the store so that they aren't lost
+    return self._saveStore();
+  });
 };
 
 Doc.prototype._include = function () {

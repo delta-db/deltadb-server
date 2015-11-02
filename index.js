@@ -1,5 +1,5 @@
 'use strict';
 
-var DeltaDB = require('./scripts/client/delta-db');
+var DeltaDB = require('./scripts/client');
 
 module.exports = DeltaDB;

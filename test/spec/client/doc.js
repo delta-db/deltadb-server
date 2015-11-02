@@ -2,7 +2,8 @@
 
 var Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
+  utils = require('../../../scripts/utils');
 
 describe('doc', function () {
 
@@ -26,6 +27,53 @@ describe('doc', function () {
 
   afterEach(function () {
     return db.destroy(true);
+  });
+
+  var shouldSaveChange = function () {
+    return task.set({
+      priority: 'high'
+    }).then(function () {
+
+      // Get the last change as we are using delete to delete the array items so the first index may
+      // not be 0
+      var change = task._dat.changes[task._dat.changes.length - 1];
+
+      // Simulate recording
+      return task._saveChange({
+        name: change.name,
+        val: JSON.stringify(change.val),
+        up: change.up.toUTCString(),
+        re: change.up.toUTCString()
+      });
+    }).then(function () {
+      // Make sure change was removed
+      utils.empty(task._dat.changes).should.eql(true);
+    });
+  };
+
+  it('should save change', function () {
+    return shouldSaveChange();
+  });
+
+  it('should save destroy change', function () {
+    return shouldSaveChange().then(function () {
+      return task.destroy();
+    }).then(function () {
+
+      // Get the last change as we are using delete to delete the array items so the first index may
+      // not be 0
+      var change = task._dat.changes[task._dat.changes.length - 1];
+
+      // Simulate recording of destroy
+      return task._saveChange({
+        name: change.name,
+        up: change.up.toUTCString(),
+        re: change.up.toUTCString()
+      });
+    }).then(function () {
+      // Make sure change was removed
+      utils.empty(task._dat.changes).should.eql(true);
+    });
   });
 
   it('should record when remote change has seq', function () {

@@ -215,7 +215,7 @@ DB.prototype.sync = function (part, quorum) {
     newSince = new Date();
     return self._loaded; // ensure props have been loaded/created first
   }).then(function () {
-    return part.changes(self._props.since);
+    return part.changes(self._props.get('since'));
   }).then(function (changes) {
     return self._setChanges(changes);
   }).then(function () {
@@ -305,7 +305,7 @@ DB.prototype._emitInit = function () {
   return self._ready().then(function () { // ensure props have been loaded/created first
     var msg = {
       db: self._name,
-      since: self._props.since
+      since: self._props.get('since')
     };
     log.info(self._id + ' sending init ' + JSON.stringify(msg));
     self._socket.emit('init', msg);
