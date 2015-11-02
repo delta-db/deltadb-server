@@ -251,7 +251,9 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
     var changeSeq = utils.notDefined(change.seq) ? 0 : change.seq;
     seq = utils.notDefined(seq) ? 0 : seq;
 
-    if (change.name === name && val === value && change.up.getTime() === updated.getTime() &&
+    // Compare UTC strings as the timestamps with getTime() may be different
+    if (change.name === name && val === value &&
+      change.up.toUTCString() === updated.toUTCString() &&
       changeSeq === seq) {
 
       found = true; // TODO: stop looping once the change has been found
@@ -374,13 +376,14 @@ Doc.prototype.destroy = function (destroyedAt, untracked) {
 };
 
 Doc.prototype._saveChange = function (change) {
+  var self = this;
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
   var val = change.val ? JSON.parse(change.val) : null; // val is JSON
-  var latest = this._dat.latest[change.name];
-  var self = this;
+  var latest = self._dat.latest[change.name];
+  var promise = Promise.resolve();
 
-  this._markedAt = null;
+  self._markedAt = null;
   if (latest) {
     delete latest.markedAt;
   }
@@ -396,18 +399,14 @@ Doc.prototype._saveChange = function (change) {
       } else {
         self.unset(change.name, updated, recorded, true);
       }
-      return self.save().then(function () {
-        self._record(change.name, val, updated, change.seq, recorded);
-      });
+      promise = self.save();
     }
-  } else if (!this._dat.updatedAt ||
-    updated.getTime() > this._dat.updatedAt.getTime()) { // destroying doc?
-    return self.destroy(updated, true).then(function () {
-      self._record(change.name, val, updated, change.seq, recorded);
-    }); // don't track as coming from server
+  } else if (!self._dat.updatedAt ||
+    updated.getTime() > self._dat.updatedAt.getTime()) { // destroying doc?
+    promise = self.destroy(updated, true); // don't track as coming from server
   }
 
-  return Promise.resolve().then(function () {
+  return promise.then(function () {
     self._record(change.name, val, updated, change.seq, recorded);
   });
 };
