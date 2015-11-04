@@ -29,14 +29,19 @@ describe('doc', function () {
     return db.destroy(true);
   });
 
-  var shouldSaveChange = function () {
-    return task.set({
-      priority: 'high'
-    }).then(function () {
+  var shouldSaveChange = function (data) {
+    return task.set(data).then(function () {
 
       // Get the last change as we are using delete to delete the array items so the first index may
       // not be 0
       var change = task._dat.changes[task._dat.changes.length - 1];
+
+      // Make sure value is being set
+      if (data.thing === null) {
+        (change.val === null).should.eql(true);
+      } else {
+        change.val.should.eql(data.thing);
+      }
 
       // Simulate recording
       return task._saveChange({
@@ -52,11 +57,15 @@ describe('doc', function () {
   };
 
   it('should save change', function () {
-    return shouldSaveChange();
+    return shouldSaveChange({
+      thing: 'high'
+    });
   });
 
   it('should save destroy change', function () {
-    return shouldSaveChange().then(function () {
+    return shouldSaveChange({
+      thing: 'high'
+    }).then(function () {
       return task.destroy();
     }).then(function () {
 
@@ -120,6 +129,18 @@ describe('doc', function () {
     }).then(function () {
       var doc = tasks.doc(task.get());
       doc.should.eql(task);
+    });
+  });
+
+  it('should save boolean change and record', function () {
+    return shouldSaveChange({
+      thing: false
+    });
+  });
+
+  it('should save null change and record', function () {
+    return shouldSaveChange({
+      thing: null
     });
   });
 

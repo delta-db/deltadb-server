@@ -2,9 +2,11 @@
 
 describe('process', function () {
   require('./attrs');
+  require('./boolean');
   require('./cols');
   require('./docs');
   require('./multiple');
+  require('./null');
   require('./policy');
   require('./quorum');
   require('./restore');

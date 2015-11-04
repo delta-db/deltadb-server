@@ -20,8 +20,8 @@ AttrRec.ACTION_ADD = 'add';
 AttrRec.ACTION_REMOVE = 'remove';
 
 AttrRec.prototype._stringify = function (col) {
-  // In DB, don't store 'null' (a string), store null
-  return col === null ? null : JSON.stringify(col);
+  // Store undefined as null in DB
+  return typeof col === 'undefined' ? null : JSON.stringify(col);
 };
 
 AttrRec.prototype._transformValue = function (rec) {
@@ -73,7 +73,7 @@ AttrRec.prototype.create = function () {
 
 AttrRec.prototype.getId = function () {
   return this._sql.find(['id'], this._name, null, [
-    // optimize query but first searching by indexed attrs
+    // optimize query by first searching by indexed attrs
     ['doc_id', '=', '"' + this._params.docId + '"'], 'and', ['name', '=', this._params.name ?
       '"' + this._params.name + '"' : 'null'
     ], 'and', ['updated_at', '=',

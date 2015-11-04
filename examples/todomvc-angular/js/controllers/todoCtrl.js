@@ -19,11 +19,7 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	$scope.editedTodo = null;
 
 	var pushTodo = function (todo) {
-		var data = todo.get();
-
-// TODO: remove after fix booleans
-		data.completed = data.completed === 'true';
-		$scope.todos.push(data);
+		$scope.todos.push(todo.get());
 		$scope.$apply(); // update UI
 	};
 
@@ -52,14 +48,7 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	todos.on('doc:update', function (todo) {
 		var index = findIndex(todo.id());
 		if (index !== null) { // found?
-
-			var data = todo.get();
-
-// TODO: remove after fix booleans
-			data.completed = data.completed === 'true';
-
-			$scope.todos[index] = data;
-
+			$scope.todos[index] = todo.get();
 			$scope.$apply(); // update UI
 		}
 	});
@@ -99,9 +88,7 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 
 		var todo = todos.doc({
 			title: newTodo,
-// TODO: enhance DDB to work with booleans, i.e. false is not considered attr delete, only null is
-			// completed: false
-			completed: 'false'
+			completed: false
 		});
 
 		todo.save();
@@ -116,10 +103,7 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 
 	$scope.save = function (todo) {
 		todos.get(todo.$id).then(function (todoDoc) {
-// TODO: remove after fix booleans
-			var formattedTodo = angular.extend({}, todo);
-			formattedTodo.completed = formattedTodo.completed ? 'true' : 'false';
-			return todoDoc.set(formattedTodo);
+			return todoDoc.set(todo);
 		});
 	};
 

@@ -299,7 +299,6 @@ describe('events', function () {
       id: '1',
       col: 'tasks',
       name: 'priority',
-      val: null,
       seq: 0,
       up: laterStr,
       re: laterStr
@@ -528,7 +527,6 @@ describe('events', function () {
       id: '1',
       col: 'tasks',
       name: null,
-      val: null,
       seq: 0,
       up: laterStr,
       re: laterStr

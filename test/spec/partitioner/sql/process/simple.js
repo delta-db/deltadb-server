@@ -7,35 +7,19 @@
 // TODO: remove destroyed_at from attrs
 
 var partUtils = require('../utils'),
-  constants = require('../../../../../scripts/partitioner/sql/constants');
+  constants = require('../../../../../scripts/partitioner/sql/constants'),
+  ProcTestUtils = require('./utils');
 
 describe('simple', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
   var utils = args.utils;
 
-  var queueAndProcess = function (changes) {
-    // Force quorum=true. We will test the processing of quorum elsewhere
-    return utils.queueAndProcess(args.db, changes, true);
-  };
+  var procTestUtils = null;
 
-  var docs = function (partition, destroyedAt, updatedAt) {
-    // TODO: ensure rows[0].recorded_at is from the last couple seconds
-    return utils.docsShouldEql(args.db, partition, [{
-      uuid: '1',
-      destroyed_at: (destroyedAt ? destroyedAt : null),
-      last_destroyed_at: (destroyedAt ? destroyedAt : null),
-      updated_at: updatedAt
-    }]);
-  };
-
-  var allDocs = function (destroyedAt, updatedAt) {
-    return docs(constants.ALL, destroyedAt, updatedAt).then(function () {
-      return docs(constants.RECENT, destroyedAt, updatedAt);
-    }).then(function () {
-      return docs(constants.LATEST, destroyedAt, updatedAt);
-    });
-  };
+  beforeEach(function () {
+    procTestUtils = new ProcTestUtils(args.db);
+  });
 
   var createChanges = [{
     col: 'task',
@@ -63,8 +47,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(createChanges).then(function () {
-      return allDocs(null, createChanges[0].up);
+    return procTestUtils.queueAndProcess(createChanges).then(function () {
+      return procTestUtils.allDocs(null, createChanges[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -108,8 +92,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(updateChanges).then(function () {
-      return allDocs(null, updateChanges[0].up);
+    return procTestUtils.queueAndProcess(updateChanges).then(function () {
+      return procTestUtils.allDocs(null, updateChanges[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -156,8 +140,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(destroyAttrChanges).then(function () {
-      return allDocs(null, destroyAttrChanges[0].up);
+    return procTestUtils.queueAndProcess(destroyAttrChanges).then(function () {
+      return procTestUtils.allDocs(null, destroyAttrChanges[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -211,8 +195,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(destroyDocChanges).then(function () {
-      return allDocs(destroyDocChanges[0].up, destroyAttrChanges[0].up);
+    return procTestUtils.queueAndProcess(destroyDocChanges).then(function () {
+      return procTestUtils.allDocs(destroyDocChanges[0].up, destroyAttrChanges[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -285,8 +269,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -330,8 +314,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(changes[1].up, changes[0].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(changes[1].up, changes[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -375,8 +359,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(changes[0].up, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(changes[0].up, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -429,8 +413,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[0].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -483,8 +467,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -545,8 +529,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -606,8 +590,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[0].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[0].up);
     }).then(function () {
       return allAttrs();
     });
@@ -669,8 +653,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(changes[1].up, changes[2].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(changes[1].up, changes[2].up);
     }).then(function () {
       return allAttrs();
     });
@@ -729,8 +713,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(null, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(null, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -774,8 +758,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(changes[0].up, changes[1].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(changes[0].up, changes[1].up);
     }).then(function () {
       return allAttrs();
     });
@@ -842,8 +826,8 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return allDocs(changes[1].up, changes[2].up);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.allDocs(changes[1].up, changes[2].up);
     }).then(function () {
       return allAttrs();
     });
@@ -935,10 +919,10 @@ describe('simple', function () {
       });
     };
 
-    return queueAndProcess(changes).then(function () {
-      return queueAndProcess(deleteChanges);
+    return procTestUtils.queueAndProcess(changes).then(function () {
+      return procTestUtils.queueAndProcess(deleteChanges);
     }).then(function () {
-      return allDocs(deleteChanges[0].up, changes[3].up);
+      return procTestUtils.allDocs(deleteChanges[0].up, changes[3].up);
     }).then(function () {
       return allAttrs();
     });
@@ -1000,10 +984,10 @@ describe('simple', function () {
     };
 
     // Separate changes to guarantee update before delete
-    return queueAndProcess([changes[0]]).then(function () {
-      return queueAndProcess([changes[1], changes[2]]);
+    return procTestUtils.queueAndProcess([changes[0]]).then(function () {
+      return procTestUtils.queueAndProcess([changes[1], changes[2]]);
     }).then(function () {
-      return allDocs(changes[2].up, changes[0].up);
+      return procTestUtils.allDocs(changes[2].up, changes[0].up);
     }).then(function () {
       return allAttrs();
     });

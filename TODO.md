@@ -1,17 +1,18 @@
 Now
 ---
-- fix to work with booleans
+- can destroy attr with doc.destroy('somename'). Also update wiki
+- remove tables: queued_attr_roles, queued_attrs, queued_docs
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
 - basic authentication -- just needed during init w/ server? Use token after authentication
+- use lie instead of bluebird
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 - event for connect. Disconnect event already exists, but add info about both to wiki
-- use lie instead of bluebird
 - impl deltadb-ng
 - ability for DB to sync from system layer so that all DBs are synced
 - create managed service on AWS
