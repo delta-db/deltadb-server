@@ -5,7 +5,6 @@ Now
 	- process queue before sending other deltas, e.g. need to create db before adding data
 - prefix store names, e.g. delta_mydb
 - basic authentication -- just needed during init w/ server? Use token after authentication
-- use lie instead of bluebird
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
