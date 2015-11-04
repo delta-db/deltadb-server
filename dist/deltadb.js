@@ -39083,7 +39083,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     change.name = name;
   }
 
-  if (value) {
+  if (typeof value !== 'undefined') { // undefined is used for destroying
     change.val = value;
   }
 
@@ -39175,12 +39175,14 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
   }
 
   utils.each(self._dat.changes, function (change, i) {
-    var val = change.val ? change.val : null;
+    var val = change.val;
 
     var changeSeq = utils.notDefined(change.seq) ? 0 : change.seq;
     seq = utils.notDefined(seq) ? 0 : seq;
 
-    if (change.name === name && val === value && change.up.getTime() === updated.getTime() &&
+    // Compare UTC strings as the timestamps with getTime() may be different
+    if (change.name === name && val === value &&
+      change.up.toUTCString() === updated.toUTCString() &&
       changeSeq === seq) {
 
       found = true; // TODO: stop looping once the change has been found
@@ -39206,7 +39208,7 @@ Doc.prototype._changeDoc = function (doc) {
 };
 
 Doc.prototype._destroying = function (value) {
-  return value ? false : true;
+  return typeof value === 'undefined';
 };
 
 // Cannot be called _events as this name is used by EventEmitter
@@ -39267,8 +39269,8 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
 };
 
 Doc.prototype.unset = function (name, updated, recorded, untracked) {
-  // TODO: really set value to null?
-  var events = this._change(name, null, updated, recorded, untracked);
+  // Use undefined to destroy
+  var events = this._change(name, undefined, updated, recorded, untracked);
 
   // Unset the value before any events are emitted by _change()
   var ret = MemDoc.prototype.unset.apply(this, arguments);
@@ -39293,7 +39295,8 @@ Doc.prototype.destroy = function (destroyedAt, untracked) {
   // outdated changes received for destroyed data
   this._dat.destroyedAt = destroyedAt ? destroyedAt : new Date();
 
-  var events = this._change(null, null, this._dat.destroyedAt, null, untracked);
+  // undefined is used to identify a destroy
+  var events = this._change(null, undefined, this._dat.destroyedAt, null, untracked);
 
   if (events) {
     this._emitEvents(events, null);
@@ -39302,14 +39305,20 @@ Doc.prototype.destroy = function (destroyedAt, untracked) {
   return this.save();
 };
 
+Doc.prototype._fromDeltaValue = function (val) {
+  // Only parse if value is defined
+  return typeof val === 'undefined' ? undefined : JSON.parse(val); // val is JSON
+};
+
 Doc.prototype._saveChange = function (change) {
+  var self = this;
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
-  var val = change.val ? JSON.parse(change.val) : null; // val is JSON
-  var latest = this._dat.latest[change.name];
-  var self = this;
+  var val = self._fromDeltaValue(change.val);
+  var latest = self._dat.latest[change.name];
+  var promise = Promise.resolve();
 
-  this._markedAt = null;
+  self._markedAt = null;
   if (latest) {
     delete latest.markedAt;
   }
@@ -39319,24 +39328,20 @@ Doc.prototype._saveChange = function (change) {
     if ((!latest || updated.getTime() > latest.up.getTime() ||
         (updated.getTime() === latest.up.getTime() && change.seq > latest.seq) ||
         (updated.getTime() === latest.up.getTime() &&
-          change.seq === latest.seq /* && val > latest.val */ ))) {
-      if (change.val) {
+          change.seq === latest.seq))) {
+      if (typeof val !== 'undefined') {
         self._set(change.name, val, updated, recorded, true);
       } else {
         self.unset(change.name, updated, recorded, true);
       }
-      return self.save().then(function () {
-        self._record(change.name, val, updated, change.seq, recorded);
-      });
+      promise = self.save();
     }
-  } else if (!this._dat.updatedAt ||
-    updated.getTime() > this._dat.updatedAt.getTime()) { // destroying doc?
-    return self.destroy(updated, true).then(function () {
-      self._record(change.name, val, updated, change.seq, recorded);
-    }); // don't track as coming from server
+  } else if (!self._dat.updatedAt ||
+    updated.getTime() > self._dat.updatedAt.getTime()) { // destroying doc?
+    promise = self.destroy(updated, true); // don't track as coming from server
   }
 
-  return Promise.resolve().then(function () {
+  return promise.then(function () {
     self._record(change.name, val, updated, change.seq, recorded);
   });
 };
@@ -39429,12 +39434,17 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
     chng.col = this._col._name;
     chng.id = this.id();
     chng.up = change.up.toISOString();
+
     if (chng.val) { // don't set val if falsy
       chng.val = JSON.stringify(chng.val);
+    } else {
+      delete chng.val; // save some bandwidth and clear if null
     }
+
     // if (!change.seq) {
     //   delete chng.seq; // save some bandwidth and clear the seq if 0
     // }
+
     changes.push(chng);
     change.sent = new Date();
   }

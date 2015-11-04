@@ -1,8 +1,6 @@
 Now
 ---
-- fix to work with booleans and nulls
-	- can destroy attr with doc.destroy('somename')
-	- afterwards, update todomvc example to use booleans
+- can destroy attr with doc.destroy('somename'). Also update wiki
 - remove tables: queued_attr_roles, queued_attrs, queued_docs
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
