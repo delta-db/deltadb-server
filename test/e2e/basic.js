@@ -81,8 +81,6 @@ describe('basic', function () {
 
   });
 
-  // TODO: (diff file) use two instances of DeltaDB to test in same app
-
   // TODO: test changes made to client after it has already done the initial sync, i.e. client needs
   // to trigger sync. How to determine when initial sync done? Can do this with spy?
 

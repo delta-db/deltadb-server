@@ -317,7 +317,7 @@ describe('client', function () {
       // seq=1 as set and unset at same time
       latest[changes[0].id] = {
         priority: {
-          val: null,
+          val: undefined,
           up: updated,
           seq: 1
         }
@@ -800,7 +800,7 @@ describe('client', function () {
       var latest = {};
       latest['1'] = {
         thing: {
-          val: null,
+          val: undefined,
           up: new Date('2014-01-01T07:00:00.000Z'),
           seq: 0,
           re: new Date('2014-01-01T08:00:00.000Z')
@@ -890,7 +890,7 @@ describe('client', function () {
       var latest = {};
       latest[changes[0].id] = {
         priority: {
-          val: null,
+          val: undefined,
           up: new Date(changes[1].up),
           seq: changes[1].seq
         }
@@ -1079,7 +1079,7 @@ describe('client', function () {
       var latest = {};
       latest['1'] = {
         priority: {
-          val: null,
+          val: undefined,
           up: new Date(destroyedAt),
           seq: 0
         }
@@ -1112,7 +1112,7 @@ describe('client', function () {
       var latest = {};
       latest['1'] = {
         priority: {
-          val: null,
+          val: undefined,
           up: new Date(destroyedAt),
           seq: 0,
           re: new Date('2014-01-01T05:30:00.000Z')
@@ -1315,7 +1315,7 @@ describe('client', function () {
       var latest = {};
       latest['1'] = {
         priority: {
-          val: null,
+          val: undefined,
           up: new Date('2014-01-01T07:00:00.000Z'),
           re: new Date('2014-01-01T05:00:00.000Z'),
           seq: 0

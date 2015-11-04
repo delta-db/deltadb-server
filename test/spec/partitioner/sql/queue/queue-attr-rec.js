@@ -7,7 +7,7 @@ var QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-
   utils = require('../../../../utils'),
   partUtils = require('../utils');
 
-describe('queue-attr-recs', function () {
+describe('queue-attr-rec', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, true, before, after);
 

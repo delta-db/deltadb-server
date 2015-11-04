@@ -96,6 +96,11 @@ Process.prototype._forUserUUID = function (attr) {
   }
 };
 
+Process.prototype._fromDeltaValue = function (value) {
+  // Null values are treated as undefined
+  return value ? JSON.parse(value) : undefined;
+};
+
 Process.prototype._createOrUpdateAttr = function (part, attr) {
   // We need to check to see if the userId, colId and docId exists as it may not have been created
   // due to a lack of permission
@@ -114,8 +119,10 @@ Process.prototype._createOrUpdateAttr = function (part, attr) {
 
     var recordedByUserId = this._getRecordedByUserId(attr);
 
+    var val = this._fromDeltaValue(attr.attr_val);
+
     var params = new AttrParams(this._docIds[part][attr.doc_uuid], attr.attr_name,
-      JSON.parse(attr.attr_val), this._userIds[attr.user_uuid],
+      val, this._userIds[attr.user_uuid],
       destroyedAt, attr.recorded_at, updatedAt, attr.seq, attr.quorum,
       attr.user_uuid, this._colIds[attr.col_name], attr.doc_uuid,
       this._userIds[forUserUUID], forUserUUID, recordedByUserId);
