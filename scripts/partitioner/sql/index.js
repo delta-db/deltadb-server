@@ -90,12 +90,10 @@ Part.prototype._registerDisconnectListener = function () {
 };
 
 Part.prototype._initPartitions = function () {
-  this._queued = new Partition(this._sql, constants.QUEUED, this._policy, this._userRoles, this);
   this._latest = new Partition(this._sql, constants.LATEST, this._policy, this._userRoles, this);
   this._recent = new Partition(this._sql, constants.RECENT, this._policy, this._userRoles, this);
   this._all = new Partition(this._sql, constants.ALL, this._policy, this._userRoles, this);
   this._partitions = {};
-  this._partitions[constants.QUEUED] = this._queued;
   this._partitions[constants.LATEST] = this._latest;
   this._partitions[constants.RECENT] = this._recent;
   this._partitions[constants.ALL] = this._all;

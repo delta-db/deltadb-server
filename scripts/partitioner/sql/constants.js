@@ -3,12 +3,10 @@
 // We define a Constants class to prevent circular dependencies
 var Constants = {};
 
-// * queued_ - docs queued for writing (deferred writing for speed)
 // * latest_ - the latest values of each doc (used during initial sync)
 // * recent_ - buffered changes since last archive (clients use this to sync unless looking for
 //             changes before last archive, in which case they use latest)
 // * all_    - all changes
-Constants.QUEUED = 'queued_';
 Constants.LATEST = 'latest_';
 Constants.RECENT = 'recent_';
 Constants.ALL = 'all_';
