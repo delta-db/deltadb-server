@@ -3,7 +3,8 @@
 /* global before, after */
 
 var partUtils = require('../utils'),
-  constants = require('../../../../../scripts/partitioner/sql/constants');
+  constants = require('../../../../../scripts/partitioner/sql/constants'),
+  QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs');
 
 describe('multiple', function () {
 
@@ -191,11 +192,7 @@ describe('multiple', function () {
 
   it('should destroy from queue', function () {
     return queueAndProcess(changes).then(function () {
-      return utils.findDocs(args.db, constants.QUEUED);
-    }).then(function (results) {
-      (results.rows === null).should.eql(true);
-    }).then(function () {
-      return utils.findAttrs(args.db, constants.QUEUED);
+      return args.db._sql.find(null, QueueAttrRecs.NAME);
     }).then(function (results) {
       (results.rows === null).should.eql(true);
     });
