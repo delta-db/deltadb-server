@@ -1,8 +1,16 @@
 Now
 ---
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
+	- Continue w/ system db:
+		- have db props store a uuid identifying the system DB
+		- system DB then named this uuid
+		- enhance so system db has mode where filters based on attr name and value (how to filter destroys)
+		- enhance so all system deltas must be recorded before other dbs continue sending
+	- OR
 	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
 	- process queue before sending other deltas, e.g. need to create db before adding data
+	- OR
+	- make unique name for system tables, e.g. uuid, and then modify that server registers which changes to send back in default system mode
 - prefix store names, e.g. delta_mydb
 - basic authentication -- just needed during init w/ server? Use token after authentication
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
@@ -14,6 +22,8 @@ Now
 - ability for DB to sync from system layer so that all DBs are synced
 - create managed service on AWS
 - website
+	- The world's first offline-first database
+	- Example: DeltaDB is ???
 - examples
 
 
@@ -91,6 +101,7 @@ Next 2
 	- Future option: have IDB be fault tolerant so if say creating same DB at same time then handle errors and try to reopen. Simulate with unit tests on IDB.
 	- could also develop concept of session instance of DB, e.g. prefix DB with '1', '2', etc... but then how to coordinate which tab gets with DB?
 - investigate use of logger package for both server and client--replace use of in-house log
+- Way of specifying name of client store so that we can have 2 DBs with the same name, e.g. '$system', that point point to different servers
 
 
 NoSQL support
