@@ -63,12 +63,16 @@ Adapter.prototype.db = function (opts) {
   }
 };
 
+Adapter.prototype._newSystemDB = function () {
+  this._sysDB = this.db({
+    db: clientUtils.SYSTEM_DB_NAME
+      //, url: 'http://localhost:8080'
+  }); // TODO: pass url here
+};
+
 Adapter.prototype._systemDB = function () {
   if (!this._sysDB) {
-    this._sysDB = this.db({
-      db: clientUtils.SYSTEM_DB_NAME
-        //, url: 'http://localhost:8080'
-    }); // TODO: pass url here
+    this._newSystemDB();
   }
   return this._sysDB;
 };

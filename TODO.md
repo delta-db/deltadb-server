@@ -2,6 +2,8 @@ Now
 ---
 - create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
 	- Continue w/ system db:
+		- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
+			- would need to make db.destroy() then destroy the associated system db
 		- have db props store a uuid identifying the system DB
 		- system DB then named this uuid
 		- enhance so system db has mode where filters based on attr name and value (how to filter destroys)
