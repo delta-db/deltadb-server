@@ -55,12 +55,18 @@ Adapter.prototype.db = function (opts) {
       dbStore = opts.store;
     }
 
-    db = new DB(opts.db, this, opts.url, opts.local);
+    var filter = typeof opts.filter === 'undefined' ? true : opts.filter;
+
+    db = new DB(opts.db, this, opts.url, opts.local, !filter);
     db._import(dbStore);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);
     return db;
   }
+};
+
+Adapter.prototype._clearSystemDB = function () {
+  this._sysDB = null;
 };
 
 Adapter.prototype._systemDB = function () {

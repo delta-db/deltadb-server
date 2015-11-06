@@ -35,6 +35,8 @@ Sender.prototype._sendLoop = function () {
       setTimeout(function () {
         self._sendLoop();
       }, Sender.SEND_EVERY_MS);
+
+      return null; // prevent runaway promise warnings
     });
   }
 };

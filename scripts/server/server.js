@@ -39,7 +39,7 @@ Server.prototype._registerInitListener = function (socket) {
 
     // Lookup/create partitioner for DB name
     var since = msg.since ? new Date(msg.since) : null;
-    return self._partitioners.existsThenRegister(msg.db, socket, since)
+    return self._partitioners.existsThenRegister(msg.db, socket, since, msg.filter)
       .then(function (partitioner) {
         self._registerDisconnectListener(socket, partitioner);
         self._registerChangesListener(socket, partitioner);

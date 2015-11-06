@@ -1,11 +1,14 @@
 Now
 ---
-- create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
-	- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
-	- process queue before sending other deltas, e.g. need to create db before adding data
+- System DB
+	- filter create/destroy user & set policy
+	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
+		- would need to make db.destroy() then destroy the associated system db
+		- have db props store a uuid identifying the system DB
+		- system DB then named this uuid
+	- enhance so all system deltas must be recorded before other dbs continue sending
 - prefix store names, e.g. delta_mydb
 - basic authentication -- just needed during init w/ server? Use token after authentication
-- use lie instead of bluebird
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
@@ -15,6 +18,8 @@ Now
 - ability for DB to sync from system layer so that all DBs are synced
 - create managed service on AWS
 - website
+	- The world's first offline-first database
+	- Example: DeltaDB is ???
 - examples
 
 
@@ -37,6 +42,7 @@ Next 1
 
 Next 2
 ---
+- add auto archiving to server
 - complete e2e tests (see TODOs), including roles, user roles and make sure that handling doc id reconcilation the same way as with create/destroy db
 - semver pkg
 - codeclimate.com
@@ -92,6 +98,7 @@ Next 2
 	- Future option: have IDB be fault tolerant so if say creating same DB at same time then handle errors and try to reopen. Simulate with unit tests on IDB.
 	- could also develop concept of session instance of DB, e.g. prefix DB with '1', '2', etc... but then how to coordinate which tab gets with DB?
 - investigate use of logger package for both server and client--replace use of in-house log
+- Way of specifying name of client store so that we can have 2 DBs with the same name, e.g. '$system', that point point to different servers
 
 
 NoSQL support
@@ -130,6 +137,19 @@ Future?
 - what is the best web socket framework to use that will give us max speed and num connections? https://medium.com/@denizozger/finding-the-right-node-js-websocket-implementation-b63bfca0539. Probably need to benchmark
 - auto restore for when DB destroyed?
 - Generate entire RESTful API, including swagger docs with just MSON and DeltaDB store. This could be good for third parties that don't want to use DeltaDB to access the data.
+- DB/User Sharding:
+	- Scenario: DB-per-user with millions of users
+	- Construct:
+		- Router:
+			- keeps list of where each user's DB is stored
+			- could also just use user-uuid which in itself could be used for routing
+		- DBs then stored on different servers
+		- Phase 2: feature to rebalance/move DB's to another server if say running out of space
+- Design Doc/Stored Procedures:
+	- Scenario: only certain users can create their own DB when they can say an InvitationID
+	- Construct:
+		- Privileged user can create stored procedure that upon syncing will run on server and creates a user if the InvitationID is valid
+		- Client can then go about using new DB
 
 
 Docs

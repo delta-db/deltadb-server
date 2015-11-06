@@ -414,6 +414,7 @@ Doc.prototype._saveChange = function (change) {
 
   return promise.then(function () {
     self._record(change.name, val, updated, change.seq, recorded);
+    return null; // prevent runaway promise warnings
   });
 };
 
