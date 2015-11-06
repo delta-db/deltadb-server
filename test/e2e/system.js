@@ -4,8 +4,6 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  DB = require('../../scripts/client/db'),
-  Promise = require('bluebird'),
   utils = require('../../scripts/utils'),
   clientUtils = require('../../scripts/client/utils');
 
@@ -21,8 +19,8 @@ describe('system', function () {
   // appears that mocha doesn't support embedding this in a before() or beforeEach().
   this.timeout(20000);
 
-  var db,
-    dbsCreated = [];
+  var dbsCreated = [],
+    dbsDestroyed = [];
 
   var create = function (dbName) {
     var db = new DeltaDB(dbName, config.URL);
@@ -39,22 +37,18 @@ describe('system', function () {
   var destroy = function (db) {
     return db.destroy().then(function () {
       return DeltaDB._systemDB().destroy(true, false);
-    });
-  };
-
-  beforeEach(function () {
-    return create('mydb').then(function (_db) {
-      return destroy(_db);
     }).then(function () {
       // TODO: remove this after we have a system db per db
       // Set to null to force creation of a new system DB
       DeltaDB._newSystemDB();
       return null; // prevent runaway promise warning
-    })
-  });
+    });
+  };
 
-  afterEach(function () {
-    return destroy(db);
+  beforeEach(function () {
+    return create('mydb').then(function (db) {
+      return destroy(db);
+    });
   });
 
   it('should filter system deltas', function () {
@@ -71,11 +65,24 @@ describe('system', function () {
 
     });
 
-    return create('myotherdb').then(function (_db) {
-      db = _db;
+    systemDB.on('doc:destroy', function (doc) {
+      var data = doc.get();
 
-      // Make sure we only received the 2nd db creation
+      var dbName = data[clientUtils.DB_ATTR_NAME];
+
+      if (dbName && typeof dbName === 'string') { // db destroyed?
+        dbsDestroyed.push(dbName);
+      }
+
+    });
+
+    return create('myotherdb').then(function (db) {
+      return destroy(db);
+    }).then(function () {
+
+      // Make sure we only received the 2nd db create/destroy
       dbsCreated.should.eql(['myotherdb']);
+      dbsDestroyed.should.eql(['myotherdb']);
     });
   });
 

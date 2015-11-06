@@ -7,6 +7,10 @@ var DeltaDB = require('../../scripts/client/delta-db'),
 
 describe('basic', function () {
 
+  // A lot of time is needed as we destroy and create the dbs several times. Unfortunately, it
+  // appears that mocha doesn't support embedding this in a before() or beforeEach().
+  this.timeout(10000);
+
   var a = null,
     aTasks = null;
 
@@ -18,6 +22,11 @@ describe('basic', function () {
   afterEach(function () {
     return a.destroy().then(function () {
       return DeltaDB._systemDB().destroy(true, false);
+    }).then(function () {
+      // TODO: remove this after we have a system db per db
+      // Set to null to force creation of a new system DB
+      DeltaDB._newSystemDB();
+      return null; // prevent runaway promise warning
     });
   });
 

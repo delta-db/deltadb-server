@@ -31,6 +31,9 @@ Process.prototype._initSystemDB = function () {
   // TODO: doesn't url need to be set here?
   self._systemDB = self._client.db({
     db: clientUtils.SYSTEM_DB_NAME,
+
+    // Receive all deltas don't filter for just deltas that originate from this client
+    filter: false
     // , url: 'http://localhost:8080'
   });
 

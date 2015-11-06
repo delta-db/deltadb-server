@@ -25,20 +25,28 @@ Partitioners.prototype.dbExists = function (dbName) {
 
 Partitioners.POLL_SLEEP_MS = 1000;
 
-Partitioners.prototype.existsThenRegister = function (dbName, socket, since) {
+Partitioners.prototype.existsThenRegister = function (dbName, socket, since, filter) {
   var self = this;
   return self.dbExists(dbName).then(function () {
-    return self.register(dbName, socket, since);
+    return self.register(dbName, socket, since, filter);
   });
 };
 
+Partitioners.prototype._defaultFilters = function () {
+  var filters = {};
+  filters[clientUtils.SYSTEM_DB_NAME] = {};
+  return filters;
+};
+
 // TODO: split up
-Partitioners.prototype.register = function (dbName, socket, since) {
+Partitioners.prototype.register = function (dbName, socket, since, filter) {
   var self = this;
   if (self._partitioners[dbName]) { // exists?
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
-      since: since
+      since: since,
+      filters: self._defaultFilters(),
+      filter: filter
     };
     return self._partitioners[dbName].ready;
   } else {
@@ -49,7 +57,9 @@ Partitioners.prototype.register = function (dbName, socket, since) {
 
     conns[socket.conn.id] = {
       socket: socket,
-      since: since
+      since: since,
+      filters: self._defaultFilters(),
+      filter: filter
     };
 
     var container = {
@@ -186,12 +196,68 @@ Partitioners.prototype._emitChanges = function (socket, changes, since) {
   socket.emit('changes', msg);
 };
 
+Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
+  // We only support filters on the system DB for now as we want to make sure that a client doesn't
+  // receive all system deltas
+  var self = this;
+  if (dbName === clientUtils.SYSTEM_DB_NAME &&
+    self._partitioners[dbName].conns[socket.conn.id].filter) { // system DB and filtering enabled?
+    changes.forEach(function (change) {
+      if (change.col === clientUtils.DB_COLLECTION_NAME) { // db action?
+        var action = JSON.parse(change.val);
+        self._partitioners[dbName].conns[socket.conn.id].filters[action.name] = true;
+      }
+    });
+  }
+};
+
+Partitioners.prototype._includeChange = function (dbName, socket, change) {
+  if (change.col === clientUtils.DB_COLLECTION_NAME &&
+    this._partitioners[dbName].conns[socket.conn.id].filter) { // db action and filtering enabled?
+    if (typeof change.val === 'undefined') { // destroying
+      if (this._partitioners[dbName].conns[socket.conn.id].filters[change.id]) { // include?
+        return true;
+      }
+    } else { // creating
+      var val = JSON.parse(change.val);
+      if (this._partitioners[dbName].conns[socket.conn.id].filters[val]) { // include?
+        // Set id so that we can filter destroy
+        this._partitioners[dbName].conns[socket.conn.id].filters[change.id] = true;
+        return true;
+      }
+    }
+  } else {
+    return true;
+  }
+
+  return false;
+};
+
+Partitioners.prototype._filter = function (dbName, socket, changes) {
+  // We only support filters on the system DB for now as we want to make sure that a client doesn't
+  // receive all system deltas
+  var self = this, newChanges = [], i = 0;
+  if (dbName === clientUtils.SYSTEM_DB_NAME) { // system DB?
+    changes.forEach(function (change) {
+      if (self._includeChange(dbName, socket, change)) {
+        newChanges[i++] = change;
+      }
+    });
+  } else {
+    newChanges = changes;
+  }
+
+  return newChanges;
+};
+
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
 
   var self = this,
     part = self._partitioners[dbName].part;
+
+  self._saveFilters(dbName, socket, msg.changes);
 
   // TODO: this needs to be a variable, e.g. false if there is only one DB server and true if there
   // is more than 1
@@ -213,6 +279,7 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   // client to resend changes. On the other side, how do we handle pagination from client?
   var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
   return part.changes(since, null, null, null, all).then(function (changes) {
+    changes = self._filter(dbName, socket, changes);
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);
     }

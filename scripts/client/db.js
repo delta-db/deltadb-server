@@ -18,7 +18,7 @@ var inherits = require('inherits'),
   log = require('../client/log'),
   config = require('./config');
 
-var DB = function (name, adapter, url, localOnly) {
+var DB = function (name, adapter, url, localOnly, noFilters) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -35,7 +35,10 @@ var DB = function (name, adapter, url, localOnly) {
 
   this._storesImported = false;
 
+  this._noFilters = noFilters;
+
   this._localOnly = localOnly;
+
   if (!localOnly) {
     // This is registered immediately so that do not listen for a change after a change has already
     this._registerSenderListener();
@@ -300,13 +303,18 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
   });
 };
 
+DB.prototype._emitInitMsg = function () {
+  return {
+    db: this._name,
+    since: this._props.get('since'),
+    filter: this._noFilters ? false : true
+  };
+};
+
 DB.prototype._emitInit = function () {
   var self = this;
   return self._ready().then(function () { // ensure props have been loaded/created first
-    var msg = {
-      db: self._name,
-      since: self._props.get('since')
-    };
+    var msg = self._emitInitMsg();
     log.info(self._id + ' sending init ' + JSON.stringify(msg));
     self._socket.emit('init', msg);
   });
