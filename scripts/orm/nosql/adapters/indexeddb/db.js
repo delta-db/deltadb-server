@@ -232,6 +232,8 @@ DB.prototype._processQueue = function () {
       if (!self._closed) {
         return self._processTransactions();
       }
+
+      return null; // prevent runaway promise warning
     }).then(function () {
       self._processingQueue = false; // allow others to know we are done
 

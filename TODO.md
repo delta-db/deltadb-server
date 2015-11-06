@@ -1,5 +1,6 @@
 Now
 ---
+- Fix runaway promise error w/ "should filter system deltas"
 - System DB
 	- filter create/destroy user & set policy
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
