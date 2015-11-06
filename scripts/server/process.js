@@ -34,7 +34,7 @@ Process.prototype._initSystemDB = function () {
 
     // Receive all deltas don't filter for just deltas that originate from this client
     filter: false
-    // , url: 'http://localhost:8080'
+      // , url: 'http://localhost:8080'
   });
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);

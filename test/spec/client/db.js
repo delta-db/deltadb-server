@@ -93,7 +93,10 @@ describe('db', function () {
 
   it('should build init msg with filters turned off', function () {
     var client = new Client(true);
-    var db = client.db({ db: 'mydb', filter: false });
+    var db = client.db({
+      db: 'mydb',
+      filter: false
+    });
     return clientUtils.once(db, 'load').then(function () {
       var msg = db._emitInitMsg();
       msg.filter.should.eql(false);

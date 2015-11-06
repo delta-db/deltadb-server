@@ -25,7 +25,9 @@ describe('system', function () {
   var create = function (dbName) {
     var db = new DeltaDB(dbName, config.URL);
     var tasks = db.col('tasks');
-    var task = tasks.doc({ thing: 'write' });
+    var task = tasks.doc({
+      thing: 'write'
+    });
     task.save();
 
     // Waiting for the following event ensures that the DB has already been created

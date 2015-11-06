@@ -236,7 +236,9 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
 Partitioners.prototype._filter = function (dbName, socket, changes) {
   // We only support filters on the system DB for now as we want to make sure that a client doesn't
   // receive all system deltas
-  var self = this, newChanges = [], i = 0;
+  var self = this,
+    newChanges = [],
+    i = 0;
   if (dbName === clientUtils.SYSTEM_DB_NAME) { // system DB?
     changes.forEach(function (change) {
       if (self._includeChange(dbName, socket, change)) {
