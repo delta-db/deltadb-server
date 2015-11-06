@@ -111,7 +111,7 @@ describe('persist', function () {
           found = true;
         }, true); // include destroyed docs
       });
-    }).then(function () {
+
       found.should.eql(true);
       return null; // prevent runaway promise warning
     });

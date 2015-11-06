@@ -25,7 +25,7 @@ describe('basic', function () {
     }).then(function () {
       // TODO: remove this after we have a system db per db
       // Set to null to force creation of a new system DB
-      DeltaDB._newSystemDB();
+      DeltaDB._clearSystemDB();
       return null; // prevent runaway promise warning
     });
   });

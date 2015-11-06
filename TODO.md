@@ -1,17 +1,12 @@
 Now
 ---
 - System DB
-	- ** Continue w/ system db:
-		- filter create/destroy user & set policy
-		- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
-			- would need to make db.destroy() then destroy the associated system db
+	- filter create/destroy user & set policy
+	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
+		- would need to make db.destroy() then destroy the associated system db
 		- have db props store a uuid identifying the system DB
 		- system DB then named this uuid
-		- enhance so all system deltas must be recorded before other dbs continue sending
-	- OR create construct under store db called system_queue that is used to create/destroy dbs, create/destroy users, set policies
-		- e.g. { action: 'destroy-db', user-uuid: ??? } (create-db implicit for now)
-		- process queue before sending other deltas, e.g. need to create db before adding data
-	- OR make unique name for system tables, e.g. uuid, and then modify that server registers which changes to send back in default system mode
+	- enhance so all system deltas must be recorded before other dbs continue sending
 - prefix store names, e.g. delta_mydb
 - basic authentication -- just needed during init w/ server? Use token after authentication
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm

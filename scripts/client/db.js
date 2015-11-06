@@ -118,6 +118,7 @@ DB.prototype._initStore = function () {
     }
   }).then(function () {
     self.emit('load');
+    return null; // prevent runaway promise warnings
   });
 };
 
@@ -317,6 +318,7 @@ DB.prototype._emitInit = function () {
     var msg = self._emitInitMsg();
     log.info(self._id + ' sending init ' + JSON.stringify(msg));
     self._socket.emit('init', msg);
+    return null; // prevent runaway promise warnings
   });
 };
 
@@ -350,6 +352,7 @@ DB.prototype._findAndEmitChanges = function () {
     if (changes.length > 0) {
       self._emitChanges(changes);
     }
+    return null; // prevent runaway promise warnings
   });
 
 };
