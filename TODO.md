@@ -6,25 +6,34 @@ Now
 		- would need to make db.destroy() then destroy the associated system db
 		- have db props store a uuid identifying the system DB
 		- system DB then named this uuid
-	- enhance so all system deltas must be recorded before other dbs continue sending
+	- enhance so all system deltas must be recorded before db continues sending
 - prefix store names, e.g. delta_mydb
-- basic authentication -- just needed during init w/ server? Use token after authentication
+- basic authentication
+	- needed during init w/ server. Use token after authentication
+	- token expiration should be refreshed with each sync
+	- token expiration configurable
+	- client gets new token after token expiration
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - Tests:
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 - event for connect. Disconnect event already exists, but add info about both to wiki
 - impl deltadb-ng
-- ability for DB to sync from system layer so that all DBs are synced
+- ability for DB to sync from system layer so that all DBs are synced between 2 servers
 - create managed service on AWS
 - website
-	- The world's first offline-first database
+	- The offline-first database. The world's first offline-first database
 	- Example: DeltaDB is ???
-- examples
+- getting started tutorial
 
 
 Next 1
 ---
+- todomvc example w/ react and another w/ ember
+- Error Reporting
+	- How to report errors, e.g. ForbiddenErrors, to client? What other errors can we expect? If the underlying DB is unavailable then a retry will solve the problem.
+	- 1: Don't do any reporting and expect client to retry and if permanent error (is there such a thing?) then expect client to know why
+	- 2: Store error deltas, like recordings with name and value, but also with an error code
 - test in all browsers using saucelabs
 - Admin UI, e.g. "Delta Admin"
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
@@ -37,7 +46,6 @@ Next 1
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
-- todomvc example w/ react and another w/ ember
 
 
 Next 2
@@ -134,6 +142,13 @@ Future?
 - Figure out a way to use Selenium with Chrome and Firefox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
 - indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
 - wrap ids to prevent exceptions? Is this a concern with the attrs table? Do we need to have a process that sets the auto_increment back to 0 when it reaches a high enough number? Better to just not have ids for these tables? But then how to order attributes in a deterministic way? Need to take DB offline at this point and adjust all ids down to 0? Could prevent taking DB offline by just starting to adjust all ids with transactions once we get close to the overflow value, but then this would make the changes() call return changes out of order. http://stackoverflow.com/questions/2615417/what-happens-when-auto-increment-on-integer-column-reaches-the-max-value-in-data
+	- Could also develop notion of hotswapping servers:
+		- Let' say we have servers A & B
+		- Spin up new server, C
+		- C syncs with A
+		- C replaces A in regards to client facing and syncing with B
+		- C syncs with A (to get any changes since the last sync and the replacement)
+		- Destroy A
 - what is the best web socket framework to use that will give us max speed and num connections? https://medium.com/@denizozger/finding-the-right-node-js-websocket-implementation-b63bfca0539. Probably need to benchmark
 - auto restore for when DB destroyed?
 - Generate entire RESTful API, including swagger docs with just MSON and DeltaDB store. This could be good for third parties that don't want to use DeltaDB to access the data.
