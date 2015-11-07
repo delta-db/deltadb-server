@@ -41,22 +41,22 @@ describe('system', function () {
     // TODO: remove after get working
     return db;
 
-    var policy = {
-      col: {
-        create: '$all',
-        read: '$all',
-        update: '$all',
-        destroy: '$all'
-      }
-    };
-
-    // TODO: the following line isn't even triggering a queueing of the policy!!!
-    return db.policy('tasks', policy).then(function (doc) {
-      return utils.once(doc, 'doc:record');
-      //      return utils.once(doc, 'attr:record');
-    }).then(function () {
-      return db;
-    });
+    // var policy = {
+    //   col: {
+    //     create: '$all',
+    //     read: '$all',
+    //     update: '$all',
+    //     destroy: '$all'
+    //   }
+    // };
+    //
+    // // TODO: the following line isn't even triggering a queueing of the policy!!!
+    // return db.policy('tasks', policy).then(function (doc) {
+    //   return utils.once(doc, 'doc:record');
+    //   //      return utils.once(doc, 'attr:record');
+    // }).then(function () {
+    //   return db;
+    // });
   };
 
   var destroy = function (db) {
