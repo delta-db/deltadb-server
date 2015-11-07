@@ -36,6 +36,29 @@ describe('system', function () {
     });
   };
 
+  var policy = function (db) {
+
+    // TODO: remove after get working
+    return db;
+
+    var policy = {
+      col: {
+        create: '$all',
+        read: '$all',
+        update: '$all',
+        destroy: '$all'
+      }
+    };
+
+    // TODO: the following line isn't even triggering a queueing of the policy!!!
+    return db.policy('tasks', policy).then(function (doc) {
+      return utils.once(doc, 'doc:record');
+      //      return utils.once(doc, 'attr:record');
+    }).then(function () {
+      return db;
+    });
+  };
+
   var destroy = function (db) {
     return db.destroy().then(function () {
       return DeltaDB._systemDB().destroy(true, false);
@@ -43,18 +66,20 @@ describe('system', function () {
       // TODO: remove this after we have a system db per db
       // Set to null to force creation of a new system DB
       DeltaDB._clearSystemDB();
-      return null; // prevent runaway promise warning
+
+      return db;
     });
   };
 
   beforeEach(function () {
     return create('mydb').then(function (db) {
+      return policy(db);
+    }).then(function (db) {
       return destroy(db);
     });
   });
 
   it('should filter system deltas', function () {
-
     var systemDB = DeltaDB._systemDB();
 
     systemDB.on('doc:create', function (doc) {
@@ -80,6 +105,8 @@ describe('system', function () {
     });
 
     return create('myotherdb').then(function (db) {
+      return policy(db);
+    }).then(function (db) {
       return destroy(db);
     }).then(function () {
 

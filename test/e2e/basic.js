@@ -103,4 +103,6 @@ describe('basic', function () {
 
   // TODO: test local only mode
 
+  // TODO: errors, e.g. when don't have permission to change data
+
 });

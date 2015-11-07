@@ -33,6 +33,7 @@ describe('policy', function () {
     colId = null,
     docs = null,
     policy = null;
+
   beforeEach(function () {
     userUtils = args.userUtils;
     userId = Users.ID_LAST_RESERVED + 1;
@@ -312,14 +313,14 @@ describe('policy', function () {
         create: 'role1',
         read: ['role1', 'role2'],
         update: null
-          // destroy: 
+          // destroy:
       },
 
       attrs: {
         priority: {
           create: ['role1', 'role2'],
           read: null,
-          // update: 
+          // update:
           destroy: 'role1'
         }
       }

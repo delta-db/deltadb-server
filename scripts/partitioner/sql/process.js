@@ -68,6 +68,9 @@ Process.prototype._createUser = function (userUUID, updatedAt, changedByUUID) {
       // also creates default policies
       return self._users.getOrCreateUserId(userUUID, updatedAt, changedByUserId,
         changedByUUID);
+    } else {
+      // TODO: throw error higher in stack so that the handling is cleaner
+      log.error('No permission to create ' + userUUID);
     }
   });
 };
@@ -104,6 +107,7 @@ Process.prototype._fromDeltaValue = function (value) {
 Process.prototype._createOrUpdateAttr = function (part, attr) {
   // We need to check to see if the userId, colId and docId exists as it may not have been created
   // due to a lack of permission
+
   if (((attr.user_uuid && this._userIds[attr.user_uuid]) || !attr.user_uuid) && this._colIds[attr
       .col_name] && this._docIds[part][attr.doc_uuid]) {
 
@@ -700,7 +704,7 @@ Process.prototype._processAttr = function (attr) {
   return self._createOrUpdateAttrs(attr).then(function () {
     return self._destroyQueueAttrRec(attr); // remove from queue
   }).catch(function (err) {
-    // TODO: remove? Is it even possible to get a ForbiddneError here?
+    // TODO: remove? Is it even possible to get a ForbiddenError here?
     // if (err instanceof ForbiddenError) {
     //   log.error('Error processing attr=' + JSON.stringify(attr) + ', err=' + err.message);
     // } else {

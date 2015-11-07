@@ -1,5 +1,7 @@
 Now
 ---
+- Why can't we set the policy in the "e2e system" test?
+	- appears to be because policy already exists--add item below about what is the best thing to do when policy already exists? Should we support warnings so client can be informed that policy already set?
 - System DB
 	- filter create/destroy user & set policy
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
@@ -142,6 +144,7 @@ Future?
 - Figure out a way to use Selenium with Chrome and Firefox in a headless state on a VM. Or, just rely on testing with saucelabs and only test phantomjs in VM?
 - indexeddb orm testing in node with indexeddbshim? Probably not easy as can use mock-browser, but node-sqlite3 doesn't present a WebSQL wrapper. opendatabase doesn't appear to be full featured enough => just test indexedb code in browser for now
 - wrap ids to prevent exceptions? Is this a concern with the attrs table? Do we need to have a process that sets the auto_increment back to 0 when it reaches a high enough number? Better to just not have ids for these tables? But then how to order attributes in a deterministic way? Need to take DB offline at this point and adjust all ids down to 0? Could prevent taking DB offline by just starting to adjust all ids with transactions once we get close to the overflow value, but then this would make the changes() call return changes out of order. http://stackoverflow.com/questions/2615417/what-happens-when-auto-increment-on-integer-column-reaches-the-max-value-in-data
+	- Instead of using transactions, could also duplicates all the records, but with different (lower) ids and then after all the data is duplicated, removes the originals
 	- Could also develop notion of hotswapping servers:
 		- Let' say we have servers A & B
 		- Spin up new server, C

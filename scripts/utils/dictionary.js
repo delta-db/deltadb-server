@@ -107,4 +107,14 @@ Dictionary.prototype.each = function (callback) {
   return this._each(this._items, [], callback);
 };
 
+Dictionary.prototype.empty = function () {
+  // TODO: make destroy actually clear out entire tree when there are no more leafs so that we don't
+  // have to traverse the tree to see if the dictionary is empty
+  var empty = true;
+  this.each(function () {
+    empty = false;
+  });
+  return empty;
+};
+
 module.exports = Dictionary;
