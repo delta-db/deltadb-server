@@ -1,7 +1,7 @@
 Now
 ---
 - System DB
-	- filter create/destroy user, add/remove role
+	- filter add/remove role & user-role
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
 		- just prefix system db w/ associated db's name
 		- would need to make db.destroy() then destroy the associated system db

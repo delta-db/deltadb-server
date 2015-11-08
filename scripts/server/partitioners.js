@@ -208,14 +208,14 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
     changes.forEach(function (change) {
 
       switch (change.name) {
-      case clientUtils.DB_ATTR_NAME: // db action?
-        var action = JSON.parse(change.val);
-        self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
-        break;
+        case clientUtils.DB_ATTR_NAME: // db action?
+          var action = JSON.parse(change.val);
+          self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
+          break;
 
-      case Doc._policyName: // setting policy
-        self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
-        break;
+        default:
+          self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+          break;
       }
 
     });
