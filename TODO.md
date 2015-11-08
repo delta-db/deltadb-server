@@ -1,13 +1,10 @@
 Now
 ---
-- Why can't we set the policy in the "e2e system" test?
-	- appears to be because policy already exists--add item below about what is the best thing to do when policy already exists? Should we support warnings so client can be informed that policy already set?
 - System DB
-	- filter create/destroy user & set policy
+	- filter create/destroy user
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
+		- just prefix system db w/ associted db's name
 		- would need to make db.destroy() then destroy the associated system db
-		- have db props store a uuid identifying the system DB
-		- system DB then named this uuid
 	- enhance so all system deltas must be recorded before db continues sending
 - prefix store names, e.g. delta_mydb
 - basic authentication
@@ -168,7 +165,7 @@ Future?
 	- Construct:
 		- Privileged user can create stored procedure that upon syncing will run on server and creates a user if the InvitationID is valid
 		- Client can then go about using new DB
-
+- What is the best thing to do when a policy already exists? Should we send warnings to client so that it can be informed that policy already set? Currently, a server log entry is made
 
 Docs
 ----

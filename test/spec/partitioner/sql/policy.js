@@ -11,7 +11,8 @@ var partDir = '../../../../scripts/partitioner/sql',
   Cols = require(partDir + '/col/cols'),
   ColRoles = require(partDir + '/col/col-roles'),
   Manager = require(partDir + '/../../manager'),
-  Doc = require(partDir + '/../../client/doc');
+  Doc = require(partDir + '/../../client/doc'),
+  utils = require(partDir + '/../../utils');
 
 describe('policy', function () {
 

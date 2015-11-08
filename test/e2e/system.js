@@ -5,7 +5,8 @@
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
   utils = require('../../scripts/utils'),
-  clientUtils = require('../../scripts/client/utils');
+  clientUtils = require('../../scripts/client/utils'),
+  Doc = require('../../scripts/client/doc');
 
 /**
  * The goal of this test is to make sure that we filter system DB deltas so that a client receives
@@ -20,7 +21,9 @@ describe('system', function () {
   this.timeout(20000);
 
   var dbsCreated = [],
-    dbsDestroyed = [];
+    dbsDestroyed = [],
+    pol = null,
+    policies = [];
 
   var create = function (dbName) {
     var db = new DeltaDB(dbName, config.URL);
@@ -36,27 +39,32 @@ describe('system', function () {
     });
   };
 
-  var policy = function (db) {
+  var policy = function (db, attrName) {
 
-    // TODO: remove after get working
-    return db;
+    // We use an attr policy as we already have a default policy defined for our col
+    pol = {
+      col: {
+        create: '$all',
+        read: '$all',
+        update: '$all',
+        destroy: '$all'
+      },
+      attrs: {}
+    };
 
-    // var policy = {
-    //   col: {
-    //     create: '$all',
-    //     read: '$all',
-    //     update: '$all',
-    //     destroy: '$all'
-    //   }
-    // };
-    //
-    // // TODO: the following line isn't even triggering a queueing of the policy!!!
-    // return db.policy('tasks', policy).then(function (doc) {
-    //   return utils.once(doc, 'doc:record');
-    //   //      return utils.once(doc, 'attr:record');
-    // }).then(function () {
-    //   return db;
-    // });
+    // Vary the attrName so that we don't define a policy that is already defined
+    pol.attrs[attrName] = {
+      create: '$all',
+      read: '$all',
+      update: '$all',
+      destroy: '$all'
+    };
+
+    return DeltaDB._systemDB().policy('$db', pol).then(function (doc) {
+      return utils.once(doc, 'doc:record');
+    }).then(function () {
+      return db;
+    });
   };
 
   var destroy = function (db) {
@@ -73,7 +81,7 @@ describe('system', function () {
 
   beforeEach(function () {
     return create('mydb').then(function (db) {
-      return policy(db);
+      return policy(db, 'thing');
     }).then(function (db) {
       return destroy(db);
     });
@@ -86,9 +94,13 @@ describe('system', function () {
       var data = doc.get();
 
       var dbName = data[clientUtils.DB_ATTR_NAME];
-
       if (dbName && typeof dbName === 'string') { // db created?
         dbsCreated.push(dbName);
+      }
+
+      var policy = data[Doc._policyName];
+      if (policy) { // db created?
+        policies.push(policy);
       }
 
     });
@@ -105,7 +117,7 @@ describe('system', function () {
     });
 
     return create('myotherdb').then(function (db) {
-      return policy(db);
+      return policy(db, 'priority');
     }).then(function (db) {
       return destroy(db);
     }).then(function () {
@@ -113,6 +125,9 @@ describe('system', function () {
       // Make sure we only received the 2nd db create/destroy
       dbsCreated.should.eql(['myotherdb']);
       dbsDestroyed.should.eql(['myotherdb']);
+
+      // Make sure we only received the 2nd policy
+      policies[0].should.eql(pol);
 
       return null; // prevent runaway promise errors
     });
