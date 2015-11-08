@@ -58,11 +58,13 @@ Process.prototype._clearCache = function () {
   });
 };
 
-Process.prototype._createUser = function (userUUID, updatedAt, changedByUUID) {
+Process.prototype._createUser = function (userUUID, updatedAt, changedByUUID, superUUID) {
   var self = this;
   var changedByUserId = self._userIds[changedByUUID];
+  var recordedByUUID = superUUID ? superUUID : changedByUUID;
+  var recordedByUserId = self._userIds[recordedByUUID];
   var docUUID = Users.toDocUUID(userUUID);
-  return self._docs._canCreate(Cols.ID_USER, docUUID, changedByUserId).then(function (allowed) {
+  return self._docs._canCreate(Cols.ID_USER, docUUID, recordedByUserId).then(function (allowed) {
     if (allowed) {
       // Use getOrCreateUserId as race condition could have just created col and getOrCreateColId
       // also creates default policies
@@ -75,14 +77,14 @@ Process.prototype._createUser = function (userUUID, updatedAt, changedByUUID) {
   });
 };
 
-Process.prototype._getOrCreateUser = function (userUUID, updatedAt, changedByUUID) {
+Process.prototype._getOrCreateUser = function (userUUID, updatedAt, changedByUUID, superUUID) {
   var self = this;
   // Don't need permission to lookup user
   return self._users.getUserId(userUUID).then(function (userId) {
     if (userId) {
       self._userIds[userUUID] = userId;
     }
-    return self._createUser(userUUID, updatedAt, changedByUUID).then(function (userId) {
+    return self._createUser(userUUID, updatedAt, changedByUUID, superUUID).then(function (userId) {
       self._userIds[userUUID] = userId;
     });
   });
@@ -154,7 +156,7 @@ Process.prototype._destroyQueueAttrRec = function (attr) {
 
 Process.prototype._cacheSuperUser = function (attr) {
   if (attr.super_uuid && utils.notDefined(this._userIds[attr.super_uuid])) {
-    return this._getOrCreateUser(attr.super_uuid, attr.updated_at, attr.super_uuid);
+    return this._getOrCreateUser(attr.super_uuid, attr.updated_at, attr.super_uuid, attr.super_uuid);
   } else {
     return Promise.resolve();
   }
@@ -162,7 +164,7 @@ Process.prototype._cacheSuperUser = function (attr) {
 
 Process.prototype._cacheCreatingUser = function (attr) {
   if (attr.user_uuid && utils.notDefined(this._userIds[attr.user_uuid])) {
-    return this._getOrCreateUser(attr.user_uuid, attr.updated_at, attr.user_uuid);
+    return this._getOrCreateUser(attr.user_uuid, attr.updated_at, attr.user_uuid, attr.super_uuid);
   } else {
     return Promise.resolve();
   }

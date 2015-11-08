@@ -14,7 +14,7 @@ var Cols = function (sql, policy) {
 Cols.NAME = 'cols';
 
 Cols.ID_ALL = 1;
-Cols.ALL = '$all';
+Cols.ALL = clientUtils.COL_NAME_ALL;
 
 Cols.ID_USER = 2;
 Cols.USER = '$user';

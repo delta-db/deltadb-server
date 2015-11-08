@@ -248,8 +248,8 @@ ColRoles.prototype.destroyColRoles = function (colRoles, updatedAt) {
 
 ColRoles.prototype.hasPolicy = function (colId, attrName) {
   var where = ['col_id', '=', '"' + colId + '"'];
-  if (attrName) {
-    where = [where, 'and', 'name', '=', '"' + attrName + '"'];
+  if (typeof attrName !== 'undefined') {
+    where = [where, 'and', 'name', '=', attrName ? '"' + attrName + '"' : 'null'];
   }
   return this._sql.find(['id'], ColRoles.NAME, null, where, null, 1)
     .then(function (results) {

@@ -4,6 +4,7 @@
 
 var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
+  Cols = require('../../../scripts/partitioner/sql/col/cols'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
@@ -20,27 +21,13 @@ describe('system', function () {
     userUtils = new UserUtils(args),
     system = null;
 
-  var setAllAccess = function () {
-    // Allow everyone to create, read or destroy a DB
-    var policy = {
-      col: {
-        create: '$all',
-        read: '$all',
-        update: '$all',
-        destroy: '$all'
-      }
-    };
-    return userUtils.setPolicy(policy, '$db', null, '$admin');
-  };
-
   beforeEach(function () {
     partitioner = new Partitioner();
     args.db = partitioner;
     manager = new Manager(partitioner);
     system = new System(manager);
-    return system.create().then(function () {
-      return setAllAccess();
-    });
+    var adminParty = true; // allow all to CRUD
+    return system.create(adminParty);
   });
 
   afterEach(function () {

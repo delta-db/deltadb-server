@@ -174,7 +174,6 @@ Docs
 ----
 - Post about storing all data at attr layer if want to make changes to docs atomic, e.g. couchdb-like conflict resolution
 
-
 Misc
 ---
 - Use BaaS (Backend as a Service) phrase?

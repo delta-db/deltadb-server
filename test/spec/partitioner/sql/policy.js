@@ -9,6 +9,7 @@ var partDir = '../../../../scripts/partitioner/sql',
   Roles = require(partDir + '/roles'),
   DocRecs = require(partDir + '/doc/doc-recs'),
   Cols = require(partDir + '/col/cols'),
+  ColRoles = require(partDir + '/col/col-roles'),
   Manager = require(partDir + '/../../manager'),
   Doc = require(partDir + '/../../client/doc');
 
@@ -414,6 +415,19 @@ describe('policy', function () {
 
   it('should build empty policy', function () {
     policy._buildPolicy();
+  });
+
+  it('permissions inherited if attr policy missing', function () {
+    var colId = ColRoles.ID_LAST_RESERVED + 1;
+    var roleId = Roles.ID_ALL;
+    return args.db._colRoles.create(colId, 'thing', roleId, constants.ACTION_UPDATE, new Date())
+      .then(function () {
+        // There is no attr policy for prority, but the col policy is for $all so changes should be
+        // permitted
+        return policy.permitted(null, constants.ACTION_UPDATE, colId, 'doc-uuid', 'priority');
+      }).then(function (has) {
+        has.should.eql(true);
+      });
   });
 
 });
