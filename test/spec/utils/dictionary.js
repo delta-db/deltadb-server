@@ -35,12 +35,22 @@ describe('dictionary', function () {
   it('should destroy', function () {
     var items = new Dictionary();
     items.set('USA', 'WA', 'Seattle');
+
+    items.empty().should.eql(false);
+
     items.destroy('USA', 'WA');
     items.exists('USA', 'WA').should.eql(false);
 
+    items.empty().should.eql(true);
+
     items.set('USA', null, 'DC');
+
+    items.empty().should.eql(false);
+
     items.destroy('USA', null);
     items.exists('USA', null).should.eql(false);
+
+    items.empty().should.eql(true);
   });
 
   it('should each', function () {

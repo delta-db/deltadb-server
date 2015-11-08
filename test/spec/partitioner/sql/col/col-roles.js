@@ -59,6 +59,36 @@ describe('col-roles', function () {
     });
   });
 
+  it('should preserve existing col-roles', function () {
+    var roleIds = {
+        'role1': 1,
+        'role2': 2
+      },
+      updatedAt = new Date();
+
+    var roleActions1 = [{
+      role: 'role1',
+      action: 'create',
+      name: null
+    }];
+
+    var colRoles1 = [{
+      col_id: 1,
+      name: null,
+      role_id: 1,
+      action: 'create'
+    }];
+
+    return colRoles.setColRoles(roleIds, 1, roleActions1, updatedAt).then(function () {
+      // TODO: do a find and get entire table contents, including timestamps and then check below
+      return utils.colRolesShouldEql(args.db, colRoles1, null);
+    }).then(function () {
+      return colRoles.setColRoles(roleIds, 1, roleActions1, updatedAt);
+    }).then(function () {
+      return utils.colRolesShouldEql(args.db, colRoles1, null);
+    });
+  });
+
   it('should replace col & attr col-roles', function () {
     var roleIds = {
         'role1': 1,

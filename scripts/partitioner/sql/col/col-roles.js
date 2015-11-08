@@ -5,7 +5,8 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   Dictionary = require('../../../utils/dictionary'),
   Cols = require('./cols'),
-  Roles = require('../roles');
+  Roles = require('../roles'),
+  log = require('../../../server/log');
 
 var ColRoles = function (sql) {
   this._sql = sql;
@@ -194,8 +195,19 @@ ColRoles.prototype.setColRoles = function (roleIds, colId, roleActions, updatedA
       }
     });
 
-    return self.replaceColRoles(colId, modColRoles, updatedAt).then(function () {
+    var numReplacements;
+
+    return self.replaceColRoles(colId, modColRoles, updatedAt).then(function (n) {
+      numReplacements = n;
       return self.destroyColRoles(remColRoles, updatedAt);
+    }).then(function (numDestroys) {
+      // No changes? Log warning so that we can see that the client is trying to replace an existing
+      // policy
+      if (numReplacements === 0 && numDestroys === 0) {
+        log.warning('Policy already exists so there will be no change, policy=' + JSON.stringify(
+          roleActions));
+      }
+      return null; // prevent runaway promise warnings
     });
   });
 };
@@ -203,6 +215,7 @@ ColRoles.prototype.setColRoles = function (roleIds, colId, roleActions, updatedA
 ColRoles.prototype.replaceColRoles = function (colId, colRoles, updatedAt) {
   var self = this,
     promises = [];
+
   colRoles.each(function (value, keys) {
     var roleId = keys[0],
       action = keys[1],
@@ -211,24 +224,32 @@ ColRoles.prototype.replaceColRoles = function (colId, colRoles, updatedAt) {
       colRoles.set(roleId, action, name, id);
     }));
   });
+
+  var n = promises.length;
+
   return Promise.all(promises).then(function () {
-    return colRoles;
+    return n; // number of replacements
   });
 };
 
 ColRoles.prototype.destroyColRoles = function (colRoles, updatedAt) {
   var self = this,
-    promises = [];
+    promises = [],
+    n = 0;
+
   colRoles.each(function (colRoleId /*, keys */ ) {
+    n++;
     promises.push(self.destroy(colRoleId, updatedAt));
   });
-  return Promise.all(promises);
+  return Promise.all(promises).then(function () {
+    return n; // number destroyed
+  });
 };
 
 ColRoles.prototype.hasPolicy = function (colId, attrName) {
   var where = ['col_id', '=', '"' + colId + '"'];
-  if (attrName) {
-    where = [where, 'and', 'name', '=', '"' + attrName + '"'];
+  if (typeof attrName !== 'undefined') {
+    where = [where, 'and', 'name', '=', attrName ? '"' + attrName + '"' : 'null'];
   }
   return this._sql.find(['id'], ColRoles.NAME, null, where, null, 1)
     .then(function (results) {

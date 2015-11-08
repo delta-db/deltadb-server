@@ -8,7 +8,8 @@ var Promise = require('bluebird'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
-  DBMissingError = require('../client/db-missing-error');
+  DBMissingError = require('../client/db-missing-error'),
+  Doc = require('../client/doc');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -33,9 +34,10 @@ Partitioners.prototype.existsThenRegister = function (dbName, socket, since, fil
 };
 
 Partitioners.prototype._defaultFilters = function () {
-  var filters = {};
-  filters[clientUtils.SYSTEM_DB_NAME] = {};
-  return filters;
+  return {
+    docs: {},
+    dbs: {} /*, users: {} */
+  };
 };
 
 // TODO: split up
@@ -202,30 +204,54 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
   var self = this;
   if (dbName === clientUtils.SYSTEM_DB_NAME &&
     self._partitioners[dbName].conns[socket.conn.id].filter) { // system DB and filtering enabled?
+
     changes.forEach(function (change) {
-      if (change.col === clientUtils.DB_COLLECTION_NAME) { // db action?
+
+      switch (change.name) {
+      case clientUtils.DB_ATTR_NAME: // db action?
         var action = JSON.parse(change.val);
-        self._partitioners[dbName].conns[socket.conn.id].filters[action.name] = true;
+        self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
+        break;
+
+      case Doc._policyName: // setting policy
+        self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+        break;
       }
+
     });
   }
 };
 
 Partitioners.prototype._includeChange = function (dbName, socket, change) {
-  if (change.col === clientUtils.DB_COLLECTION_NAME &&
-    this._partitioners[dbName].conns[socket.conn.id].filter) { // db action and filtering enabled?
+  // TODO: should we clear the filters after use so that we don't occupy more memory than is needed?
+
+  // Should we filter?
+  if (dbName === clientUtils.SYSTEM_DB_NAME &&
+    this._partitioners[dbName].conns[socket.conn.id].filter) {
+
     if (typeof change.val === 'undefined') { // destroying
-      if (this._partitioners[dbName].conns[socket.conn.id].filters[change.id]) { // include?
+      if (this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id]) { // include?
         return true;
       }
     } else { // creating
-      var val = JSON.parse(change.val);
-      if (this._partitioners[dbName].conns[socket.conn.id].filters[val]) { // include?
-        // Set id so that we can filter destroy
-        this._partitioners[dbName].conns[socket.conn.id].filters[change.id] = true;
-        return true;
+      switch (change.name) {
+
+      case clientUtils.DB_ATTR_NAME: // db action?
+        var val = JSON.parse(change.val);
+        // DB name registered?
+        if (this._partitioners[dbName].conns[socket.conn.id].filters.dbs[val]) {
+          // Set id so that we can filter destroy
+          this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+          return true;
+        }
+        return false;
+
+      default: // policy?
+        return this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] ? true :
+          false;
       }
     }
+
   } else {
     return true;
   }

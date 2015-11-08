@@ -83,6 +83,8 @@ Utils.prototype.SYSTEM_DB_NAME = '$system';
 Utils.prototype.DB_COLLECTION_NAME = '$db';
 Utils.prototype.DB_ATTR_NAME = '$db';
 
+Utils.prototype.COL_NAME_ALL = '$all';
+
 Utils.prototype.timeout = function (ms) {
   return new Promise(function (resolve) {
     setTimeout(function () {

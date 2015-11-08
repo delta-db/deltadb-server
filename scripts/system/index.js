@@ -55,7 +55,7 @@ System.prototype._queueAdminPolicy = function () {
 };
 
 // Allow anyone to create or destroy DBs
-System.prototype._queueAdminPartyPolicy = function () {
+System.prototype._queueAdminPartyDBPolicy = function () {
   var policy = {
     col: {
       create: Roles.ALL,
@@ -66,6 +66,28 @@ System.prototype._queueAdminPartyPolicy = function () {
   };
   return this._manager.queueSetPolicy(policy, clientUtils.DB_COLLECTION_NAME, null,
     System.DEFAULT_ADMIN_USER_UUID);
+};
+
+// Allow anyone to create or destroy any col
+System.prototype._queueAdminPartyAllColsPolicy = function () {
+  var policy = {
+    col: {
+      create: Roles.ALL,
+      read: Roles.ALL,
+      update: Roles.ALL,
+      destroy: Roles.ALL
+    }
+  };
+  return this._manager.queueSetPolicy(policy, clientUtils.COL_NAME_ALL, null,
+    System.DEFAULT_ADMIN_USER_UUID);
+};
+
+// All users can CRUD
+System.prototype._queueAdminPartyPolicy = function () {
+  var self = this;
+  return self._queueAdminPartyAllColsPolicy().then(function () {
+    return self._queueAdminPartyDBPolicy();
+  });
 };
 
 System.prototype.create = function (adminParty) {

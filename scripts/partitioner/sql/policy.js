@@ -3,6 +3,7 @@
 var utils = require('../../utils'),
   constants = require('./constants'),
   Roles = require('./roles'),
+  Cols = require('./col/cols'),
   ColRoles = require('./col/col-roles'),
   UserRoles = require('./user/user-roles'),
   DocRecs = require('./doc/doc-recs'),
@@ -169,7 +170,7 @@ Policy.prototype.hasColRole = function (userId, action, colId, docUUID, attrName
   var docs = constants.LATEST + DocRecs.NAME,
     hasRole = null;
 
-  // TODO: moving some entries from where to join would make the query faster??
+  // TODO: would moving some entries from where to join would make the query faster??
   var joins = {
     left_joins: {
       user_roles: [UserRoles.NAME + '.role_id', '=', ColRoles.NAME + '.role_id']
@@ -214,35 +215,59 @@ Policy.prototype.hasColRole = function (userId, action, colId, docUUID, attrName
     });
 };
 
+Policy.prototype._nonSuperModPermittedByDocPolicy = function (userId, action, colId, docUUID,
+  attrName) {
+  var self = this;
+
+  // We call hasPolicy w/ a null attrName as this searches the doc policy and not attr policy
+  return self._colRoles.hasPolicy(colId, null).then(function (has) {
+    if (has) { // doc policy for this col
+      return self.hasColRole(userId, action, colId, docUUID, null);
+    } else if (colId === Cols.ID_ALL) {
+      // We've gone through all the layers and there is no policy so the mod is permitted
+      return true;
+    } else {
+      // There are no policies for this col so defer to any all col policy
+      return self._nonSuperModPermitted(userId, action, Cols.ID_ALL, docUUID, attrName);
+    }
+  });
+};
+
+Policy.prototype._nonSuperModPermitted = function (userId, action, colId, docUUID, attrName) {
+  var self = this;
+
+  // Check for an attr policy
+  return self._colRoles.hasPolicy(colId, attrName).then(function (has) {
+    if (has) { // attr policy for this col?
+      return self.hasColRole(userId, action, colId, docUUID, attrName);
+    } else {
+      // No attr policy so check for a doc policy
+      return self._nonSuperModPermittedByDocPolicy(userId, action, colId, docUUID, attrName);
+    }
+  });
+};
+
 // TODO: for this fn and all similar, modify logic so that throws ForbiddenError if no permission as
 // this makes it much easier for calling routines to handle logic where there are multiple
 // permission checks
 Policy.prototype.modPermitted = function (userId, action, colId, docUUID, attrName) {
+
+  // Cascade:
+  // - is super?
+  // - policy for this col?
+  // - policy for all cols?
+  // - no policy then permitted
+
   var self = this;
 
   // TODO: we don't really want to check if the user has the $super role each time. We should really
   // do this once per batch of deltas
   return self._userRoles.isSuperUser(userId, Roles.ID_SUPER).then(function (isSuper) {
-    if (isSuper) {
+    if (isSuper) { // super always has access
       return true;
     }
-    return self._colRoles.hasPolicy(colId).then(function (has) {
-      if (has) { // has policy?
-        if (attrName) { // is an attr being updated?
-          return self._colRoles.hasPolicy(colId, attrName).then(function (has) {
-            if (has) { // attr policy?
-              return self.hasColRole(userId, action, colId, docUUID, attrName);
-            } else { // look for doc policy
-              return self.hasColRole(userId, action, colId, docUUID, null);
-            }
-          });
-        } else { // no attr name, e.g. no attrName if creating doc
-          return self.hasColRole(userId, action, colId, docUUID, null);
-        }
-      } else { // no policy so everything permitted--could also be first edit
-        return true;
-      }
-    });
+
+    return self._nonSuperModPermitted(userId, action, colId, docUUID, attrName);
   });
 };
 
