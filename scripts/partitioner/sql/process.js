@@ -84,7 +84,8 @@ Process.prototype._getOrCreateUser = function (userUUID, updatedAt, changedByUUI
     if (userId) {
       self._userIds[userUUID] = userId;
     }
-    return self._createUser(userUUID, updatedAt, changedByUUID, superUUID).then(function (userId) {
+    return self._createUser(userUUID, updatedAt, changedByUUID, superUUID).then(function (
+      userId) {
       self._userIds[userUUID] = userId;
     });
   });
@@ -156,7 +157,8 @@ Process.prototype._destroyQueueAttrRec = function (attr) {
 
 Process.prototype._cacheSuperUser = function (attr) {
   if (attr.super_uuid && utils.notDefined(this._userIds[attr.super_uuid])) {
-    return this._getOrCreateUser(attr.super_uuid, attr.updated_at, attr.super_uuid, attr.super_uuid);
+    return this._getOrCreateUser(attr.super_uuid, attr.updated_at, attr.super_uuid,
+      attr.super_uuid);
   } else {
     return Promise.resolve();
   }

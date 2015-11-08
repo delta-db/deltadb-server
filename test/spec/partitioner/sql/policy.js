@@ -424,7 +424,8 @@ describe('policy', function () {
       .then(function () {
         // There is no attr policy for prority, but the col policy is for $all so changes should be
         // permitted
-        return policy.permitted(null, constants.ACTION_UPDATE, colId, 'doc-uuid', 'priority');
+        return policy.permitted(null, constants.ACTION_UPDATE, colId, 'doc-uuid',
+          'priority');
       }).then(function (has) {
         has.should.eql(true);
       });

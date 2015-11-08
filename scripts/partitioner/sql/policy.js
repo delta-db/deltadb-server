@@ -215,7 +215,8 @@ Policy.prototype.hasColRole = function (userId, action, colId, docUUID, attrName
     });
 };
 
-Policy.prototype._nonSuperModPermittedByDocPolicy = function (userId, action, colId, docUUID, attrName) {
+Policy.prototype._nonSuperModPermittedByDocPolicy = function (userId, action, colId, docUUID,
+  attrName) {
   var self = this;
 
   // We call hasPolicy w/ a null attrName as this searches the doc policy and not attr policy

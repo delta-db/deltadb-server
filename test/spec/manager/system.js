@@ -4,7 +4,6 @@
 
 var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
-  Cols = require('../../../scripts/partitioner/sql/col/cols'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
