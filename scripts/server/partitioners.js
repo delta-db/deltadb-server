@@ -34,7 +34,10 @@ Partitioners.prototype.existsThenRegister = function (dbName, socket, since, fil
 };
 
 Partitioners.prototype._defaultFilters = function () {
-  return { docs: {}, dbs: {} /*, users: {} */ };
+  return {
+    docs: {},
+    dbs: {} /*, users: {} */
+  };
 };
 
 // TODO: split up
@@ -205,14 +208,14 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
     changes.forEach(function (change) {
 
       switch (change.name) {
-        case clientUtils.DB_ATTR_NAME: // db action?
-          var action = JSON.parse(change.val);
-          self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
-          break;
+      case clientUtils.DB_ATTR_NAME: // db action?
+        var action = JSON.parse(change.val);
+        self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
+        break;
 
-        case Doc._policyName: // setting policy
-          self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
-          break;
+      case Doc._policyName: // setting policy
+        self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+        break;
       }
 
     });
@@ -233,18 +236,19 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
     } else { // creating
       switch (change.name) {
 
-        case clientUtils.DB_ATTR_NAME: // db action?
-          var val = JSON.parse(change.val);
-          // DB name registered?
-          if (this._partitioners[dbName].conns[socket.conn.id].filters.dbs[val]) {
-            // Set id so that we can filter destroy
-            this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
-            return true;
-          }
-          return false;
+      case clientUtils.DB_ATTR_NAME: // db action?
+        var val = JSON.parse(change.val);
+        // DB name registered?
+        if (this._partitioners[dbName].conns[socket.conn.id].filters.dbs[val]) {
+          // Set id so that we can filter destroy
+          this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+          return true;
+        }
+        return false;
 
-        default: // policy?
-          return this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] ? true : false;
+      default: // policy?
+        return this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] ? true :
+          false;
       }
     }
 
