@@ -1,9 +1,9 @@
 Now
 ---
 - System DB
-	- filter create/destroy user
+	- filter create/destroy user, add/remove role
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
-		- just prefix system db w/ associted db's name
+		- just prefix system db w/ associated db's name
 		- would need to make db.destroy() then destroy the associated system db
 	- enhance so all system deltas must be recorded before db continues sending
 - prefix store names, e.g. delta_mydb
