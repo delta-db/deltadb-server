@@ -8,8 +8,7 @@ var Promise = require('bluebird'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
-  DBMissingError = require('../client/db-missing-error'),
-  Doc = require('../client/doc');
+  DBMissingError = require('../client/db-missing-error');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -213,7 +212,7 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
         self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
         break;
 
-      case Doc._policyName: // setting policy
+      default:
         self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
         break;
       }

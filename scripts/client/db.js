@@ -247,11 +247,17 @@ DB.prototype.policy = function (colName, policy) {
   return col.policy(policy);
 };
 
+// TODO: shouldn't the password be a byte/char array so that passwords aren't stored in memory in
+// their entirety? See
+// http://stackoverflow.com/questions/28511970/javascript-security-force-deletion-of-sensitive-data
 DB.prototype.createUser = function (userUUID, username, password, status) {
   var col = this.col(Doc._userName);
   return col._createUser(userUUID, username, password, status);
 };
 
+// TODO: shouldn't the password be a byte/char array so that passwords aren't stored in memory in
+// their entirety? See
+// http://stackoverflow.com/questions/28511970/javascript-security-force-deletion-of-sensitive-data
 DB.prototype.updateUser = function (userUUID, username, password, status) {
   return this.createUser(userUUID, username, password, status);
 };
