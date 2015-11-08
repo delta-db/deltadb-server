@@ -69,13 +69,15 @@ describe('system', function () {
   };
 
   var createUser = function (uuid, username) {
-    return DeltaDB._systemDB().createUser(uuid, username, 'secret', 'enabled').then(function (doc) {
+    return DeltaDB._systemDB().createUser(uuid, username, 'secret', 'enabled').then(function (
+      doc) {
       return utils.once(doc, 'doc:record');
     });
   };
 
   var updateUser = function (uuid, username) {
-    return DeltaDB._systemDB().updateUser(uuid, username, 'secret', 'disabled').then(function (doc) {
+    return DeltaDB._systemDB().updateUser(uuid, username, 'secret', 'disabled').then(function (
+      doc) {
       return utils.once(doc, 'attr:record');
     });
   };

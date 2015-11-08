@@ -133,7 +133,8 @@ Collection.prototype.policy = function (policy) {
 
 // Shouldn't be called directly as the colName needs to be set properly
 Collection.prototype._createUser = function (userUUID, username, password, status) {
-  var self = this, id = clientUtils.toDocUUID(userUUID);
+  var self = this,
+    id = clientUtils.toDocUUID(userUUID);
   return self.get(id).then(function (doc) {
     // If we are updating the user, the doc may already exist
     if (!doc) { // doc missing?
