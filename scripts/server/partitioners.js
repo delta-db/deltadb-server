@@ -8,7 +8,8 @@ var Promise = require('bluebird'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
-  DBMissingError = require('../client/db-missing-error');
+  DBMissingError = require('../client/db-missing-error'),
+  Dictionary = require('../utils/dictionary');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -35,7 +36,9 @@ Partitioners.prototype.existsThenRegister = function (dbName, socket, since, fil
 Partitioners.prototype._defaultFilters = function () {
   return {
     docs: {},
-    dbs: {} /*, users: {} */
+    dbs: {},
+    // roleUsers: {},
+    userRoles: new Dictionary()
   };
 };
 
@@ -200,20 +203,33 @@ Partitioners.prototype._emitChanges = function (socket, changes, since) {
 Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
   // We only support filters on the system DB for now as we want to make sure that a client doesn't
   // receive all system deltas
-  var self = this;
+  var self = this,
+    action = null;
   if (dbName === clientUtils.SYSTEM_DB_NAME &&
     self._partitioners[dbName].conns[socket.conn.id].filter) { // system DB and filtering enabled?
+
+    var filters = self._partitioners[dbName].conns[socket.conn.id].filters; // for convenience
 
     changes.forEach(function (change) {
 
       switch (change.name) {
       case clientUtils.DB_ATTR_NAME: // db action?
-        var action = JSON.parse(change.val);
-        self._partitioners[dbName].conns[socket.conn.id].filters.dbs[action.name] = true;
+        action = JSON.parse(change.val);
+        filters.dbs[action.name] = true;
+        break;
+
+        // case clientUtils.ATTR_NAME_ROLE_USER: // role user?
+        //   var action = JSON.parse(change.val);
+        //   filters.roleUsers[action.roleName][action.userUUID] = true;
+        //   break;
+
+      case clientUtils.ATTR_NAME_ROLE: // role?
+        action = JSON.parse(change.val);
+        filters.userRoles.set(action.userUUID, action.roleName, true);
         break;
 
       default:
-        self._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+        filters.docs[change.id] = true;
         break;
       }
 
@@ -221,6 +237,7 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
   }
 };
 
+// TODO: split up
 Partitioners.prototype._includeChange = function (dbName, socket, change) {
   // TODO: should we clear the filters after use so that we don't occupy more memory than is needed?
 
@@ -228,25 +245,49 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
   if (dbName === clientUtils.SYSTEM_DB_NAME &&
     this._partitioners[dbName].conns[socket.conn.id].filter) {
 
+    var filters = this._partitioners[dbName].conns[socket.conn.id].filters; // for convenience
+
+    var val = null;
+
     if (typeof change.val === 'undefined') { // destroying
-      if (this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id]) { // include?
+      if (filters.docs[change.id]) { // include?
         return true;
       }
     } else { // creating
       switch (change.name) {
 
       case clientUtils.DB_ATTR_NAME: // db action?
-        var val = JSON.parse(change.val);
+        val = JSON.parse(change.val);
         // DB name registered?
-        if (this._partitioners[dbName].conns[socket.conn.id].filters.dbs[val]) {
+        if (filters.dbs[val]) {
           // Set id so that we can filter destroy
-          this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] = true;
+          filters.docs[change.id] = true;
           return true;
         }
         return false;
 
+      case clientUtils.ATTR_NAME_ROLE: // adding user to role?
+        val = JSON.parse(change.val);
+        // Role user registered?
+        if (filters.userRoles.exists(val.userUUID, val.roleName)) {
+          // Set id so that we can filter destroy
+          filters.docs[change.id] = true;
+          return true;
+        }
+        return false;
+
+        // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
+        //   var val = JSON.parse(change.val);
+        //   // Role user registered?
+        //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
+        //     // Set id so that we can filter destroy
+        //     filters.docs[change.id] = true;
+        //     return true;
+        //   }
+        //   return false;
+
       default: // policy?
-        return this._partitioners[dbName].conns[socket.conn.id].filters.docs[change.id] ? true :
+        return filters.docs[change.id] ? true :
           false;
       }
     }

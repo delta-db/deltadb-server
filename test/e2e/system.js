@@ -1,7 +1,5 @@
 'use strict';
 
-// TODO: also test filtering of roles and user-roles
-
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
   utils = require('../../scripts/utils'),
@@ -28,7 +26,9 @@ describe('system', function () {
     policiesCreated = [],
     policiesUpdated = [],
     usersCreated = [],
-    usersUpdated = [];
+    usersUpdated = [],
+    roleUsersCreated = [],
+    roleUsersUpdated = [];
 
   var createDB = function (dbName) {
     db = new DeltaDB(dbName, config.URL);
@@ -40,6 +40,18 @@ describe('system', function () {
 
     // Waiting for the following event ensures that the DB has already been created
     return utils.once(task, 'doc:record');
+  };
+
+  var destroyDB = function () {
+    return db.destroy().then(function () {
+      return DeltaDB._systemDB().destroy(true, false);
+    }).then(function () {
+      // TODO: remove this after we have a system db per db
+      // Set to null to force creation of a new system DB
+      DeltaDB._clearSystemDB();
+
+      return null; // prevent runaway promise warnings
+    });
   };
 
   var policy = function (attrName) {
@@ -82,16 +94,12 @@ describe('system', function () {
     });
   };
 
-  var destroyDB = function () {
-    return db.destroy().then(function () {
-      return DeltaDB._systemDB().destroy(true, false);
-    }).then(function () {
-      // TODO: remove this after we have a system db per db
-      // Set to null to force creation of a new system DB
-      DeltaDB._clearSystemDB();
+  var addRole = function (userUUID, roleName) {
+    return DeltaDB._systemDB().addRole(userUUID, roleName);
+  };
 
-      return null; // prevent runaway promise warnings
-    });
+  var removeRole = function (userUUID, roleName) {
+    return DeltaDB._systemDB().removeRole(userUUID, roleName);
   };
 
   beforeEach(function () {
@@ -101,6 +109,10 @@ describe('system', function () {
       return createUser('first-user-uuid', 'first-user');
     }).then(function () {
       return updateUser('first-user-uuid', 'first-user');
+    }).then(function () {
+      return addRole('first-user-uuid', 'first-role');
+    }).then(function () {
+      return removeRole('first-user-uuid', 'first-role');
     }).then(function () {
       return destroyDB();
     });
@@ -128,6 +140,11 @@ describe('system', function () {
         usersCreated.push(user);
       }
 
+      var roleUser = data[Doc._roleName];
+      if (roleUser) { // user added to role?
+        roleUsersCreated.push(roleUser);
+      }
+
     });
 
     systemDB.on('doc:update', function (doc) {
@@ -147,6 +164,11 @@ describe('system', function () {
       var user = data[Doc._userName];
       if (user) { // user created?
         usersUpdated.push(user);
+      }
+
+      var roleUser = data[Doc._roleName];
+      if (roleUser) { // user added to role?
+        roleUsersUpdated.push(roleUser);
       }
 
     });
@@ -169,6 +191,10 @@ describe('system', function () {
     }).then(function () {
       return updateUser('second-user-uuid', 'second-user');
     }).then(function () {
+      return addRole('second-user-uuid', 'second-role');
+    }).then(function () {
+      return removeRole('second-user-uuid', 'second-role');
+    }).then(function () {
       return destroyDB();
     }).then(function () {
 
@@ -184,6 +210,25 @@ describe('system', function () {
       // Make sure we only received the 2nd user
       usersCreated[0].username.should.eql('second-user');
       usersUpdated[0].username.should.eql('second-user');
+
+      // Make sure we only receive the 2nd role-users
+      roleUsersCreated.length.should.eql(3);
+      roleUsersCreated[0].action.should.eql('add'); // originating id-less "add" doc
+      roleUsersCreated[0].userUUID.should.eql('second-user-uuid');
+      roleUsersCreated[1].action.should.eql('add'); // recorded "add" doc
+      roleUsersCreated[1].userUUID.should.eql('second-user-uuid');
+      roleUsersCreated[2].action.should.eql('remove'); // originating id-less "remove" doc
+      roleUsersCreated[2].userUUID.should.eql('second-user-uuid');
+
+      roleUsersUpdated.length.should.eql(4);
+      roleUsersUpdated[0].action.should.eql('add'); // originating id-less "add" doc
+      roleUsersUpdated[0].userUUID.should.eql('second-user-uuid');
+      roleUsersUpdated[1].action.should.eql('add'); // recorded "add" doc
+      roleUsersUpdated[1].userUUID.should.eql('second-user-uuid');
+      roleUsersUpdated[2].action.should.eql('remove'); // originating id-less "remove" doc
+      roleUsersUpdated[2].userUUID.should.eql('second-user-uuid');
+      roleUsersUpdated[3].action.should.eql('remove'); // recorded "remove" doc
+      roleUsersUpdated[3].userUUID.should.eql('second-user-uuid');
 
       return null; // prevent runaway promise errors
     });

@@ -81,9 +81,12 @@ Utils.prototype.ACTION_REMOVE = 'remove';
 
 Utils.prototype.SYSTEM_DB_NAME = '$system';
 Utils.prototype.DB_COLLECTION_NAME = '$db';
-Utils.prototype.DB_ATTR_NAME = '$db';
+Utils.prototype.DB_ATTR_NAME = '$db'; // TODO: rename to ATTR_NAME_DB??
 
 Utils.prototype.COL_NAME_ALL = '$all';
+
+Utils.prototype.ATTR_NAME_ROLE = '$role';
+Utils.prototype.ATTR_NAME_ROLE_USER = '$ruser';
 
 Utils.prototype.timeout = function (ms) {
   return new Promise(function (resolve) {
