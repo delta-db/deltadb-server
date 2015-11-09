@@ -203,7 +203,8 @@ Partitioners.prototype._emitChanges = function (socket, changes, since) {
 Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
   // We only support filters on the system DB for now as we want to make sure that a client doesn't
   // receive all system deltas
-  var self = this;
+  var self = this,
+    action = null;
   if (dbName === clientUtils.SYSTEM_DB_NAME &&
     self._partitioners[dbName].conns[socket.conn.id].filter) { // system DB and filtering enabled?
 
@@ -213,17 +214,17 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
 
       switch (change.name) {
       case clientUtils.DB_ATTR_NAME: // db action?
-        var action = JSON.parse(change.val);
+        action = JSON.parse(change.val);
         filters.dbs[action.name] = true;
         break;
 
-      // case clientUtils.ATTR_NAME_ROLE_USER: // role user?
-      //   var action = JSON.parse(change.val);
-      //   filters.roleUsers[action.roleName][action.userUUID] = true;
-      //   break;
+        // case clientUtils.ATTR_NAME_ROLE_USER: // role user?
+        //   var action = JSON.parse(change.val);
+        //   filters.roleUsers[action.roleName][action.userUUID] = true;
+        //   break;
 
       case clientUtils.ATTR_NAME_ROLE: // role?
-        var action = JSON.parse(change.val);
+        action = JSON.parse(change.val);
         filters.userRoles.set(action.userUUID, action.roleName, true);
         break;
 
@@ -246,6 +247,8 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
 
     var filters = this._partitioners[dbName].conns[socket.conn.id].filters; // for convenience
 
+    var val = null;
+
     if (typeof change.val === 'undefined') { // destroying
       if (filters.docs[change.id]) { // include?
         return true;
@@ -254,7 +257,7 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
       switch (change.name) {
 
       case clientUtils.DB_ATTR_NAME: // db action?
-        var val = JSON.parse(change.val);
+        val = JSON.parse(change.val);
         // DB name registered?
         if (filters.dbs[val]) {
           // Set id so that we can filter destroy
@@ -264,7 +267,7 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
         return false;
 
       case clientUtils.ATTR_NAME_ROLE: // adding user to role?
-        var val = JSON.parse(change.val);
+        val = JSON.parse(change.val);
         // Role user registered?
         if (filters.userRoles.exists(val.userUUID, val.roleName)) {
           // Set id so that we can filter destroy
@@ -273,15 +276,15 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
         }
         return false;
 
-      // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
-      //   var val = JSON.parse(change.val);
-      //   // Role user registered?
-      //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
-      //     // Set id so that we can filter destroy
-      //     filters.docs[change.id] = true;
-      //     return true;
-      //   }
-      //   return false;
+        // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
+        //   var val = JSON.parse(change.val);
+        //   // Role user registered?
+        //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
+        //     // Set id so that we can filter destroy
+        //     filters.docs[change.id] = true;
+        //     return true;
+        //   }
+        //   return false;
 
       default: // policy?
         return filters.docs[change.id] ? true :
