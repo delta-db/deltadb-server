@@ -21,9 +21,9 @@ Doc._policyName = '$policy';
 
 Doc._userName = '$user';
 
-Doc._roleName = '$role';
+Doc._roleName = clientUtils.ATTR_NAME_ROLE;
 
-Doc._roleUserName = '$ruser';
+Doc._roleUserName = clientUtils.ATTR_NAME_ROLE_USER;
 
 Doc.prototype._initLoaded = function () {
   var self = this;
@@ -456,9 +456,9 @@ Doc.prototype._createUser = function (userUUID, username, password, status) {
   });
 };
 
-// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._addRole = function (userUUID, roleName) {
-  var data = {
+  var data = {};
+  data[Doc._roleName] = {
     action: clientUtils.ACTION_ADD,
     userUUID: userUUID,
     roleName: roleName
@@ -466,9 +466,9 @@ Doc.prototype._addRole = function (userUUID, roleName) {
   return this._setAndSave(data);
 };
 
-// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._removeRole = function (userUUID, roleName) {
-  var data = {
+  var data = {};
+  data[Doc._roleName] = {
     action: clientUtils.ACTION_REMOVE,
     userUUID: userUUID,
     roleName: roleName

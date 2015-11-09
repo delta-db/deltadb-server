@@ -1,7 +1,6 @@
 Now
 ---
 - System DB
-	- filter add/remove role & user-role
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
 		- just prefix system db w/ associated db's name
 		- would need to make db.destroy() then destroy the associated system db
@@ -45,7 +44,7 @@ Next 1
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
-
+- Wouldn't it be better if addRole/removeRole returned a doc that you could wait for 'doc:record' instead of the promise not resolving until the recording?? Is this possible?
 
 Next 2
 ---

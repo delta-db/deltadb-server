@@ -86,16 +86,23 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
     // local doc that was used to originate the delta so that we don't attempt to create the DB
     // again. TODO: Another option for the future could be to create an id in the doc that
     // corresponds to the creating delta id.
-    originatingDoc._col.on('doc:create', function (doc) {
+
+    var listener = function (doc) {
       var data = doc.get();
       // There could have been DBs with the same name created before so we need to check the
       // timestamp
 
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:create', listener);
+
         resolve(originatingDoc._destroyLocally());
       }
-    });
+    };
+
+    originatingDoc._col.on('doc:create', listener);
   });
 };
 
@@ -114,19 +121,22 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
     // local doc that was used to originate the delta so that we don't attempt to destroy the DB
     // again. TODO: Another option for the future could be to create an id in the doc that
     // corresponds to the destroying delta id.
-    originatingDoc._col.on('doc:destroy', function (doc) {
+
+    var listener = function (doc) {
       var data = doc.get();
-      // TODO: only using istanbul ignore here as assuming that this code will be replaced when we
-      // create a new construct for creating/destroy DBs, users, etc... If this code remains then
-      // remove this istanbul annotation and test!
-      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
         // timestamp
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:destroy', listener);
+
         resolve(originatingDoc._destroyLocally());
       }
-    });
+    };
+
+    originatingDoc._col.on('doc:destroy', listener);
   });
 };
 

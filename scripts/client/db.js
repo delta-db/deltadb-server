@@ -262,16 +262,83 @@ DB.prototype.updateUser = function (userUUID, username, password, status) {
   return this.createUser(userUUID, username, password, status);
 };
 
+DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When adding a user to a role, the delta is id-less and so that cannot use an id to reconcile
+    // the local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to add the user to
+    // the role again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+      // The same user-role mapping could have been created before so we need to check the timestamp
+
+      if (data[clientUtils.ATTR_NAME_ROLE] &&
+        data[clientUtils.ATTR_NAME_ROLE].action === clientUtils.ACTION_ADD &&
+        data[clientUtils.ATTR_NAME_ROLE].userUUID === userUUID &&
+        data[clientUtils.ATTR_NAME_ROLE].roleName === roleName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:create', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:create', listener);
+  });
+};
+
 DB.prototype.addRole = function (userUUID, roleName) {
-  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  var col = this.col(colName);
-  return col._addRole(userUUID, roleName);
+  var self = this,
+    ts = new Date(),
+    colName = clientUtils.NAME_PRE_USER_ROLES + userUUID,
+    col = self.col(colName);
+  return col._addRole(userUUID, roleName).then(function (doc) {
+    return self._resolveAfterRoleCreated(userUUID, roleName, doc, ts);
+  });
+};
+
+DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When removing a user's role, the delta is id-less and so that cannot use an id to reconcile
+    // the local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to remove the user's
+    // role again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+      // The same user-role mapping could have been destroyed before so we need to check the
+      // timestamp
+
+      if (data[clientUtils.ATTR_NAME_ROLE] &&
+        data[clientUtils.ATTR_NAME_ROLE].action === clientUtils.ACTION_REMOVE &&
+        data[clientUtils.ATTR_NAME_ROLE].userUUID === userUUID &&
+        data[clientUtils.ATTR_NAME_ROLE].roleName === roleName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:record', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:record', listener);
+  });
 };
 
 DB.prototype.removeRole = function (userUUID, roleName) {
-  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  var col = this.col(colName);
-  return col._removeRole(userUUID, roleName);
+  var self = this,
+    ts = new Date(),
+    colName = clientUtils.NAME_PRE_USER_ROLES + userUUID,
+    col = self.col(colName);
+  return col._removeRole(userUUID, roleName).then(function (doc) {
+    return self._resolveAfterRoleDestroyed(userUUID, roleName, doc, ts);
+  });
 };
 
 DB.prototype._createDatabase = function (dbName) {
