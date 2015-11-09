@@ -1,6 +1,5 @@
 Now
 ---
-- prefix store names, e.g. delta_mydb
 - System DB
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
 		- just prefix system db w/ associated db's name
