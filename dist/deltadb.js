@@ -38077,7 +38077,8 @@ var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
   Promise = require('bluebird'),
-  adapterStore = require('./adapter-store');
+  adapterStore = require('./adapter-store'),
+  config = require('./config');
 
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
@@ -38102,7 +38103,7 @@ Adapter.prototype.uuid = function () {
 
 Adapter.prototype._dbStore = function (name) {
   return this._store.db({
-    db: name
+    db: config.DB_NAME_PREFIX + name
   });
 };
 
@@ -38155,16 +38156,25 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
     // local doc that was used to originate the delta so that we don't attempt to create the DB
     // again. TODO: Another option for the future could be to create an id in the doc that
     // corresponds to the creating delta id.
-    originatingDoc._col.on('doc:create', function (doc) {
+
+    var listener = function (doc) {
       var data = doc.get();
       // There could have been DBs with the same name created before so we need to check the
       // timestamp
 
+      // TODO: test!
+      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:create', listener);
+
         resolve(originatingDoc._destroyLocally());
       }
-    });
+    };
+
+    originatingDoc._col.on('doc:create', listener);
   });
 };
 
@@ -38183,19 +38193,25 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
     // local doc that was used to originate the delta so that we don't attempt to destroy the DB
     // again. TODO: Another option for the future could be to create an id in the doc that
     // corresponds to the destroying delta id.
-    originatingDoc._col.on('doc:destroy', function (doc) {
+
+    var listener = function (doc) {
       var data = doc.get();
-      // TODO: only using istanbul ignore here as assuming that this code will be replaced when we
-      // create a new construct for creating/destroy DBs, users, etc... If this code remains then
-      // remove this istanbul annotation and test!
+
+      // TODO: test!
       /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
         // timestamp
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:destroy', listener);
+
         resolve(originatingDoc._destroyLocally());
       }
-    });
+    };
+
+    originatingDoc._col.on('doc:destroy', listener);
   });
 };
 
@@ -38214,7 +38230,7 @@ Adapter.prototype._destroyDatabase = function (dbName) {
 
 module.exports = Adapter;
 
-},{"../orm/nosql/adapters/mem/adapter":200,"../utils":215,"./adapter-store":182,"./db":187,"./utils":193,"bluebird":23,"inherits":119}],184:[function(require,module,exports){
+},{"../orm/nosql/adapters/mem/adapter":200,"../utils":215,"./adapter-store":182,"./config":186,"./db":187,"./utils":193,"bluebird":23,"inherits":119}],184:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -38369,9 +38385,16 @@ Collection.prototype.policy = function (policy) {
 
 // Shouldn't be called directly as the colName needs to be set properly
 Collection.prototype._createUser = function (userUUID, username, password, status) {
-  var doc = this.doc();
-  doc.id(clientUtils.toDocUUID(userUUID));
-  return doc._createUser(userUUID, username, password, status);
+  var self = this,
+    id = clientUtils.toDocUUID(userUUID);
+  return self.get(id).then(function (doc) {
+    // If we are updating the user, the doc may already exist
+    if (!doc) { // doc missing?
+      doc = self.doc();
+      doc.id(id);
+    }
+    return doc._createUser(userUUID, username, password, status);
+  });
 };
 
 Collection.prototype._addRole = function (userUUID, roleName) {
@@ -38413,6 +38436,8 @@ module.exports = Collection;
 var Config = function () {};
 
 Config.prototype.PORT = 8080;
+
+Config.prototype.DB_NAME_PREFIX = 'delta_';
 
 // TODO: can we change this to https?
 Config.prototype.URL = 'http://localhost:' + Config.prototype.PORT;
@@ -38669,25 +38694,102 @@ DB.prototype.policy = function (colName, policy) {
   return col.policy(policy);
 };
 
+// TODO: shouldn't the password be a byte/char array so that passwords aren't stored in memory in
+// their entirety? See
+// http://stackoverflow.com/questions/28511970/javascript-security-force-deletion-of-sensitive-data
 DB.prototype.createUser = function (userUUID, username, password, status) {
   var col = this.col(Doc._userName);
   return col._createUser(userUUID, username, password, status);
 };
 
+// TODO: shouldn't the password be a byte/char array so that passwords aren't stored in memory in
+// their entirety? See
+// http://stackoverflow.com/questions/28511970/javascript-security-force-deletion-of-sensitive-data
 DB.prototype.updateUser = function (userUUID, username, password, status) {
   return this.createUser(userUUID, username, password, status);
 };
 
+DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When adding a user to a role, the delta is id-less and so that cannot use an id to reconcile
+    // the local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to add the user to
+    // the role again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+      // The same user-role mapping could have been created before so we need to check the timestamp
+
+      // TODO: test!
+      /* istanbul ignore next */
+      if (data[clientUtils.ATTR_NAME_ROLE] &&
+        data[clientUtils.ATTR_NAME_ROLE].action === clientUtils.ACTION_ADD &&
+        data[clientUtils.ATTR_NAME_ROLE].userUUID === userUUID &&
+        data[clientUtils.ATTR_NAME_ROLE].roleName === roleName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:create', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:create', listener);
+  });
+};
+
 DB.prototype.addRole = function (userUUID, roleName) {
-  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  var col = this.col(colName);
-  return col._addRole(userUUID, roleName);
+  var self = this,
+    ts = new Date(),
+    colName = clientUtils.NAME_PRE_USER_ROLES + userUUID,
+    col = self.col(colName);
+  return col._addRole(userUUID, roleName).then(function (doc) {
+    return self._resolveAfterRoleCreated(userUUID, roleName, doc, ts);
+  });
+};
+
+DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When removing a user's role, the delta is id-less and so that cannot use an id to reconcile
+    // the local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to remove the user's
+    // role again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+      // The same user-role mapping could have been destroyed before so we need to check the
+      // timestamp
+
+      // TODO: test!
+      /* istanbul ignore next */
+      if (data[clientUtils.ATTR_NAME_ROLE] &&
+        data[clientUtils.ATTR_NAME_ROLE].action === clientUtils.ACTION_REMOVE &&
+        data[clientUtils.ATTR_NAME_ROLE].userUUID === userUUID &&
+        data[clientUtils.ATTR_NAME_ROLE].roleName === roleName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:record', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:record', listener);
+  });
 };
 
 DB.prototype.removeRole = function (userUUID, roleName) {
-  var colName = clientUtils.NAME_PRE_USER_ROLES + userUUID;
-  var col = this.col(colName);
-  return col._removeRole(userUUID, roleName);
+  var self = this,
+    ts = new Date(),
+    colName = clientUtils.NAME_PRE_USER_ROLES + userUUID,
+    col = self.col(colName);
+  return col._removeRole(userUUID, roleName).then(function (doc) {
+    return self._resolveAfterRoleDestroyed(userUUID, roleName, doc, ts);
+  });
 };
 
 DB.prototype._createDatabase = function (dbName) {
@@ -38967,9 +39069,9 @@ Doc._policyName = '$policy';
 
 Doc._userName = '$user';
 
-Doc._roleName = '$role';
+Doc._roleName = clientUtils.ATTR_NAME_ROLE;
 
-Doc._roleUserName = '$ruser';
+Doc._roleUserName = clientUtils.ATTR_NAME_ROLE_USER;
 
 Doc.prototype._initLoaded = function () {
   var self = this;
@@ -39402,9 +39504,9 @@ Doc.prototype._createUser = function (userUUID, username, password, status) {
   });
 };
 
-// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._addRole = function (userUUID, roleName) {
-  var data = {
+  var data = {};
+  data[Doc._roleName] = {
     action: clientUtils.ACTION_ADD,
     userUUID: userUUID,
     roleName: roleName
@@ -39412,9 +39514,9 @@ Doc.prototype._addRole = function (userUUID, roleName) {
   return this._setAndSave(data);
 };
 
-// TODO: is this really working? Doesn't the attr name need to be set?
 Doc.prototype._removeRole = function (userUUID, roleName) {
-  var data = {
+  var data = {};
+  data[Doc._roleName] = {
     action: clientUtils.ACTION_REMOVE,
     userUUID: userUUID,
     roleName: roleName
@@ -39641,7 +39743,12 @@ Utils.prototype.ACTION_REMOVE = 'remove';
 
 Utils.prototype.SYSTEM_DB_NAME = '$system';
 Utils.prototype.DB_COLLECTION_NAME = '$db';
-Utils.prototype.DB_ATTR_NAME = '$db';
+Utils.prototype.DB_ATTR_NAME = '$db'; // TODO: rename to ATTR_NAME_DB??
+
+Utils.prototype.COL_NAME_ALL = '$all';
+
+Utils.prototype.ATTR_NAME_ROLE = '$role';
+Utils.prototype.ATTR_NAME_ROLE_USER = '$ruser';
 
 Utils.prototype.timeout = function (ms) {
   return new Promise(function (resolve) {
@@ -40105,6 +40212,8 @@ DB.prototype._processQueue = function () {
       if (!self._closed) {
         return self._processTransactions();
       }
+
+      return null; // prevent runaway promise warning
     }).then(function () {
       self._processingQueue = false; // allow others to know we are done
 

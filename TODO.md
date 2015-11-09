@@ -4,8 +4,6 @@ Now
 	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
 		- just prefix system db w/ associated db's name
 		- would need to make db.destroy() then destroy the associated system db
-	- enhance so all system deltas must be recorded before db continues sending
-- prefix store names, e.g. delta_mydb
 - basic authentication
 	- needed during init w/ server. Use token after authentication
 	- token expiration should be refreshed with each sync
@@ -13,8 +11,6 @@ Now
 	- client gets new token after token expiration
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
-- Tests:
-	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 - event for connect. Disconnect event already exists, but add info about both to wiki
 - impl deltadb-ng
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
@@ -27,6 +23,8 @@ Now
 
 Next 1
 ---
+- Tests:
+	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 - todomvc example w/ react and another w/ ember
 - Error Reporting
 	- How to report errors, e.g. ForbiddenErrors, to client? What other errors can we expect? If the underlying DB is unavailable then a retry will solve the problem.
@@ -45,6 +43,8 @@ Next 1
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
 - timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
 - Wouldn't it be better if addRole/removeRole returned a doc that you could wait for 'doc:record' instead of the promise not resolving until the recording?? Is this possible?
+- System DB: Enhance so all system deltas must be recorded before db continues sending? Or would this cause problems with some use cases?
+- System DB: close socket when not needed or else we have 2 sockets per DB!
 
 Next 2
 ---

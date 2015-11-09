@@ -8,7 +8,8 @@ var inherits = require('inherits'),
   utils = require('../utils'),
   clientUtils = require('./utils'),
   Promise = require('bluebird'),
-  adapterStore = require('./adapter-store');
+  adapterStore = require('./adapter-store'),
+  config = require('./config');
 
 var Adapter = function (localOnly) {
   MemAdapter.apply(this, arguments); // apply parent constructor
@@ -33,7 +34,7 @@ Adapter.prototype.uuid = function () {
 
 Adapter.prototype._dbStore = function (name) {
   return this._store.db({
-    db: name
+    db: config.DB_NAME_PREFIX + name
   });
 };
 
