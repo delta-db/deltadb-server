@@ -92,6 +92,8 @@ Adapter.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDo
       // There could have been DBs with the same name created before so we need to check the
       // timestamp
 
+      // TODO: test!
+      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.recordedAt.getTime() >= ts.getTime()) {
 
@@ -124,6 +126,9 @@ Adapter.prototype._resolveAfterDatabaseDestroyed = function (dbName, originating
 
     var listener = function (doc) {
       var data = doc.get();
+
+      // TODO: test!
+      /* istanbul ignore next */
       if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
         doc._dat.destroyedAt.getTime() >= ts.getTime()) {
         // There could have been DBs with the same name destroyed before so we need to check the
