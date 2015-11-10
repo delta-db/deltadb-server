@@ -35,8 +35,6 @@ describe('e2e-no-socket', function () {
     // reused by the proceeding test
     return b.destroy().then(function () {
       return a.destroy();
-    }).then(function () {
-      return client._systemDB().destroy();
     });
   });
 

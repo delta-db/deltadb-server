@@ -52,11 +52,7 @@ describe('race', function () {
     // IndexedDB doesn't allow us to destroy a DB that is in use. Therefore, we use keepLocal=true
     // so that we can close connection b first.
     return b.destroy(false, true).then(function () {
-      return clientB._systemDB().destroy(true, true); // keep DBs, but disconnect
-    }).then(function () {
       return a.destroy();
-    }).then(function () {
-      return clientA._systemDB().destroy(true, false);
     });
   };
 

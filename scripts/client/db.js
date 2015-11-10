@@ -45,6 +45,7 @@ var DB = function (name, adapter, url, localOnly, noFilters) {
 
     this._connectWhenReady();
   }
+
 };
 
 inherits(DB, MemDB);
@@ -361,10 +362,10 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
   var self = this,
     promise = null;
 
-  if (keepRemote || self._localOnly) {
+  if (keepRemote || self._localOnly || self._name === clientUtils.SYSTEM_DB_NAME) {
     promise = Promise.resolve();
   } else {
-    promise = self._adapter._destroyDatabase(this._name);
+    promise = self._destroyDatabaseViaSystem(self._name);
   }
 
   return promise.then(function () {
@@ -375,6 +376,12 @@ DB.prototype.destroy = function (keepRemote, keepLocal) {
   }).then(function () {
     if (!keepLocal) {
       return self._store.destroy();
+    }
+  }).then(function () {
+    // Is this DB not a system DB and does it have an associated system DB?
+    if (self._name !== clientUtils.SYSTEM_DB_NAME && self._sysDB) {
+      // Also destroy the assoicated system DB. Always keep the remote instance
+      return self._systemDB().destroy(true, keepLocal);
     }
   }).then(function () {
     return self._adapter._unregister(self._name);
@@ -474,9 +481,83 @@ DB.prototype._registerDisconnectListener = function () {
   });
 };
 
+DB.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When creating a DB, the delta is id-less and so that cannot use an id to reconcile the
+    // local doc. Instead we listen for a new doc on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to create the DB
+    // again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the creating delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+      // There could have been DBs with the same name created before so we need to check the
+      // timestamp
+
+      // TODO: test!
+      /* istanbul ignore next */
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
+        doc._dat.recordedAt.getTime() >= ts.getTime()) {
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:create', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:create', listener);
+  });
+};
+
+DB.prototype._createDatabaseViaSystem = function (dbName) {
+  var self = this,
+    ts = new Date();
+  return self._systemDB()._createDatabase(dbName).then(function (doc) {
+    return self._resolveAfterDatabaseCreated(dbName, doc, ts);
+  });
+};
+
+DB.prototype._resolveAfterDatabaseDestroyed = function (dbName, originatingDoc, ts) {
+  return new Promise(function (resolve) {
+    // When creating a DB, the delta is id-less and so we cannot use an id to reconcile the local
+    // doc. Instead we listen for a doc:destroy event on the parent collection and then delete the
+    // local doc that was used to originate the delta so that we don't attempt to destroy the DB
+    // again. TODO: Another option for the future could be to create an id in the doc that
+    // corresponds to the destroying delta id.
+
+    var listener = function (doc) {
+      var data = doc.get();
+
+      // TODO: test!
+      /* istanbul ignore next */
+      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
+        doc._dat.destroyedAt.getTime() >= ts.getTime()) {
+        // There could have been DBs with the same name destroyed before so we need to check the
+        // timestamp
+
+        // Remove listener so that we don't listen for other docs
+        originatingDoc._col.removeListener('doc:destroy', listener);
+
+        resolve(originatingDoc._destroyLocally());
+      }
+    };
+
+    originatingDoc._col.on('doc:destroy', listener);
+  });
+};
+
+DB.prototype._destroyDatabaseViaSystem = function (dbName) {
+  var self = this,
+    ts = new Date();
+  return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
+    return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
+  });
+};
+
 DB.prototype._createDatabaseAndInit = function () {
   var self = this;
-  return self._adapter._createDatabase(self._name).then(function () {
+  return self._createDatabaseViaSystem(self._name).then(function () {
     self._init();
     return null; // prevent runaway promise warning
   });
@@ -551,6 +632,26 @@ DB.prototype._connectWhenReady = function () {
   return self._storeLoaded.then(function () {
     return self._connect();
   });
+};
+
+
+/**
+ * Each DB has an associated SystemDB as the DB needs to be able to point to any DB cluster and we
+ * may have 2 DBs that point to different clusters so the same SystemDB could not be used.
+ */
+DB.prototype._systemDB = function () {
+  if (!this._sysDB) {
+
+    var opts = {
+      db: clientUtils.SYSTEM_DB_NAME,
+      alias: config.SYSTEM_DB_NAME_PREFIX + this._name,
+      url: this._url,
+      local: this._localOnly
+    };
+
+    this._sysDB = this._adapter.db(opts);
+  }
+  return this._sysDB;
 };
 
 module.exports = DB;

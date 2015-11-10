@@ -20,14 +20,7 @@ describe('basic', function () {
   });
 
   afterEach(function () {
-    return a.destroy().then(function () {
-      return DeltaDB._systemDB().destroy(true, false);
-    }).then(function () {
-      // TODO: remove this after we have a system db per db
-      // Set to null to force creation of a new system DB
-      DeltaDB._clearSystemDB();
-      return null; // prevent runaway promise warning
-    });
+    return a.destroy();
   });
 
   it('should send and receive changes', function () {

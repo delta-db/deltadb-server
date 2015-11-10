@@ -28,6 +28,7 @@ Collection.prototype.doc = function (obj) {
 Collection.prototype._get = function (id) {
   var self = this;
   return new Promise(function (resolve, reject) {
+
     var tx = self._db._db.transaction(self._name, 'readwrite'),
       store = tx.objectStore(self._name),
       request = store.get(id);

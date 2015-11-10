@@ -15,6 +15,7 @@ inherits(Doc, CommonDoc);
 Doc.prototype._putTransaction = function (doc) {
   var self = this;
   return new Promise(function (resolve, reject) {
+
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
       store = tx.objectStore(self._col._name);
 
@@ -63,6 +64,7 @@ Doc.prototype._update = function () {
 Doc.prototype._destroyTransaction = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
+
     var tx = self._col._db._db.transaction(self._col._name, 'readwrite'),
       store = tx.objectStore(self._col._name);
 
