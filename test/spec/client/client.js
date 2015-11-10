@@ -6,7 +6,6 @@ var utils = require('../../../scripts/utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
-  // clientUtils = require('../../../scripts/client/utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
 
 describe('client', function () {
@@ -16,13 +15,13 @@ describe('client', function () {
     tasks = null;
 
   beforeEach(function () {
-    // TODO: For now, we have to instantiate a new store each time so that data isn't reloaded
-    // between tests. In the future we want an event that is emitted when the loading of the store
-    // has completed and we can then use this event in an afterEach().
     client = new Client(true);
 
     db = client.db({
       db: 'mydb',
+
+      // TODO: we use a MemAdapter here to avoid issues with rapidly create/destroying IndexedDB
+      // DBs. Is there a better way?
       store: new MemAdapter().db('mydb')
     });
 
@@ -30,7 +29,7 @@ describe('client', function () {
   });
 
   afterEach(function () {
-    return db.destroy(true);
+    return db.destroy();
   });
 
   var latestShouldEql = function (expected) {

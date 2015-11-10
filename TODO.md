@@ -1,9 +1,5 @@
 Now
 ---
-- System DB
-	- need to create a system db for each db? Probably. Otherwise if have 2 dbs w/ same URL, how do we know which system db to use?
-		- just prefix system db w/ associated db's name
-		- would need to make db.destroy() then destroy the associated system db
 - basic authentication
 	- needed during init w/ server. Use token after authentication
 	- token expiration should be refreshed with each sync
@@ -23,6 +19,8 @@ Now
 
 Next 1
 ---
+- Tutorials:
+	- How to set up a DB cluster (note about if have only 1 server then need to set quorum config)
 - Tests:
 	- test sender by making "interval" large and making a bunch of changes in a short period of time and make sure sync only called twice
 - todomvc example w/ react and another w/ ember

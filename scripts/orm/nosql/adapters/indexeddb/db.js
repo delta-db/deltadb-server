@@ -65,6 +65,7 @@ DB.prototype._setDB = function (request) {
 DB.prototype._open = function (onUpgradeNeeded, onSuccess) {
   var self = this;
   return new Promise(function (resolve, reject) {
+
     var request = null;
     if (self._version) {
       request = idbUtils.indexedDB().open(self._name, self._version);
@@ -282,6 +283,7 @@ DB.prototype._openClose = function (promise) {
 DB.prototype._destroy = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
+
     var req = idbUtils.indexedDB().deleteDatabase(self._name);
 
     req.onsuccess = function () {
@@ -291,13 +293,14 @@ DB.prototype._destroy = function () {
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onerror = function () {
-      reject(new Error("Couldn't destroy database: " + req.err));
+      reject(new Error("Couldn't destroy database " + self._name + ": " + req.err));
     };
 
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onblocked = function () {
-      reject(new Error("Couldn't destroy database as blocked: " + req.err));
+      reject(new Error("Couldn't destroy database " + self._name + " as blocked: err=" +
+        req.err));
     };
   });
 };

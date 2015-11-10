@@ -4,7 +4,8 @@ var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
   utils = require('../../scripts/utils'),
   clientUtils = require('../../scripts/client/utils'),
-  Doc = require('../../scripts/client/doc');
+  Doc = require('../../scripts/client/doc'),
+  Promise = require('bluebird');
 
 /**
  * The goal of this test is to make sure that we filter system DB deltas so that a client receives
@@ -19,6 +20,7 @@ describe('system', function () {
   this.timeout(20000);
 
   var db = null,
+    dbCreated = null,
     dbsCreated = [],
     dbsUpdated = [],
     dbsDestroyed = [],
@@ -39,19 +41,17 @@ describe('system', function () {
     task.save();
 
     // Waiting for the following event ensures that the DB has already been created
-    return utils.once(task, 'doc:record');
+    dbCreated = utils.once(task, 'doc:record');
+
+    return Promise.resolve();
+  };
+
+  var waitUntilDBCreated = function () {
+    return dbCreated;
   };
 
   var destroyDB = function () {
-    return db.destroy().then(function () {
-      return DeltaDB._systemDB().destroy(true, false);
-    }).then(function () {
-      // TODO: remove this after we have a system db per db
-      // Set to null to force creation of a new system DB
-      DeltaDB._clearSystemDB();
-
-      return null; // prevent runaway promise warnings
-    });
+    return db.destroy();
   };
 
   var policy = function (attrName) {
@@ -75,35 +75,37 @@ describe('system', function () {
       destroy: '$all'
     };
 
-    return DeltaDB._systemDB().policy('$db', pol).then(function (doc) {
+    return db._systemDB().policy('$db', pol).then(function (doc) {
       return utils.once(doc, 'doc:record');
     });
   };
 
   var createUser = function (uuid, username) {
-    return DeltaDB._systemDB().createUser(uuid, username, 'secret', 'enabled').then(function (
+    return db._systemDB().createUser(uuid, username, 'secret', 'enabled').then(function (
       doc) {
       return utils.once(doc, 'doc:record');
     });
   };
 
   var updateUser = function (uuid, username) {
-    return DeltaDB._systemDB().updateUser(uuid, username, 'secret', 'disabled').then(function (
+    return db._systemDB().updateUser(uuid, username, 'secret', 'disabled').then(function (
       doc) {
       return utils.once(doc, 'attr:record');
     });
   };
 
   var addRole = function (userUUID, roleName) {
-    return DeltaDB._systemDB().addRole(userUUID, roleName);
+    return db._systemDB().addRole(userUUID, roleName);
   };
 
   var removeRole = function (userUUID, roleName) {
-    return DeltaDB._systemDB().removeRole(userUUID, roleName);
+    return db._systemDB().removeRole(userUUID, roleName);
   };
 
   beforeEach(function () {
     return createDB('mydb').then(function () {
+      return waitUntilDBCreated();
+    }).then(function () {
       return policy('thing');
     }).then(function () {
       return createUser('first-user-uuid', 'first-user');
@@ -118,10 +120,8 @@ describe('system', function () {
     });
   });
 
-  it('should filter system deltas', function () {
-    var systemDB = DeltaDB._systemDB();
-
-    systemDB.on('doc:create', function (doc) {
+  var registerCreateSystemListener = function () {
+    db._systemDB().on('doc:create', function (doc) {
 
       var data = doc.get();
 
@@ -146,8 +146,10 @@ describe('system', function () {
       }
 
     });
+  };
 
-    systemDB.on('doc:update', function (doc) {
+  var registerUpdateSystemListener = function () {
+    db._systemDB().on('doc:update', function (doc) {
 
       var data = doc.get();
 
@@ -172,8 +174,10 @@ describe('system', function () {
       }
 
     });
+  };
 
-    systemDB.on('doc:destroy', function (doc) {
+  var registerDestroySystemListener = function () {
+    db._systemDB().on('doc:destroy', function (doc) {
       var data = doc.get();
 
       var dbName = data[clientUtils.DB_ATTR_NAME];
@@ -183,8 +187,19 @@ describe('system', function () {
       }
 
     });
+  };
 
+  var registerSystemListeners = function () {
+    registerCreateSystemListener();
+    registerUpdateSystemListener();
+    registerDestroySystemListener();
+  };
+
+  it('should filter system deltas', function () {
     return createDB('myotherdb').then(function () {
+      registerSystemListeners();
+      return waitUntilDBCreated();
+    }).then(function () {
       return policy('priority');
     }).then(function () {
       return createUser('second-user-uuid', 'second-user');

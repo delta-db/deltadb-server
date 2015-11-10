@@ -21,8 +21,6 @@ describe('e2e', function () {
 
     return db1.destroy(true).then(function () {
       return db2.destroy(true);
-    }).then(function () {
-      return client._systemDB().destroy(true, false);
     });
   });
 
