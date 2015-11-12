@@ -4,12 +4,14 @@
 
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
+  constants = require('../partitioner/sql/constants'),
   log = require('../server/log'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
   DBMissingError = require('../client/db-missing-error'),
-  Dictionary = require('../utils/dictionary');
+  Dictionary = require('../utils/dictionary'),
+  Users = require('../partitioner/sql/user/users');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -24,12 +26,16 @@ Partitioners.prototype.dbExists = function (dbName) {
   });
 };
 
-Partitioners.POLL_SLEEP_MS = 1000;
+/**
+ * Milliseconds to sleep between polls for data. In the future we won't need this as we'll receive
+ * an event when there is new data.
+ */
+Partitioners.POLL_SLEEP_MS = 500;
 
-Partitioners.prototype.existsThenRegister = function (dbName, socket, since, filter) {
+Partitioners.prototype.existsThenRegister = function (dbName, socket, since, filter, userUUID, userId) {
   var self = this;
   return self.dbExists(dbName).then(function () {
-    return self.register(dbName, socket, since, filter);
+    return self.register(dbName, socket, since, filter, userUUID, userId);
   });
 };
 
@@ -43,14 +49,16 @@ Partitioners.prototype._defaultFilters = function () {
 };
 
 // TODO: split up
-Partitioners.prototype.register = function (dbName, socket, since, filter) {
+Partitioners.prototype.register = function (dbName, socket, since, filter, userUUID, userId) {
   var self = this;
   if (self._partitioners[dbName]) { // exists?
     self._partitioners[dbName].conns[socket.conn.id] = {
       socket: socket,
       since: since,
       filters: self._defaultFilters(),
-      filter: filter
+      filter: filter,
+      userUUID: userUUID,
+      userId: userId
     };
     return self._partitioners[dbName].ready;
   } else {
@@ -63,7 +71,9 @@ Partitioners.prototype.register = function (dbName, socket, since, filter) {
       socket: socket,
       since: since,
       filters: self._defaultFilters(),
-      filter: filter
+      filter: filter,
+      userUUID: userUUID,
+      userId: userId
     };
 
     var container = {
@@ -165,9 +175,13 @@ Partitioners.prototype._doPoll = function (partitioner) {
 Partitioners.prototype._hasChanges = function (partitioner, since) {
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
-  var self = this,
-    all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  return partitioner.changes(since, null, 1, null, all).then(function (changes) {
+  var self = this;
+  // var all = partitioner._dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  var all = true;
+
+  // Server needs to use super to check for changes, but then we use the user associated with the
+  // connection user when actually getting changes
+  return partitioner.changes(since, null, 1, null, all, Users.ID_SUPER).then(function (changes) {
     return changes.length > 0;
   }).catch(function (err) {
     if (err instanceof SocketClosedError) {
@@ -234,6 +248,7 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
       }
 
     });
+
   }
 };
 
@@ -299,6 +314,11 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
   return false;
 };
 
+Partitioners.prototype._findUUID = function (dbName, attrName, attrVal) {
+  return this._partitioners[dbName].part._partitions[constants.LATEST]._docs
+    .findUUID(attrName, attrVal);
+};
+
 Partitioners.prototype._filter = function (dbName, socket, changes) {
   // We only support filters on the system DB for now as we want to make sure that a client doesn't
   // receive all system deltas
@@ -318,12 +338,23 @@ Partitioners.prototype._filter = function (dbName, socket, changes) {
   return newChanges;
 };
 
+Partitioners.prototype._addUserUUID = function (dbName, socket, changes) {
+  // This will actually overwrite any ids set by the clients, which is a good safeguard against the
+  // client trying to spoof its identity.
+  var userUUID = this._partitioners[dbName].conns[socket.conn.id].userUUID;
+  changes.forEach(function (change) {
+    change.uid = userUUID;
+  });
+};
+
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
 
   var self = this,
     part = self._partitioners[dbName].part;
+
+  self._addUserUUID(dbName, socket, msg.changes);
 
   self._saveFilters(dbName, socket, msg.changes);
 
@@ -338,6 +369,7 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   var self = this,
     part = self._partitioners[dbName].part,
     since = self._partitioners[dbName].conns[socket.conn.id].since,
+    userId = self._partitioners[dbName].conns[socket.conn.id].userId,
     newSince = new Date();
 
   self._partitioners[dbName].conns[socket.conn.id].since = newSince;
@@ -345,8 +377,9 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   // TODO: need to support pagination. Need to cap the results with the offset param, but then
   // need to report to client that there is more data and to do another sync, but don't need
   // client to resend changes. On the other side, how do we handle pagination from client?
-  var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  return part.changes(since, null, null, null, all).then(function (changes) {
+  // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  var all = true;
+  return part.changes(since, null, null, null, all, userId).then(function (changes) {
     changes = self._filter(dbName, socket, changes);
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);

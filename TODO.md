@@ -1,8 +1,25 @@
 Now
 ---
-- basic authentication
-	- needed during init w/ server
-	- server makes sure that all changedByUUID matches the logged in user unless the user is $super
+- Basic authentication
+	- Make DB record action deltas
+	- auth test: getting destroy recording, but test not completing!!
+		- It appears that if don't have creating action stored then can't reconcile destroy as don't have id. In other words, we don't get the recording with the id unless we created in the same session.
+		- One dirty hack could be to require the client to issue another create even though the DB already exists--actually the server could do this on the client's behalf.
+		- *** Could we just have the action deltas be recorded?
+			- This would also make the filtering very simple
+	- when server checks for changes, need to be super. When server gets changes then need to use specific user
+		- allow connections with server where have $super access
+	- update wiki with username and password in new DeltaDB()
+	- tests:
+		- DONE: connect to server w/ valid user and update with cur user
+		- connect to server w/ valid user and update with other user => should fail
+		- connect to server w/o valid user => connection should get error and socket should be closed
+		- connect as anonymous and make sure that cannot specify changedByUUID
+		- connect to server w/ disabled user => error
+		- make sure deltas from server being filtered by user permissions
+- Remove uid from attr-recs as no longer needed
+- Need to separate user password into another attr so that by default it can be hidden from users with policy
+- Pagination from server to client and vise-versa
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - event for connect. Disconnect event already exists, but add info about both to wiki
@@ -101,6 +118,7 @@ Next 2
 	- could also develop concept of session instance of DB, e.g. prefix DB with '1', '2', etc... but then how to coordinate which tab gets with DB?
 - investigate use of logger package for both server and client--replace use of in-house log
 - Way of specifying name of client store so that we can have 2 DBs with the same name, e.g. '$system', that point point to different servers
+- Is there a better form of authentication that doesn't require the client to store the password? A token would be nice. We could require the user to enter their username and password when the client goes online and then store a token and not the password. Then whenever the token expires and the user is online, they would have to enter their password again.
 
 
 NoSQL support

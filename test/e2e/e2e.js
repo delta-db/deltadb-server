@@ -26,6 +26,8 @@ describe('e2e', function () {
 
   require('./basic');
 
+  require('./auth');
+
   require('./separate');
 
   require('./system');

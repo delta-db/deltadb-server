@@ -579,4 +579,22 @@ describe('policy', function () {
     });
   });
 
+  it('should include doc when no author and authenticated', function () {
+    var changes = [{
+      col: 'task',
+      id: '1',
+      name: 'priority',
+      val: '"high"',
+      up: '2014-01-01T10:00:00.000Z'
+    }];
+
+    return queueAndProcess(changes).then(function () {
+      return testUtils.changes(args.db, null, null, null, null, false, 'user-uuid');
+    }).then(function (chngs) {
+      testUtils.contains([{
+        name: 'priority'
+      }], testUtils.sortChanges(chngs));
+    });
+  });
+
 });

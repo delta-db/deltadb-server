@@ -10,8 +10,8 @@ var Server = require('./server'),
   Partitioner = require('../partitioner/sql'),
   Manager = require('../manager');
 
-var server = new Server(),
-  process = new Process();
+var process = new Process(),
+  server = new Server(process);
 
 /**
  * Create the system DB if it doesn't already exist

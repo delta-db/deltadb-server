@@ -18,7 +18,7 @@ describe('delta-db', function () {
   it('should construct with store', function () {
     var adapter = new MemAdapter();
     var dbStore = adapter.db('mydb');
-    var db = new DeltaDB('mydb', null, dbStore);
+    var db = new DeltaDB('mydb', null, null, null, dbStore);
     return db.destroy(true);
   });
 

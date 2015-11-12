@@ -280,14 +280,14 @@ Users.prototype._getSalt = function (username) {
 };
 
 Users.prototype._authenticate = function (username, hashedPwd) {
-  return this._sql.find(['id'], Users.NAME, null, [
+  return this._sql.find(['id', 'uuid'], Users.NAME, null, [
     ['username', '=', '"' + username + '"'], 'and', ['password', '=', '"' + hashedPwd + '"']
   ]).then(function (results) {
     if (!results.rows) {
       throw new AuthenticationError('username (username=' + username +
         ') and/or password invalid');
     }
-    return results.rows[0].id;
+    return results.rows[0];
   });
 };
 
