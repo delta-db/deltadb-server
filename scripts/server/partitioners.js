@@ -32,7 +32,8 @@ Partitioners.prototype.dbExists = function (dbName) {
  */
 Partitioners.POLL_SLEEP_MS = 500;
 
-Partitioners.prototype.existsThenRegister = function (dbName, socket, since, filter, userUUID, userId) {
+Partitioners.prototype.existsThenRegister = function (dbName, socket, since, filter, userUUID,
+  userId) {
   var self = this;
   return self.dbExists(dbName).then(function () {
     return self.register(dbName, socket, since, filter, userUUID, userId);

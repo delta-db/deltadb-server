@@ -2,8 +2,6 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  DB = require('../../scripts/client/db'),
-  Promise = require('bluebird'),
   clientUtils = require('../../scripts/client/utils');
 
 describe('auth', function () {

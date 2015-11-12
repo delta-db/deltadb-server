@@ -11,7 +11,8 @@ var app = require('express')(),
   Partitioners = require('./partitioners'),
   log = require('../server/log'),
   config = require('../../config'),
-  utils = require('../utils');
+  utils = require('../utils'),
+  Promise = require('bluebird');
 
 var Server = function (process) {
   this._partitioners = new Partitioners();
@@ -54,7 +55,8 @@ Server.prototype._registerInitListener = function (socket) {
     return promise.then(function (user) {
       var uuid = user ? user.uuid : null;
       var id = user ? user.id : null;
-      return self._partitioners.existsThenRegister(msg.db, socket, since, msg.filter, uuid, id);
+      return self._partitioners.existsThenRegister(msg.db, socket, since, msg.filter,
+        uuid, id);
     }).then(function (partitioner) {
       self._registerDisconnectListener(socket, partitioner);
       self._registerChangesListener(socket, partitioner);

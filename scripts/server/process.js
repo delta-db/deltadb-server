@@ -10,9 +10,7 @@ var Partitioner = require('../partitioner/sql'),
   utils = require('../utils'),
   Promise = require('bluebird'),
   DBMissingError = require('../client/db-missing-error'),
-  SocketClosedError = require('../orm/sql/common/socket-closed-error'),
-  Cols = require('../partitioner/sql/col/cols'),
-  Users = require('../partitioner/sql/user/users');
+  SocketClosedError = require('../orm/sql/common/socket-closed-error');
 
 var Process = function () {
   this._initSystemDB();
@@ -80,7 +78,8 @@ Process.prototype._processAndCatch = function (part) {
 };
 
 Process.prototype._partitioner = function (dbName) {
-  var self = this, promise = null;
+  var self = this,
+    promise = null;
 
   if (!self._partitioners[dbName]) { // not connected?
     self._partitioners[dbName] = new Partitioner(dbName);
@@ -91,7 +90,7 @@ Process.prototype._partitioner = function (dbName) {
 
   return promise.then(function () {
     return self._partitioners[dbName];
-  })
+  });
 };
 
 Process.prototype._processDB = function (dbName) {
