@@ -199,8 +199,8 @@ describe('users', function () {
     var userId = testUtils.userId;
     return userUtils.createUser(userUtils.userUUID, 'user', 'secret').then(function () {
       return args.db._users.authenticated('user', 'secret');
-    }).then(function (_userId) {
-      _userId.should.eql(userId);
+    }).then(function (user) {
+      user.id.should.eql(userId);
     });
   });
 

@@ -46,7 +46,7 @@ Server.prototype._registerInitListener = function (socket) {
 
     var promise = null;
     if (msg.username) { // authenticate?
-      promise = self._process.authenticate(msg.db, msg.username, msg.password);
+      promise = self._process.authenticated(msg.db, msg.username, msg.password);
     } else {
       promise = Promise.resolve();
     }

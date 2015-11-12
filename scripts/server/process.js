@@ -133,18 +133,18 @@ Process.prototype.run = function () {
   this._loop();
 };
 
-Process.prototype.authenticate = function (dbName, username, password) {
+Process.prototype.authenticated = function (dbName, username, password) {
   // TODO: if decided to stick with partitioner pooling then what happens when there are many DBs?
 
   var self = this,
     part = null,
-    userId = null,
+    user = null,
     err = null;
 
   return self._partitioner(dbName).then(function (_part) {
     part = _part;
-    return part._users.authenticated(username, password).then(function (_userId) {
-      userId = _userId;
+    return part._users.authenticated(username, password).then(function (_user) {
+      user = _user;
     }).catch(function (_err) {
       err = _err;
     });
@@ -152,7 +152,7 @@ Process.prototype.authenticate = function (dbName, username, password) {
     if (err) {
       throw err;
     } else {
-      return userId;
+      return user;
     }
   });
 };
