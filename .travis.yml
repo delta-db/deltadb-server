@@ -39,6 +39,11 @@ env:
   - COMMAND=coverage
   - COMMAND=assert-beautified
 
+  - COMMAND=build-test-coverage
+  - COMMAND=new-test-browser
+  - COMMAND=coverage-report
+  - COMMAND=check-coverage
+
 branches:
   only:
   - master
