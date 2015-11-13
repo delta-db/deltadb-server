@@ -8,7 +8,6 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  Docs = require('../doc/docs'),
   DBMissingError = require('../../../client/db-missing-error'),
   DBExistsError = require('../../../client/db-exists-error'),
   utils = require('../../../utils'),
@@ -156,10 +155,12 @@ Attr.prototype._createDB = function () {
 Attr.prototype._createOrDestroyDatabase = function () {
   // Only create DB if this the system partitioner
   var self = this;
-  if (self._partitioner._dbName !== System.DB_NAME) {
-    // TODO: log?
-    return Promise.resolve();
-  }
+
+  // TODO: remove?
+  // if (self._partitioner._dbName !== System.DB_NAME) {
+  //   // TODO: log?
+  //   return Promise.resolve();
+  // }
 
   // TODO: make configurable
   var quorum = true;
@@ -226,10 +227,9 @@ Attr.prototype.setOptions = function () {
     return ret;
 
   case System.ATTR_NAME_ACTION:
-    if (this._params.colName === System.DB_COLLECTION_NAME) {
-      return this._createOrDestroyDatabase();
-    }
-    return Promise.resolve();
+    // if (this._params.colName === System.DB_COLLECTION_NAME) {
+    return this._createOrDestroyDatabase();
+    // }
 
   default:
     return Promise.resolve();

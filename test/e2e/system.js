@@ -155,7 +155,7 @@ describe('system', function () {
 
       var dbName = data[clientUtils.DB_ATTR_NAME];
       if (dbName && typeof dbName === 'string') { // db created?
-        dbsNames.push(dbName);
+        dbNames.push(dbName);
       }
 
       var action = data[clientUtils.ATTR_NAME_ACTION];

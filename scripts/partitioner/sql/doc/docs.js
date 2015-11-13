@@ -2,22 +2,13 @@
 
 // TODO: split into Docs, Doc, DocRecs, DocRec
 
-var constants = require('../constants'),
-  System = require('../../../system');
+var constants = require('../constants');
 
 var Docs = function (partitions, attrs, policy, cols) {
   this._partitions = partitions;
   this._attrs = attrs;
   this._policy = policy;
   this._cols = cols;
-};
-
-// TODO: create a data type for creating indexes like this
-Docs.ID_LESS = {};
-Docs.ID_LESS[System.ATTR_NAME_ACTION] = true;
-
-Docs.isIdLess = function (name) {
-  return Docs.ID_LESS[name] ? true : false;
 };
 
 Docs.prototype._restore = function (docId, restore) {

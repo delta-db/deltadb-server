@@ -4,7 +4,6 @@ var utils = require('../../../utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  Docs = require('../doc/docs'),
   SQLError = require('../../../orm/sql/common/sql-error');
 
 // AttrRec should closely mimic the attrs table, e.g. the value of the attr is stored in JSON
@@ -38,8 +37,7 @@ AttrRec.prototype._rec = function () {
     value: this._params.value,
     changed_by_user_id: this._params.changedByUserId,
     updated_at: this._params.updatedAt,
-    seq: (typeof this._params.seq === 'undefined' || this._params.seq === null ? 0 : this._params
-      .seq),
+    seq: this._params.seq ? this._params.seq : 0,
     quorum: this._params.quorum,
     uid: this._params.uid,
     recorded_at: new Date(),

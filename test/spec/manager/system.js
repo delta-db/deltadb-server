@@ -7,7 +7,6 @@ var testUtils = require('../../utils'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
-  utils = require('../../../scripts/utils'),
   DBMissingError = require('../../../scripts/client/db-missing-error');
 
 describe('system', function () {

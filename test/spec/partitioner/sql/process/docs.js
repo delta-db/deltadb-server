@@ -5,8 +5,6 @@
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
-  Attr = require(partDir + '/attr/attr'),
-  System = require(partDir + '/../../system'),
   Promise = require('bluebird'),
   utils = require(partDir + '/../../utils'),
   ForbiddenError = require(partDir + '/forbidden-error');

@@ -23,8 +23,6 @@ var Promise = require('bluebird'),
   Users = require('./user/users'),
   Doc = require('../../client/doc'),
   UserRoles = require('./user/user-roles'),
-  Docs = require('./doc/docs'),
-  clientUtils = require('../../client/utils'),
   log = require('../../server/log');
 
 // TODO: remove unneeded params

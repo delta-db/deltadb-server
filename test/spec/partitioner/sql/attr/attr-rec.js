@@ -6,7 +6,6 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
   AttrRec = require(partDir + '/attr/attr-rec'),
-  System = require(partDir + '/../../system'),
   Promise = require('bluebird');
 
 describe('attr-rec', function () {
