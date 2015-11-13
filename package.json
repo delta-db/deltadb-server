@@ -47,7 +47,9 @@
     "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage",
     "tmp1": "npm run jshint && npm run build-test-coverage",
     "tmp2": "npm run jshint && npm run build-test-coverage && npm run new-test-browser",
-    "tmp3": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report"
+    "tmp3": "mkdir -p coverage/browser",
+    "tmp4": "./bin/new-test-browser.js",
+    "tmp5": "npm run mv-coverage"
   },
   "dependencies": {
     "bcrypt": "^0.8.1",

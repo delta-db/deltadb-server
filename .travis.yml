@@ -42,6 +42,8 @@ env:
   - COMMAND=tmp1
   - COMMAND=tmp2
   - COMMAND=tmp3
+  - COMMAND=tmp4
+  - COMMAND=tmp5
 
 branches:
   only:
