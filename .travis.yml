@@ -39,10 +39,9 @@ env:
   - COMMAND=coverage
   - COMMAND=assert-beautified
 
-  - COMMAND=build-test-coverage
-  - COMMAND=new-test-browser
-  - COMMAND=coverage-report
-  - COMMAND=check-coverage
+  - COMMAND=tmp1
+  - COMMAND=tmp2
+  - COMMAND=tmp3
 
 branches:
   only:
