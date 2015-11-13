@@ -87,6 +87,7 @@ Utils.prototype.COL_NAME_ALL = '$all';
 
 Utils.prototype.ATTR_NAME_ROLE = '$role';
 Utils.prototype.ATTR_NAME_ROLE_USER = '$ruser';
+Utils.prototype.ATTR_NAME_ACTION = '$action';
 
 Utils.prototype.timeout = function (ms) {
   return new Promise(function (resolve) {

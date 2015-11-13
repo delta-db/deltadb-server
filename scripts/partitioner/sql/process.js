@@ -126,13 +126,15 @@ Process.prototype._createOrUpdateAttr = function (part, attr) {
 
     var recordedByUserId = this._getRecordedByUserId(attr);
 
+    var recordedByUUID = this._getRecordedByUUID(attr);
+
     var val = this._fromDeltaValue(attr.attr_val);
 
     var params = new AttrParams(this._docIds[part][attr.doc_uuid], attr.attr_name,
       val, this._userIds[attr.user_uuid],
       destroyedAt, attr.recorded_at, updatedAt, attr.seq, attr.quorum,
       attr.user_uuid, this._colIds[attr.col_name], attr.doc_uuid,
-      this._userIds[forUserUUID], forUserUUID, recordedByUserId);
+      this._userIds[forUserUUID], forUserUUID, recordedByUserId, attr.col_name, recordedByUUID);
 
     var at = new Attr(this._sql, part, this._policy, this._partitions, this._users,
       this._docs, params, this._roles, this._partitioner);
@@ -532,6 +534,14 @@ Process.prototype._getRecordedByUserId = function (attr) {
   }
 };
 
+Process.prototype._getRecordedByUUID = function (attr) {
+  if (attr.super_uuid && this._userIds[attr.super_uuid]) {
+    return attr.super_uuid;
+  } else {
+    return null;
+  }
+};
+
 // TODO: split up
 Process.prototype._takeUserRoleInventoryForAttr = function (index) {
   // TODO: make sure user doesn't specify role user change, only user role change
@@ -577,6 +587,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
           // role users
           var roleUserAttr = utils.clone(attr);
 
+          // TODO: clone has been enhanced so the code below can probably be removed
           // Clone sets Dates to strings, is there a better way? Yeah, enhance clone
           roleUserAttr.created_at = attr.created_at;
           roleUserAttr.recorded_at = attr.recorded_at;
@@ -635,26 +646,6 @@ Process.prototype._takeDocInventoryForAttr = function (attr) {
   }
 };
 
-Process.prototype._getOrGenDocUUID = function (attr) {
-  // TODO: use similar ID-less construct for user roles?
-  if (Docs.isIdLess(attr.attr_name)) {
-    var action = JSON.parse(attr.attr_val);
-    if (action.action === clientUtils.ACTION_ADD) { // creating DB?
-      attr.doc_uuid = utils.uuid(); // generate doc UUID as one doesn't already exist
-      return Promise.resolve();
-    } else { // look up doc UUID
-      return this._partitions[constants.LATEST]._docs.findUUID(attr.attr_name, action.name)
-        .then(function (docUUID) {
-          attr.doc_uuid = docUUID;
-          // Note: we don't delete attr_name here as we need it later down the pipeline to determine
-          // that this is an id-less doc
-        });
-    }
-  } else {
-    return Promise.resolve();
-  }
-};
-
 Process.prototype._takeInventoryForAttr = function (attr, index) {
   var self = this;
 
@@ -663,11 +654,9 @@ Process.prototype._takeInventoryForAttr = function (attr, index) {
     return self._takeUserRoleInventoryForAttr(index);
   }).then(function (destroyed) {
     if (!destroyed) { // make sure attr wasn't destroyed, e.g. we don't have both user and role perm
-      return self._getOrGenDocUUID(attr).then(function () {
-        self._takeColInventoryForAttr(attr);
+      self._takeColInventoryForAttr(attr);
 
-        self._takeDocInventoryForAttr(attr);
-      });
+      self._takeDocInventoryForAttr(attr);
     }
   });
 };

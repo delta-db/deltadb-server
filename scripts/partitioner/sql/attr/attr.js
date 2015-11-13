@@ -10,7 +10,9 @@ var Promise = require('bluebird'),
   log = require('../../../server/log'),
   Docs = require('../doc/docs'),
   DBMissingError = require('../../../client/db-missing-error'),
-  DBExistsError = require('../../../client/db-exists-error');
+  DBExistsError = require('../../../client/db-exists-error'),
+  utils = require('../../../utils'),
+  clientUtils = require('../../../client/utils');
 
 var Doc = require('../../../client/doc');
 
@@ -153,15 +155,43 @@ Attr.prototype._createDB = function () {
 
 Attr.prototype._createOrDestroyDatabase = function () {
   // Only create DB if this the system partitioner
-  if (this._partitioner._dbName !== System.DB_NAME) {
+  var self = this;
+  if (self._partitioner._dbName !== System.DB_NAME) {
     // TODO: log?
     return Promise.resolve();
   }
 
-  if (this._params.value.action === AttrRec.ACTION_REMOVE) {
-    return this._destroyDB();
+  // TODO: make configurable
+  var quorum = true;
+
+  var change = {
+    col: self._params.colName,
+    up: self._params.updatedAt,
+    uid: self._params.userUUID
+  };
+
+  var superUUID = self._params.recordedByUUID;
+  var dbName = self._params.value.name;
+
+  // We need to create/destroy the associated DB name attribute so that clients can choose to just
+  // listen to these attrs instead of to the actions which aren't structured in a convenient way for
+  // the clients to process.
+  if (self._params.value.action === AttrRec.ACTION_REMOVE) {
+    // Name and value are undefined as this identifies a destroy
+    return self._destroyDB().then(function () {
+      // Look up doc UUID as the action doesn't contain this info
+      return self._partitioner.findDocUUID(clientUtils.DB_ATTR_NAME, dbName);
+    }).then(function (uuid) {
+      change.id = uuid;
+      return self._partitioner.queue([change], quorum, superUUID);
+    });
   } else {
-    return this._createDB();
+    change.id = utils.uuid(); // generate uuid
+    change.name = clientUtils.DB_ATTR_NAME;
+    change.val = JSON.stringify(dbName);
+    return self._createDB().then(function () {
+      return self._partitioner.queue([change], quorum, superUUID);
+    });
   }
 };
 
@@ -195,8 +225,11 @@ Attr.prototype.setOptions = function () {
     }
     return ret;
 
-  case System.DB_ATTR_NAME:
-    return this._createOrDestroyDatabase();
+  case System.ATTR_NAME_ACTION:
+    if (this._params.colName === System.DB_COLLECTION_NAME) {
+      return this._createOrDestroyDatabase();
+    }
+    return Promise.resolve();
 
   default:
     return Promise.resolve();
@@ -207,14 +240,6 @@ Attr.prototype.destroyingDoc = function () {
   // TODO: similar code exists in process, attr-rec and here => re-use??
   var name = this._params.name,
     value = this._params.value;
-  if (Docs.isIdLess(this._params.name)) { // an id-less change?
-    if (this._params.value.action === AttrRec.ACTION_ADD) {
-      value = this._params.value.action.name;
-    } else { // remove doc
-      name = null;
-      value = null;
-    }
-  }
   return !name && !value;
 };
 

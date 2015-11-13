@@ -38125,7 +38125,7 @@ Adapter.prototype.db = function (opts) {
 
     var filter = typeof opts.filter === 'undefined' ? true : opts.filter;
 
-    db = new DB(opts.db, this, opts.url, opts.local, !filter);
+    db = new DB(opts.db, this, opts.url, opts.local, !filter, opts.username, opts.password);
     db._import(dbStore);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);
@@ -38377,7 +38377,8 @@ var inherits = require('inherits'),
   log = require('../client/log'),
   config = require('./config');
 
-var DB = function (name, adapter, url, localOnly, noFilters) {
+// TODO: shouldn't password be a char array?
+var DB = function (name, adapter, url, localOnly, noFilters, username, password) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -38387,6 +38388,8 @@ var DB = function (name, adapter, url, localOnly, noFilters) {
   this._recorded = false;
   this._sender = new Sender(this);
   this._url = url ? url : config.URL;
+  this._username = username;
+  this._password = password;
 
   this._prepInitDone();
 
@@ -38622,6 +38625,7 @@ DB.prototype.updateUser = function (userUUID, username, password, status) {
   return this.createUser(userUUID, username, password, status);
 };
 
+// TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
     // When adding a user to a role, the delta is id-less and so that cannot use an id to reconcile
@@ -38653,6 +38657,7 @@ DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatin
   });
 };
 
+// TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype.addRole = function (userUUID, roleName) {
   var self = this,
     ts = new Date(),
@@ -38663,6 +38668,7 @@ DB.prototype.addRole = function (userUUID, roleName) {
   });
 };
 
+// TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
     // When removing a user's role, the delta is id-less and so that cannot use an id to reconcile
@@ -38695,6 +38701,7 @@ DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originat
   });
 };
 
+// TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype.removeRole = function (userUUID, roleName) {
   var self = this,
     ts = new Date(),
@@ -38751,7 +38758,9 @@ DB.prototype._emitInitMsg = function () {
   return {
     db: this._name,
     since: this._props.get('since'),
-    filter: this._noFilters ? false : true
+    filter: this._noFilters ? false : true,
+    username: this._username,
+    password: this._password
   };
 };
 
@@ -38840,77 +38849,15 @@ DB.prototype._registerDisconnectListener = function () {
   });
 };
 
-DB.prototype._resolveAfterDatabaseCreated = function (dbName, originatingDoc, ts) {
-  return new Promise(function (resolve) {
-    // When creating a DB, the delta is id-less and so that cannot use an id to reconcile the
-    // local doc. Instead we listen for a new doc on the parent collection and then delete the
-    // local doc that was used to originate the delta so that we don't attempt to create the DB
-    // again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the creating delta id.
-
-    var listener = function (doc) {
-      var data = doc.get();
-      // There could have been DBs with the same name created before so we need to check the
-      // timestamp
-
-      // TODO: test!
-      /* istanbul ignore next */
-      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
-        doc._dat.recordedAt.getTime() >= ts.getTime()) {
-
-        // Remove listener so that we don't listen for other docs
-        originatingDoc._col.removeListener('doc:create', listener);
-
-        resolve(originatingDoc._destroyLocally());
-      }
-    };
-
-    originatingDoc._col.on('doc:create', listener);
-  });
-};
-
 DB.prototype._createDatabaseViaSystem = function (dbName) {
-  var self = this,
-    ts = new Date();
-  return self._systemDB()._createDatabase(dbName).then(function (doc) {
-    return self._resolveAfterDatabaseCreated(dbName, doc, ts);
-  });
-};
-
-DB.prototype._resolveAfterDatabaseDestroyed = function (dbName, originatingDoc, ts) {
-  return new Promise(function (resolve) {
-    // When creating a DB, the delta is id-less and so we cannot use an id to reconcile the local
-    // doc. Instead we listen for a doc:destroy event on the parent collection and then delete the
-    // local doc that was used to originate the delta so that we don't attempt to destroy the DB
-    // again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the destroying delta id.
-
-    var listener = function (doc) {
-      var data = doc.get();
-
-      // TODO: test!
-      /* istanbul ignore next */
-      if (data[clientUtils.DB_ATTR_NAME] && data[clientUtils.DB_ATTR_NAME] === dbName &&
-        doc._dat.destroyedAt.getTime() >= ts.getTime()) {
-        // There could have been DBs with the same name destroyed before so we need to check the
-        // timestamp
-
-        // Remove listener so that we don't listen for other docs
-        originatingDoc._col.removeListener('doc:destroy', listener);
-
-        resolve(originatingDoc._destroyLocally());
-      }
-    };
-
-    originatingDoc._col.on('doc:destroy', listener);
+  return this._systemDB()._createDatabase(dbName).then(function (doc) {
+    return utils.once(doc, 'doc:record');
   });
 };
 
 DB.prototype._destroyDatabaseViaSystem = function (dbName) {
-  var self = this,
-    ts = new Date();
-  return self._systemDB()._destroyDatabase(dbName).then(function (doc) {
-    return self._resolveAfterDatabaseDestroyed(dbName, doc, ts);
+  return this._systemDB()._destroyDatabase(dbName).then(function (doc) {
+    return utils.once(doc, 'doc:record');
   });
 };
 
@@ -39021,7 +38968,8 @@ module.exports = DB;
 var Adapter = require('./adapter'),
   client = new Adapter();
 
-var DeltaDB = function (name, url, store) {
+// TODO: shouldn't password be a char array?
+var DeltaDB = function (name, url, username, password, store) {
   var opts = {
     db: name
   };
@@ -39035,6 +38983,9 @@ var DeltaDB = function (name, url, store) {
   if (typeof store !== 'undefined') {
     opts.store = store;
   }
+
+  opts.username = username;
+  opts.password = password;
 
   return client.db(opts);
 };
@@ -39540,7 +39491,7 @@ Doc.prototype._removeRole = function (userUUID, roleName) {
 // Note: must only be called for System DB
 Doc.prototype._createDatabase = function (dbName) {
   var data = {};
-  data[clientUtils.DB_ATTR_NAME] = {
+  data[clientUtils.ATTR_NAME_ACTION] = {
     action: clientUtils.ACTION_ADD,
     name: dbName
   };
@@ -39550,7 +39501,7 @@ Doc.prototype._createDatabase = function (dbName) {
 // Note: must only be called for System DB
 Doc.prototype._destroyDatabase = function (dbName) {
   var data = {};
-  data[clientUtils.DB_ATTR_NAME] = {
+  data[clientUtils.ATTR_NAME_ACTION] = {
     action: clientUtils.ACTION_REMOVE,
     name: dbName
   };
@@ -39762,6 +39713,7 @@ Utils.prototype.COL_NAME_ALL = '$all';
 
 Utils.prototype.ATTR_NAME_ROLE = '$role';
 Utils.prototype.ATTR_NAME_ROLE_USER = '$ruser';
+Utils.prototype.ATTR_NAME_ACTION = '$action';
 
 Utils.prototype.timeout = function (ms) {
   return new Promise(function (resolve) {
@@ -40293,7 +40245,8 @@ DB.prototype._destroy = function () {
     // TODO: how to trigger this for testing?
     /* istanbul ignore next */
     req.onblocked = function () {
-      reject(new Error("Couldn't destroy database " + self._name + " as blocked: err=" + req.err));
+      reject(new Error("Couldn't destroy database " + self._name + " as blocked: err=" +
+        req.err));
     };
   });
 };

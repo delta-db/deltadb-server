@@ -24,25 +24,10 @@ AttrRec.prototype._stringify = function (col) {
   return typeof col === 'undefined' ? null : JSON.stringify(col);
 };
 
-AttrRec.prototype._transformValue = function (rec) {
-  // Transform value so that we can reuse the create/destroy mechanisms native to the DB
-  if (Docs.isIdLess(rec.name)) { // an id-less change
-    this._origValue = rec.value;
-    var action = JSON.parse(rec.value);
-    if (action.action === AttrRec.ACTION_ADD) {
-      rec.value = JSON.stringify(action.name);
-    } else { // remove doc
-      rec.name = null;
-      rec.value = null;
-    }
-  }
-};
-
 AttrRec.prototype._toRec = function (params) {
   var rec = utils.merge({}, params); // use merge so that original col isn't modified
   rec.value = this._stringify(rec.value);
   rec.uid = rec.userUUID;
-  this._transformValue(rec);
   return rec;
 };
 

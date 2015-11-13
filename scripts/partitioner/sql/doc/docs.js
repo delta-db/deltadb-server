@@ -14,7 +14,7 @@ var Docs = function (partitions, attrs, policy, cols) {
 
 // TODO: create a data type for creating indexes like this
 Docs.ID_LESS = {};
-Docs.ID_LESS[System.DB_ATTR_NAME] = true;
+Docs.ID_LESS[System.ATTR_NAME_ACTION] = true;
 
 Docs.isIdLess = function (name) {
   return Docs.ID_LESS[name] ? true : false;

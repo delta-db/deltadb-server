@@ -100,46 +100,6 @@ describe('docs', function () {
     });
   });
 
-  it('should gen doc uuid when adding', function () {
-    utils.uuid = function () { // mock
-      return 'doc-uuid';
-    };
-
-    args.db._process._partitions[constants.LATEST]._docs.findUUID = function () { // mock
-      return Promise.resolve('doc-uuid');
-    };
-
-    var attrValStr = JSON.stringify({
-      action: Attr.ACTION_ADD,
-      name: 'my-db'
-    });
-    var attr = {
-      attr_name: System.DB_ATTR_NAME,
-      attr_val: attrValStr
-    };
-    return args.db._process._getOrGenDocUUID(attr).then(function () {
-      attr.doc_uuid.should.eql('doc-uuid');
-    });
-  });
-
-  it('should get doc uuid when removing', function () {
-    args.db._process._partitions[constants.LATEST]._docs.findUUID = function () { // mock
-      return Promise.resolve('doc-uuid');
-    };
-
-    var attrValStr = JSON.stringify({
-      action: Attr.ACTION_REMOVE,
-      name: 'my-db'
-    });
-    var attr = {
-      attr_name: System.DB_ATTR_NAME,
-      attr_val: attrValStr
-    };
-    return args.db._process._getOrGenDocUUID(attr).then(function () {
-      attr.doc_uuid.should.eql('doc-uuid');
-    });
-  });
-
   it('should throw non-forbidden error', function () {
     args.db._process._partitions[constants.ALL]._docs.getId = function () {
       return new Promise(function () {

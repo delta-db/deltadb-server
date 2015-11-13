@@ -31,6 +31,9 @@ before_script:
 
 after_script: "cat ./coverage/node/lcov.info ./coverage/browser/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 
+after_failure:
+  - cat /home/travis/build/delta-db/deltadb-server/npm-debug.log
+
 env:
   matrix:
   - COMMAND=new-test-phantomjs

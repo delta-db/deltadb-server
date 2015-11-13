@@ -43,7 +43,6 @@ Partitioners.prototype.existsThenRegister = function (dbName, socket, since, fil
 Partitioners.prototype._defaultFilters = function () {
   return {
     docs: {},
-    dbs: {},
     // roleUsers: {},
     userRoles: new Dictionary()
   };
@@ -228,10 +227,6 @@ Partitioners.prototype._saveFilters = function (dbName, socket, changes) {
     changes.forEach(function (change) {
 
       switch (change.name) {
-      case clientUtils.DB_ATTR_NAME: // db action?
-        action = JSON.parse(change.val);
-        filters.dbs[action.name] = true;
-        break;
 
         // case clientUtils.ATTR_NAME_ROLE_USER: // role user?
         //   var action = JSON.parse(change.val);
@@ -271,16 +266,6 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
       }
     } else { // creating
       switch (change.name) {
-
-      case clientUtils.DB_ATTR_NAME: // db action?
-        val = JSON.parse(change.val);
-        // DB name registered?
-        if (filters.dbs[val]) {
-          // Set id so that we can filter destroy
-          filters.docs[change.id] = true;
-          return true;
-        }
-        return false;
 
       case clientUtils.ATTR_NAME_ROLE: // adding user to role?
         val = JSON.parse(change.val);

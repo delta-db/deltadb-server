@@ -1,7 +1,8 @@
 Now
 ---
 - Basic authentication
-	- Make DB record action deltas
+	- Make DB record action deltas - only need to change db create/destroy for now?
+		- Rename Id-Less to Multipling, Dynamic, **Generator** Delta. Including info in TODO, NOTES, etc...
 	- auth test: getting destroy recording, but test not completing!!
 		- It appears that if don't have creating action stored then can't reconcile destroy as don't have id. In other words, we don't get the recording with the id unless we created in the same session.
 		- One dirty hack could be to require the client to issue another create even though the DB already exists--actually the server could do this on the client's behalf.
