@@ -106,9 +106,13 @@ Part.prototype._port = null;
 
 Part.prototype._DB_NAME_PREFIX = config.DB_NAME_PREFIX;
 
+Part.prototype._escape = function (value) {
+  // TODO: move to utils as used by SQL.escape?
+  return value.replace(/[^0-9a-z_.]/gim, '').toLowerCase();
+};
+
 Part.prototype._toUniqueDBName = function (dbName) {
-  // Also remove '$' in the case of the system DB
-  return this._DB_NAME_PREFIX + dbName.replace(/\$/, '');
+  return this._DB_NAME_PREFIX + this._escape(dbName);
 };
 
 Part.prototype.createTables = function () {

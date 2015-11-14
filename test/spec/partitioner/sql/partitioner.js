@@ -38,4 +38,10 @@ describe('partitioner', function () {
     });
   });
 
+  it('should create and destroy db with non-alphanumeric chars', function () {
+    return part.createAnotherDatabase('test-db-2').then(function () {
+      return part.destroyAnotherDatabase('test-db-2');
+    });
+  });
+
 });
