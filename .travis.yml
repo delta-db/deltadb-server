@@ -31,6 +31,9 @@ before_script:
 
 after_script: "cat ./coverage/node/lcov.info ./coverage/browser/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 
+after_failure:
+  - cat /home/travis/build/delta-db/deltadb-server/npm-debug.log
+
 env:
   matrix:
   - COMMAND=new-test-phantomjs
@@ -38,6 +41,12 @@ env:
   # - COMMAND=test-chrome
   - COMMAND=coverage
   - COMMAND=assert-beautified
+
+  - COMMAND=tmp1
+  - COMMAND=tmp2
+  - COMMAND=tmp3
+  - COMMAND=tmp4
+  - COMMAND=tmp5
 
 branches:
   only:
