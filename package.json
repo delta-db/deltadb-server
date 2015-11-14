@@ -44,7 +44,12 @@
     "new-dev-server": "./bin/new-dev-server.js",
     "mv-coverage": "mv coverage/coverage.json coverage/browser/coverage.json",
     "new-test-browser": "mkdir -p coverage/browser && ./bin/new-test-browser.js && npm run mv-coverage",
-    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage"
+    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage",
+    "tmp1": "npm run jshint && npm run build-test-coverage",
+    "tmp2": "npm run jshint && npm run build-test-coverage && npm run new-test-browser",
+    "tmp3": "mkdir -p coverage/browser",
+    "tmp4": "./bin/new-test-browser.js",
+    "tmp5": "npm run mv-coverage"
   },
   "dependencies": {
     "bcrypt": "^0.8.1",
@@ -73,7 +78,7 @@
     "indexeddbshim": "^2.2.1",
     "istanbul": "^0.4.0",
     "js-beautify": "^1.5.5",
-    "jshint": "^2.5.11",
+    "jshint": "^2.8.0",
     "minimist": "^1.1.1",
     "mkdirp": "^0.5.1",
     "mocha": "^2.2.5",
