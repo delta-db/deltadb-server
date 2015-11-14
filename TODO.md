@@ -7,6 +7,8 @@ Now
 ---
 - Home example broken
 	- changes not being sent to server
+		- problem is that new save needs to overwrite or how else does client's "thing" become the actual instance?
+		- SOLUTION? Automatically register all new docs so that no race conditions on who registers?
 	- clients not receiving updates
 - Prevent against bad chars in DB store name. Convert "-" to underscore--make note that assuming most db implementations allow underscore name, but may not allow hyphen, but we want to support hyphen. Throw error if contains any illegal chars.
 - Basic authentication
@@ -33,12 +35,14 @@ Now
 	- An offline-first database. A NoDB DB
 	- Example: DeltaDB is ???
 		- Or: better to have messenger? Which is more simple?
-	- Probably best to have todomvc example on homepage and then use "DeltaDB is" for getting started
+	- Slick example for demo on homepage. Easy example for getting started
+		- Probably best to have todomvc example on homepage and then use "DeltaDB is" for getting started
 - getting started tutorial
 
 
 Next 1
 ---
+- Clean up DeltaDB constructor? e.g. new DeltaDB('https://user:pass@example.com/mydb')
 - Tutorials:
 	- How to set up a DB cluster (note about if have only 1 server then need to set quorum config)
 - Tests:
