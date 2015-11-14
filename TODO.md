@@ -1,6 +1,14 @@
+How to handle ts drift?
+---
+Make it so that server doesn't record change until server ts is after or on same ts as updated_at ts in delta.
+	- Fixes issue where client has ts in future and would then have to wait for recording
+
 Now
 ---
-- Examples broken!!!
+- Home example broken
+	- changes not being sent to server
+	- clients not receiving updates
+- Prevent against bad chars in DB store name. Convert "-" to underscore--make note that assuming most db implementations allow underscore name, but may not allow hyphen, but we want to support hyphen. Throw error if contains any illegal chars.
 - Basic authentication
 	- tests:
 		- DONE: connect to server w/ valid user and update with cur user
@@ -22,7 +30,7 @@ Now
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
 - create managed service on AWS
 - website
-	- The offline-first database. The world's first offline-first database
+	- An offline-first database. A NoDB DB
 	- Example: DeltaDB is ???
 		- Or: better to have messenger? Which is more simple?
 	- Probably best to have todomvc example on homepage and then use "DeltaDB is" for getting started
@@ -51,7 +59,7 @@ Next 1
 	- DB per user
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
-- timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
+- timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates. Use connection initialization to force adjustment of timestamps. Investigate gunjs's algorithm
 - Wouldn't it be better if addRole/removeRole returned a doc that you could wait for 'doc:record' instead of the promise not resolving until the recording?? Is this possible?
 - System DB: Enhance so all system deltas must be recorded before db continues sending? Or would this cause problems with some use cases?
 - System DB: close socket when not needed or else we have 2 sockets per DB!
