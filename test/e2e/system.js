@@ -21,8 +21,8 @@ describe('system', function () {
 
   var db = null,
     dbCreated = null,
+    dbNames = [],
     dbsCreated = [],
-    dbsUpdated = [],
     dbsDestroyed = [],
     pol = null,
     policiesCreated = [],
@@ -127,7 +127,7 @@ describe('system', function () {
 
       var dbName = data[clientUtils.DB_ATTR_NAME];
       if (dbName && typeof dbName === 'string') { // db created?
-        dbsCreated.push(dbName);
+        dbNames.push(dbName);
       }
 
       var policy = data[Doc._policyName];
@@ -155,7 +155,16 @@ describe('system', function () {
 
       var dbName = data[clientUtils.DB_ATTR_NAME];
       if (dbName && typeof dbName === 'string') { // db created?
-        dbsUpdated.push(dbName);
+        dbNames.push(dbName);
+      }
+
+      var action = data[clientUtils.ATTR_NAME_ACTION];
+      if (action) {
+        if (action.action === clientUtils.ACTION_ADD) { // adding
+          dbsCreated.push(action.name);
+        } else if (action.action === clientUtils.ACTION_REMOVE) {
+          dbsDestroyed.push(action.name);
+        }
       }
 
       var policy = data[Doc._policyName];
@@ -214,8 +223,8 @@ describe('system', function () {
     }).then(function () {
 
       // Make sure we only received the 2nd db
+      dbNames.should.eql([]); // filter only allows actions
       dbsCreated.should.eql(['myotherdb']);
-      dbsUpdated.should.eql(['myotherdb']);
       dbsDestroyed.should.eql(['myotherdb']);
 
       // Make sure we only received the 2nd policy

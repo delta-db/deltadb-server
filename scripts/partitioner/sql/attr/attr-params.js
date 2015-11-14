@@ -5,7 +5,7 @@
 // is handled by Attr
 var AttrParams = function (docId, name, value, changedByUserId, destroyedAt, recordedAt, updatedAt,
   seq, quorum, userUUID, colId, docUUID, forUserId, forUserUUID,
-  recordedByUserId) {
+  recordedByUserId, colName, recordedByUUID) {
   this.docId = docId;
   this.name = name;
   this.value = value;
@@ -21,6 +21,8 @@ var AttrParams = function (docId, name, value, changedByUserId, destroyedAt, rec
   this.forUserId = forUserId;
   this.forUserUUID = forUserUUID;
   this.recordedByUserId = recordedByUserId;
+  this.colName = colName;
+  this.recordedByUUID = recordedByUUID;
 };
 
 AttrParams.prototype.setWithRow = function (row) {

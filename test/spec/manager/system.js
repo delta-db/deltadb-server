@@ -7,7 +7,6 @@ var testUtils = require('../../utils'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
-  utils = require('../../../scripts/utils'),
   DBMissingError = require('../../../scripts/client/db-missing-error');
 
 describe('system', function () {
@@ -57,8 +56,11 @@ describe('system', function () {
     }).then(function (changes) {
       testUtils.contains(
         [{
-          name: '$db',
-          val: '"myotherdb"'
+          name: '$action',
+          val: JSON.stringify({
+            action: 'add',
+            name: 'myotherdb'
+          })
         }], testUtils.sortChanges(changes));
     });
   });
@@ -87,9 +89,23 @@ describe('system', function () {
       return testUtils.changes(manager._partitioner, since, null, null, null, true,
         userUUID);
     }).then(function (changes) {
-      changes[0].id.should.eql(id);
-      utils.notDefined(changes[0].name).should.eql(true);
-      utils.notDefined(changes[0].val).should.eql(true);
+      testUtils.contains(
+        [
+          // The delta that destroys the DB
+          {
+            name: '$action',
+            val: JSON.stringify({
+              action: 'remove',
+              name: 'myotherdb'
+            })
+          },
+
+          // The generated delta from creating the DB
+          {
+            name: '$db',
+            val: JSON.stringify('myotherdb')
+          }
+        ], testUtils.sortChanges(changes));
     });
   });
 });

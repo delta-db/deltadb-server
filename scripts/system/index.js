@@ -20,6 +20,9 @@ System.DB_NAME = clientUtils.SYSTEM_DB_NAME;
 
 System.DB_COLLECTION_NAME = clientUtils.DB_COLLECTION_NAME;
 System.DB_ATTR_NAME = clientUtils.DB_ATTR_NAME;
+System.ATTR_NAME_ACTION = clientUtils.ATTR_NAME_ACTION;
+
+System.DOC_ID_DB_COLLECTION = System.DB_COLLECTION_NAME;
 
 System.prototype._queueCreateDefaultAdminUser = function () {
   return this._manager.genUserAndQueueCreateUser(System.DEFAULT_ADMIN_USER_UUID,
@@ -32,7 +35,7 @@ System.prototype._queueCreateDatabasesCollection = function () {
   // Create a collection for the databases and populate with a reference to $system
   var changes = [{
     col: System.DB_COLLECTION_NAME,
-    id: System.DB_COLLECTION_NAME,
+    id: System.DOC_ID_DB_COLLECTION,
     name: 'name',
     uid: System.DEFAULT_ADMIN_USER_UUID, // default policy so that only this user can edit
     val: JSON.stringify(System.DB_NAME),

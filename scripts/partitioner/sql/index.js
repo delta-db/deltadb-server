@@ -217,4 +217,8 @@ Part.prototype.destroyAnotherDatabase = function (dbName) {
   return part.destroyDatabase();
 };
 
+Part.prototype.findDocUUID = function (attrName, attrVal) {
+  return this._partitions[constants.LATEST]._docs.findUUID(attrName, attrVal);
+};
+
 module.exports = Part;

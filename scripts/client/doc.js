@@ -479,7 +479,7 @@ Doc.prototype._removeRole = function (userUUID, roleName) {
 // Note: must only be called for System DB
 Doc.prototype._createDatabase = function (dbName) {
   var data = {};
-  data[clientUtils.DB_ATTR_NAME] = {
+  data[clientUtils.ATTR_NAME_ACTION] = {
     action: clientUtils.ACTION_ADD,
     name: dbName
   };
@@ -489,7 +489,7 @@ Doc.prototype._createDatabase = function (dbName) {
 // Note: must only be called for System DB
 Doc.prototype._destroyDatabase = function (dbName) {
   var data = {};
-  data[clientUtils.DB_ATTR_NAME] = {
+  data[clientUtils.ATTR_NAME_ACTION] = {
     action: clientUtils.ACTION_REMOVE,
     name: dbName
   };

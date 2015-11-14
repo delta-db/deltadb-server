@@ -4,7 +4,6 @@ var utils = require('../../../utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  Docs = require('../doc/docs'),
   SQLError = require('../../../orm/sql/common/sql-error');
 
 // AttrRec should closely mimic the attrs table, e.g. the value of the attr is stored in JSON
@@ -24,25 +23,10 @@ AttrRec.prototype._stringify = function (col) {
   return typeof col === 'undefined' ? null : JSON.stringify(col);
 };
 
-AttrRec.prototype._transformValue = function (rec) {
-  // Transform value so that we can reuse the create/destroy mechanisms native to the DB
-  if (Docs.isIdLess(rec.name)) { // an id-less change
-    this._origValue = rec.value;
-    var action = JSON.parse(rec.value);
-    if (action.action === AttrRec.ACTION_ADD) {
-      rec.value = JSON.stringify(action.name);
-    } else { // remove doc
-      rec.name = null;
-      rec.value = null;
-    }
-  }
-};
-
 AttrRec.prototype._toRec = function (params) {
   var rec = utils.merge({}, params); // use merge so that original col isn't modified
   rec.value = this._stringify(rec.value);
   rec.uid = rec.userUUID;
-  this._transformValue(rec);
   return rec;
 };
 
@@ -53,8 +37,7 @@ AttrRec.prototype._rec = function () {
     value: this._params.value,
     changed_by_user_id: this._params.changedByUserId,
     updated_at: this._params.updatedAt,
-    seq: (typeof this._params.seq === 'undefined' || this._params.seq === null ? 0 : this._params
-      .seq),
+    seq: this._params.seq ? this._params.seq : 0,
     quorum: this._params.quorum,
     uid: this._params.uid,
     recorded_at: new Date(),

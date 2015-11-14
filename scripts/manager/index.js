@@ -104,8 +104,9 @@ Manager.prototype._queueDatabaseAction = function (dbName, userUUID, action) {
   // We don't specify an id as we want the client to destroy the db without having to have the id
   // that was used when the db was created
   var changes = [{
+    id: utils.uuid(), // generate uuid
     col: clientUtils.DB_COLLECTION_NAME,
-    name: clientUtils.DB_ATTR_NAME,
+    name: clientUtils.ATTR_NAME_ACTION,
     val: JSON.stringify({
       action: action,
       name: dbName

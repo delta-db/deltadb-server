@@ -34,21 +34,15 @@ describe('auth', function () {
 
     db = new DeltaDB('mydb', config.URL, 'username', 'secret');
 
-    // TODO: remove _createDatabaseViaSystem. It is a design flaw that this is needed and is the
-    // result of session needing to create a DB in order to receive the recording for the destroy.
-    // This should be fixed after we make the enhancement to record action deltas
-    return db._createDatabaseViaSystem('mydb').then(function () {
+    var tasks = db.col('tasks');
 
-      var tasks = db.col('tasks');
-
-      var task1 = tasks.doc({
-        thing: 'write'
-      });
-
-      task1.save();
-
-      return clientUtils.once(task1, 'attr:record');
+    var task1 = tasks.doc({
+      thing: 'write'
     });
+
+    task1.save();
+
+    return clientUtils.once(task1, 'attr:record');
 
   });
 

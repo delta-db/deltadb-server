@@ -6,7 +6,6 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
   AttrRec = require(partDir + '/attr/attr-rec'),
-  System = require(partDir + '/../../system'),
   Promise = require('bluebird');
 
 describe('attr-rec', function () {
@@ -21,27 +20,6 @@ describe('attr-rec', function () {
     userUtils = args.userUtils;
     attrRecs = args.db._partitions[constants.LATEST]._attrRecs;
     return args.db._sql.truncateTable(attrRecs._name);
-  });
-
-  it('should find doc', function () {
-    args.db.createAnotherDatabase = function () { // mock creation so DB not actually created
-      return Promise.resolve();
-    };
-
-    var params = {
-      docId: 1,
-      name: System.DB_ATTR_NAME,
-      value: {
-        action: 'add',
-        name: 'mydb'
-      }
-    };
-    var attrRec = new AttrRec(args.db._sql, constants.LATEST, params, args.db);
-    return attrRec.create().then(function () {
-      return attrRecs.findDoc(System.DB_ATTR_NAME, 'mydb');
-    }).then(function (docId) {
-      docId.should.eql(1);
-    });
   });
 
   it('should get id', function () {
