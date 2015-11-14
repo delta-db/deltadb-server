@@ -56,7 +56,7 @@ Adapter.prototype.db = function (opts) {
 
     var filter = typeof opts.filter === 'undefined' ? true : opts.filter;
 
-    db = new DB(opts.db, this, opts.url, opts.local, !filter);
+    db = new DB(opts.db, this, opts.url, opts.local, !filter, opts.username, opts.password);
     db._import(dbStore);
     this._dbs[opts.db] = db;
     this.emit('db:create', db);

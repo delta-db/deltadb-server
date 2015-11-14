@@ -10,10 +10,13 @@ var app = require('express')(),
   io = require('socket.io')(http),
   Partitioners = require('./partitioners'),
   log = require('../server/log'),
-  config = require('../../config');
+  config = require('../../config'),
+  utils = require('../utils'),
+  Promise = require('bluebird');
 
-var Server = function () {
+var Server = function (process) {
   this._partitioners = new Partitioners();
+  this._process = process;
 };
 
 Server.prototype._emitInitDone = function (socket) {
@@ -34,22 +37,35 @@ Server.prototype._findAndEmitChanges = function (socket, partitioner) {
 Server.prototype._registerInitListener = function (socket) {
   var self = this;
   socket.on('init', function (msg) {
-    log.info('received (from ' + socket.conn.id + ') init:' + JSON.stringify(msg));
+    var clonedMsg = utils.clone(msg);
+    clonedMsg.password = '[hidden from log]';
+    log.info('received (from ' + socket.conn.id + ') init:' + JSON.stringify(clonedMsg));
     // TODO: error checking if msg not in correct format
 
     // Lookup/create partitioner for DB name
     var since = msg.since ? new Date(msg.since) : null;
-    return self._partitioners.existsThenRegister(msg.db, socket, since, msg.filter)
-      .then(function (partitioner) {
-        self._registerDisconnectListener(socket, partitioner);
-        self._registerChangesListener(socket, partitioner);
-        self._emitInitDone(socket);
-        self._findAndEmitChanges(socket, partitioner);
-      }).catch(function (err) {
-        log.warning('err=' + err.message);
-        socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
-      });
-    // TODO: also handle authentication here?
+
+    var promise = null;
+    if (msg.username) { // authenticate?
+      promise = self._process.authenticated(msg.db, msg.username, msg.password);
+    } else {
+      promise = Promise.resolve();
+    }
+
+    return promise.then(function (user) {
+      var uuid = user ? user.uuid : null;
+      var id = user ? user.id : null;
+      return self._partitioners.existsThenRegister(msg.db, socket, since, msg.filter,
+        uuid, id);
+    }).then(function (partitioner) {
+      self._registerDisconnectListener(socket, partitioner);
+      self._registerChangesListener(socket, partitioner);
+      self._emitInitDone(socket);
+      self._findAndEmitChanges(socket, partitioner);
+    }).catch(function (err) {
+      log.warning('err=' + err.message);
+      socket.emit('delta-error', err); // Cannot use 'error' as it interferes with socket.io
+    });
   });
 };
 

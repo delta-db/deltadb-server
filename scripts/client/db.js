@@ -18,7 +18,8 @@ var inherits = require('inherits'),
   log = require('../client/log'),
   config = require('./config');
 
-var DB = function (name, adapter, url, localOnly, noFilters) {
+// TODO: shouldn't password be a char array?
+var DB = function (name, adapter, url, localOnly, noFilters, username, password) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   MemDB.apply(this, arguments); // apply parent constructor
@@ -28,6 +29,8 @@ var DB = function (name, adapter, url, localOnly, noFilters) {
   this._recorded = false;
   this._sender = new Sender(this);
   this._url = url ? url : config.URL;
+  this._username = username;
+  this._password = password;
 
   this._prepInitDone();
 
@@ -392,7 +395,9 @@ DB.prototype._emitInitMsg = function () {
   return {
     db: this._name,
     since: this._props.get('since'),
-    filter: this._noFilters ? false : true
+    filter: this._noFilters ? false : true,
+    username: this._username,
+    password: this._password
   };
 };
 

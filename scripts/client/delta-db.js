@@ -3,7 +3,8 @@
 var Adapter = require('./adapter'),
   client = new Adapter();
 
-var DeltaDB = function (name, url, store) {
+// TODO: shouldn't password be a char array?
+var DeltaDB = function (name, url, username, password, store) {
   var opts = {
     db: name
   };
@@ -17,6 +18,9 @@ var DeltaDB = function (name, url, store) {
   if (typeof store !== 'undefined') {
     opts.store = store;
   }
+
+  opts.username = username;
+  opts.password = password;
 
   return client.db(opts);
 };

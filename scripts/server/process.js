@@ -17,9 +17,15 @@ var Process = function () {
   this._dbNames = {
     system: clientUtils.SYSTEM_DB_NAME
   };
+
+  this._partitioners = {};
 };
 
-Process.SLEEP_MS = 1000;
+/**
+ * Milliseconds to sleep in between processing DBs so that we don't starve the CPU. In the future
+ * we shouldn't need this as we'll receive an event when we should process.
+ */
+Process.SLEEP_MS = 500;
 
 // TODO: split up
 // Use a client to connect to the System DB to load and track the creation/destruction of DBs
@@ -34,7 +40,8 @@ Process.prototype._initSystemDB = function () {
 
     // Receive all deltas don't filter for just deltas that originate from this client
     filter: false
-      // , url: 'http://localhost:8080'
+
+    // TODO: do we need super access? How can this be done?
   });
 
   self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
@@ -57,23 +64,43 @@ Process.prototype._initSystemDB = function () {
 };
 
 Process.prototype._processAndCatch = function (part) {
+  var self = this;
   return part.process().catch(function (err) {
-    return part.closeDatabase().then(function () {
+    if (err instanceof SocketClosedError) { // was the socket closed due to destroying a DB?
+      // Remove partitioner from pool
+      delete self._partitioners[part._dbName];
+
+      return part.closeDatabase();
+    } else {
       throw err;
-    });
+    }
+  });
+};
+
+Process.prototype._partitioner = function (dbName) {
+  var self = this,
+    promise = null;
+
+  if (!self._partitioners[dbName]) { // not connected?
+    self._partitioners[dbName] = new Partitioner(dbName);
+    promise = self._partitioners[dbName].connect();
+  } else {
+    promise = Promise.resolve();
+  }
+
+  return promise.then(function () {
+    return self._partitioners[dbName];
   });
 };
 
 Process.prototype._processDB = function (dbName) {
-  // Use DeltaDB client to connect to $system and get list of DBs. TODO: Best to create a new
-  // partitioner each loop so that can deal with many DBs or is this too inefficient?
+  // TODO: if keep with partitioner pooling then what happens when we have many DBs?
 
   var self = this,
-    part = new Partitioner(dbName);
-  return part.connect().then(function () {
+    part = null;
+  return self._partitioner(dbName).then(function (_part) {
+    part = _part;
     return self._processAndCatch(part);
-  }).then(function () {
-    return part.closeDatabase();
   }).catch(function (err) {
     // Don't throw DBMissingError or SocketClosedError as the DB may have just been destroyed and
     // not yet removed from _dbNames.
@@ -103,6 +130,30 @@ Process.prototype._loop = function () {
 
 Process.prototype.run = function () {
   this._loop();
+};
+
+Process.prototype.authenticated = function (dbName, username, password) {
+  // TODO: if decided to stick with partitioner pooling then what happens when there are many DBs?
+
+  var self = this,
+    part = null,
+    user = null,
+    err = null;
+
+  return self._partitioner(dbName).then(function (_part) {
+    part = _part;
+    return part._users.authenticated(username, password).then(function (_user) {
+      user = _user;
+    }).catch(function (_err) {
+      err = _err;
+    });
+  }).then(function () {
+    if (err) {
+      throw err;
+    } else {
+      return user;
+    }
+  });
 };
 
 module.exports = Process;
