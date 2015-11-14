@@ -1,0 +1,37 @@
+<html>
+
+<head>
+  <script src="../../dist/deltadb.js"></script>
+</head>
+
+<body>
+
+<h1>
+  DeltaDB is <input id="thing-in" type="text" onkeypress="onKeyPress(event)" />
+</h1>
+
+<h3>
+  DeltaDB is <em id="thing-out"></em>
+</h3>
+
+<script>
+  var db = new DeltaDB('things-db', 'http://localhost:8080');
+
+  var things = db.col('things');
+
+  var thing = things.doc({ $id: 'thing-id' });
+
+  thing.on('attr:update', function (attr) {
+    document.getElementById('thing-out').innerHTML = attr.value;
+  });
+
+  function onKeyPress(e) {
+    setTimeout(function () {
+      thing.set({ text: document.getElementById('thing-in').value });
+    }, 500);
+  }
+</script>
+
+</body>
+
+</html>

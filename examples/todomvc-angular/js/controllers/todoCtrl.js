@@ -10,8 +10,6 @@
 todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, $timeout) {
 	var db = new DeltaDB('todosdb', 'http://localhost:8080');
 
-	// The following will go away when we move to not have a system DB tracked by the client
-	var system = new DeltaDB('$system', 'http://localhost:8080');
 	var todos = db.col('todos');
 
 	$scope.todos = [];

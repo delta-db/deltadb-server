@@ -1,16 +1,7 @@
 Now
 ---
+- Examples broken!!!
 - Basic authentication
-	- Make DB record action deltas - only need to change db create/destroy for now?
-		- Rename Id-Less to Multipling, Dynamic, **Generator** Delta. Including info in TODO, NOTES, etc...
-	- auth test: getting destroy recording, but test not completing!!
-		- It appears that if don't have creating action stored then can't reconcile destroy as don't have id. In other words, we don't get the recording with the id unless we created in the same session.
-		- One dirty hack could be to require the client to issue another create even though the DB already exists--actually the server could do this on the client's behalf.
-		- *** Could we just have the action deltas be recorded?
-			- This would also make the filtering very simple
-	- when server checks for changes, need to be super. When server gets changes then need to use specific user
-		- allow connections with server where have $super access
-	- update wiki with username and password in new DeltaDB()
 	- tests:
 		- DONE: connect to server w/ valid user and update with cur user
 		- connect to server w/ valid user and update with other user => should fail
@@ -18,6 +9,9 @@ Now
 		- connect as anonymous and make sure that cannot specify changedByUUID
 		- connect to server w/ disabled user => error
 		- make sure deltas from server being filtered by user permissions
+	- when server checks for changes, need to be super. When server gets changes then need to use specific user
+		- allow connections with server where have $super access
+	- update wiki with username and password in new DeltaDB()
 - Remove uid from attr-recs as no longer needed
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 - Pagination from server to client and vise-versa
@@ -30,6 +24,8 @@ Now
 - website
 	- The offline-first database. The world's first offline-first database
 	- Example: DeltaDB is ???
+		- Or: better to have messenger? Which is more simple?
+	- Probably best to have todomvc example on homepage and then use "DeltaDB is" for getting started
 - getting started tutorial
 
 
