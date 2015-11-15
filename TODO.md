@@ -1,8 +1,3 @@
-How to handle ts drift?
----
-Make it so that server doesn't record change until server ts is after or on same ts as updated_at ts in delta.
-	- Fixes issue where client has ts in future and would then have to wait for recording
-
 Now
 ---
 - Home example broken
@@ -63,7 +58,7 @@ Next 1
 	- DB per user
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
-- timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates. Use connection initialization to force adjustment of timestamps. Investigate gunjs's algorithm
+- See Timestamp Skew in ISSUES
 - Wouldn't it be better if addRole/removeRole returned a doc that you could wait for 'doc:record' instead of the promise not resolving until the recording?? Is this possible?
 - System DB: Enhance so all system deltas must be recorded before db continues sending? Or would this cause problems with some use cases?
 - System DB: close socket when not needed or else we have 2 sockets per DB!
