@@ -38202,14 +38202,25 @@ Collection.prototype._ensureStore = function () {
   });
 };
 
+// Collection.prototype._doc = function (data) {
+//   var id = data ? data[this._db._idName] : null;
+//   if (id && this._docs[id]) { // has id and exists?
+//     // TODO: need to set data here??
+//     return this._docs[id];
+//   } else {
+//     return new Doc(data, this);
+//   }
+// };
+
 Collection.prototype._doc = function (data) {
-  var id = data ? data[this._db._idName] : null;
-  if (id && this._docs[id]) { // has id and exists?
-    // TODO: need to set data here??
-    return this._docs[id];
-  } else {
-    return new Doc(data, this);
+  var id = data ? data[this._db._idName] : utils.uuid();
+
+  if (!this._docs[id]) { // not registered?
+// TODO: use a reg fn instead?
+    this._docs[id] = new Doc(data, this);
   }
+
+  return this._docs[id];
 };
 
 Collection.prototype.doc = function (data) {
@@ -38221,7 +38232,9 @@ Collection.prototype._initStore = function () {
     promises = [];
 
   var all = self._store.all(function (docStore) {
-    var doc = self._doc();
+    var data = {};
+    data[self._db._idName] = docStore.id();
+    var doc = self._doc(data);
     doc._import(docStore);
     promises.push(doc._loaded);
   });
@@ -39548,6 +39561,8 @@ Doc.prototype._localChanges = function (retryAfter, returnSent) {
 module.exports = Doc;
 
 },{"../orm/nosql/adapters/mem/doc":204,"../utils":215,"./utils":193,"bluebird":23,"inherits":119}],190:[function(require,module,exports){
+'use strict';
+
 require('./auto-adapter-store'); // automatically select default store
 
 module.exports = require('./delta-db');

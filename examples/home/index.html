@@ -19,16 +19,25 @@
 
   var things = db.col('things');
 
+  // We use a predefined id of "thing-id" so that everyone references the same doc
   var thing = things.doc({ $id: 'thing-id' });
 
+  // Display any locally stored value after it is loaded
+  thing.on('load', function () {
+    document.getElementById('thing-out').innerHTML = thing.get('text');
+  });
+
+  // Display any updates
   thing.on('attr:update', function (attr) {
     document.getElementById('thing-out').innerHTML = attr.value;
   });
 
+  // Save after enter is pressed
   function onKeyPress(e) {
-    setTimeout(function () {
-      thing.set({ text: document.getElementById('thing-in').value });
-    }, 500);
+    if (e.keyCode === 13) { // pressed enter?
+      thing.set({ text: document.getElementById('thing-in').value }); // save change
+      document.getElementById('thing-in').value = ''; // clear input box
+    }
   }
 </script>
 
