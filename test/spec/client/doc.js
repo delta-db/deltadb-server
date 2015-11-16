@@ -144,4 +144,23 @@ describe('doc', function () {
     });
   });
 
+  it('should load deleted at timestamp from store', function () {
+    var now = new Date();
+
+    // Fake store
+    var store = {
+      updatedAt: now,
+      destroyedAt: now,
+      recordedAt: now
+    };
+
+    task._loadTimestampsFromStore(store);
+
+    // Make sure later timestamps from store
+    task._dat.updatedAt.should.eql(now);
+    task._dat.destroyedAt.should.eql(now);
+    task._dat.recordedAt.should.eql(now);
+
+  });
+
 });

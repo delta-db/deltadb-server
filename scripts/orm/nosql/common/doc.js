@@ -22,10 +22,8 @@ inherits(Doc, EventEmitter);
 Doc._idName = '$id';
 Doc.prototype._idName = '$id'; // Move to DB layer?
 
-Doc.prototype.id = function (id) {
-  if (typeof id === 'undefined') {
-    return this.get(this._idName);
-  }
+Doc.prototype.id = function () {
+  return this.get(this._idName);
 };
 
 Doc.prototype.getRef = function () {

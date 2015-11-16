@@ -39063,6 +39063,26 @@ Doc.prototype._initDat = function () {
   this._pointToData();
 };
 
+Doc.prototype._loadTimestampsFromStore = function (store) {
+
+  // The data in the store is being loaded and must be older than the data that we currently have in
+  // our doc. Therefore, we only consider timestamps from the store if we are missing those values
+  // in our doc.
+
+  // Are we missing a value for updatedAt?
+  if (!this._dat.updatedAt) {
+    this._dat.updatedAt = store.updatedAt;
+
+    // We have already determined that the store was updated later so take its destroyedAt
+    this._dat.destroyedAt = store.destroyedAt ? store.destroyedAt : null;
+  }
+
+  // Are we missing a recordedAt?
+  if (!this._dat.recordedAt) {
+    this._dat.recordedAt = store.recordedAt;
+  }
+};
+
 Doc.prototype._loadFromStore = function () {
   var self = this;
 
@@ -39073,26 +39093,19 @@ Doc.prototype._loadFromStore = function () {
     self._dat.changes = store.changes.concat(self._dat.changes);
   }
 
-  // Take the latest updatedAt
-  if (!self._dat.updatedAt || (store.updatedAt && store.updatedAt.getTime() > self._dat.updatedAt.getTime())) {
-    self._dat.updatedAt = store.updatedAt;
-
-    // We have already determined that the store was updated later so take its destroyedAt
-    if (store.destroyedAt) {
-      self._dat.destroyedAt = store.destroyedAt;
-    }
-  }
-
-  // Take the latest recordedAt
-  if (!self._dat.recordedAt || (store.recordedAt && store.recordedAt.getTime() > self._dat.recordedAt.getTime())) {
-    self._dat.recordedAt = store.recordedAt;
-  }
+  self._loadTimestampsFromStore(store);
 
   // Iterate through all attributes and set if latest
   utils.each(store.latest, function (attr, name) {
 
     // Replay change by simulating a delta and tracking the changes
-    self._saveChange({ name: name, val: JSON.stringify(attr.val), up: attr.up, re: attr.re, seq: attr.seq }, false, false);
+    self._saveChange({
+      name: name,
+      val: JSON.stringify(attr.val),
+      up: attr.up,
+      re: attr.re,
+      seq: attr.seq
+    }, false, false);
   });
 };
 
@@ -39101,10 +39114,7 @@ Doc.prototype._emitLoad = function () {
 };
 
 Doc.prototype._initStore = function () {
-  var self = this;
-
   this._loadFromStore();
-
   this._emitLoad();
 };
 
@@ -39360,9 +39370,7 @@ Doc.prototype._set = function (name, value, updated, recorded, untracked) {
   // Set the value before any events are emitted by _change()
   var ret = MemDoc.prototype._set.apply(this, arguments);
 
-  if (events) {
-    this._emitEvents(events, name);
-  }
+  this._emitEvents(events, name);
 
   return ret;
 };
@@ -40890,10 +40898,8 @@ inherits(Doc, EventEmitter);
 Doc._idName = '$id';
 Doc.prototype._idName = '$id'; // Move to DB layer?
 
-Doc.prototype.id = function (id) {
-  if (typeof id === 'undefined') {
-    return this.get(this._idName);
-  }
+Doc.prototype.id = function () {
+  return this.get(this._idName);
 };
 
 Doc.prototype.getRef = function () {
