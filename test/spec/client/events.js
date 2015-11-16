@@ -29,7 +29,9 @@ describe('events', function () {
 
     tasks = db.col('tasks');
 
-    task = tasks.doc({ $id: '1' });
+    task = tasks.doc({
+      $id: '1'
+    });
   });
 
   afterEach(function () {

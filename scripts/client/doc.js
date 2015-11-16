@@ -77,7 +77,8 @@ Doc.prototype._loadFromStore = function () {
   }
 
   // Take the latest updatedAt
-  if (!self._dat.updatedAt || (store.updatedAt && store.updatedAt.getTime() > self._dat.updatedAt.getTime())) {
+  if (!self._dat.updatedAt || (store.updatedAt && store.updatedAt.getTime() > self._dat.updatedAt
+      .getTime())) {
     self._dat.updatedAt = store.updatedAt;
 
     // We have already determined that the store was updated later so take its destroyedAt
@@ -87,7 +88,8 @@ Doc.prototype._loadFromStore = function () {
   }
 
   // Take the latest recordedAt
-  if (!self._dat.recordedAt || (store.recordedAt && store.recordedAt.getTime() > self._dat.recordedAt.getTime())) {
+  if (!self._dat.recordedAt ||
+    (store.recordedAt && store.recordedAt.getTime() > self._dat.recordedAt.getTime())) {
     self._dat.recordedAt = store.recordedAt;
   }
 
@@ -95,7 +97,13 @@ Doc.prototype._loadFromStore = function () {
   utils.each(store.latest, function (attr, name) {
 
     // Replay change by simulating a delta and tracking the changes
-    self._saveChange({ name: name, val: JSON.stringify(attr.val), up: attr.up, re: attr.re, seq: attr.seq }, false, false);
+    self._saveChange({
+      name: name,
+      val: JSON.stringify(attr.val),
+      up: attr.up,
+      re: attr.re,
+      seq: attr.seq
+    }, false, false);
   });
 };
 
@@ -104,10 +112,7 @@ Doc.prototype._emitLoad = function () {
 };
 
 Doc.prototype._initStore = function () {
-  var self = this;
-
   this._loadFromStore();
-
   this._emitLoad();
 };
 

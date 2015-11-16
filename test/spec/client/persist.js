@@ -2,7 +2,6 @@
 
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
-  DB = require('../../../scripts/client/db'),
   Promise = require('bluebird'),
   testUtils = require('../../utils');
 
@@ -11,7 +10,6 @@ describe('persist', function () {
   var client = null,
     db = null,
     tasks = null,
-    task = null,
     propsReady = null,
     db2 = null;
 
@@ -36,9 +34,14 @@ describe('persist', function () {
 
     var nowStr = (new Date().toUTCString());
 
-    return task.set({ thing: 'sing', priority: 'high' }).then(function () {
+    return task.set({
+      thing: 'sing',
+      priority: 'high'
+    }).then(function () {
       // Fake update of since
-      return db._props.set({ since: nowStr });
+      return db._props.set({
+        since: nowStr
+      });
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by destroying the DB, but keeping
       // the local store and then reloading the store
@@ -78,7 +81,11 @@ describe('persist', function () {
     //   write = tasks.doc({ thing: 'write' });
     // What if thing is already in the store and loads after we have the handles above?
 
-    var task = tasks.doc({ thing: 'sing', priority: 'high', notes: 'some notes' }),
+    var task = tasks.doc({
+        thing: 'sing',
+        priority: 'high',
+        notes: 'some notes'
+      }),
       client2 = null,
       tasks2 = null,
       task2 = null;
@@ -89,7 +96,11 @@ describe('persist', function () {
         db: 'mydb'
       });
       tasks2 = db2.col('tasks');
-      task2 = tasks2.doc({ $id: task.id(), thing: 'write', type: 'personal' });
+      task2 = tasks2.doc({
+        $id: task.id(),
+        thing: 'write',
+        type: 'personal'
+      });
       task2.unset('notes');
     };
 
@@ -101,9 +112,14 @@ describe('persist', function () {
       // Simulate reload using a second client
       setUpClient2();
       return utils.once(db2, 'load');
-   }).then(function () {
-     // Make sure that we take the latest changes
-     task2.get().should.eql({ $id: task.id(), thing: 'write', type: 'personal', priority: 'high' });
+    }).then(function () {
+      // Make sure that we take the latest changes
+      task2.get().should.eql({
+        $id: task.id(),
+        thing: 'write',
+        type: 'personal',
+        priority: 'high'
+      });
     });
 
   });
