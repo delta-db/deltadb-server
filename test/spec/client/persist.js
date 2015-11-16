@@ -38,6 +38,9 @@ describe('persist', function () {
       thing: 'sing',
       priority: 'high'
     }).then(function () {
+      // Wait until all the data has been loaded from the store
+      return utils.once(db, 'load');
+    }).then(function () {
       // Fake update of since
       return db._props.set({
         since: nowStr
