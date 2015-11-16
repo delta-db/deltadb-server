@@ -3,7 +3,7 @@
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird'),
-  testUtils = require('../../utils');
+  commonUtils = require('../../common-utils');
 
 describe('persist', function () {
 
@@ -111,7 +111,7 @@ describe('persist', function () {
     // Populate underlying store
     return task.save().then(function () {
       // Sleep so that timestamps aren't the same and the 2nd set of changes come later
-      return testUtils.sleep();
+      return commonUtils.sleep();
     }).then(function () {
       // Simulate reload using a second client
       setUpClient2();

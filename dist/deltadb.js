@@ -40418,12 +40418,13 @@ Doc.prototype._put = function (doc) {
   });
 };
 
-Doc.prototype._insert = function () {
-  var self = this;
-  return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
-    return self._put(self._data);
-  });
-};
+// TODO: remove
+// Doc.prototype._insert = function () {
+//   var self = this;
+//   return CommonDoc.prototype._insert.apply(self, arguments).then(function () {
+//     return self._put(self._data);
+//   });
+// };
 
 Doc.prototype._update = function () {
   return this._put(this._data);

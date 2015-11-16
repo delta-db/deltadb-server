@@ -78,6 +78,8 @@ describe('db', function () {
       store: new MemAdapter().db('mydb')
     });
 
+    db._connected = true; // fake
+
     db._ready = utils.resolveFactory(); // fake
 
     db._localChanges = utils.resolveFactory([]); // fake
@@ -86,7 +88,35 @@ describe('db', function () {
       emitted = true;
     };
 
-    db._findAndEmitChanges().then(function () {
+    return db._findAndEmitChanges().then(function () {
+      emitted.should.eql(false);
+    });
+  });
+
+  it('should find and emit when not connected', function () {
+    // It is very hard to reliably guarantee the following race condition using e2e testing so we
+    // test here
+    var emitted = false,
+      client = new Client(true);
+
+    db = client.db({
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
+    });
+
+    db._connected = false; // fake
+
+    db._ready = utils.resolveFactory(); // fake
+
+    db._localChanges = utils.resolveFactory([{
+      foo: 'bar'
+    }]); // fake
+
+    db._emitChanges = function () {
+      emitted = true;
+    };
+
+    return db._findAndEmitChanges().then(function () {
       emitted.should.eql(false);
     });
   });

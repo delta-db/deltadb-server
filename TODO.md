@@ -18,11 +18,10 @@ Now
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - event for connect. Disconnect event already exists, but add info about both to wiki
-- impl deltadb-ng
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
 - create managed service on AWS
 - website
-	- An offline-first database. A NoDB DB
+	- An offline-first database
 	- Example: DeltaDB is ???
 		- Or: better to have messenger? Which is more simple?
 	- Slick example for demo on homepage. Easy example for getting started
@@ -32,6 +31,7 @@ Now
 
 Next 1
 ---
+- impl deltadb-ng
 - Clean up DeltaDB constructor? e.g. new DeltaDB('https://user:pass@example.com/mydb')
 - Tutorials:
 	- How to set up a DB cluster (note about if have only 1 server then need to set quorum config)
