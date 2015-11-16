@@ -30,7 +30,8 @@ describe('persist', function () {
 
     var client2 = null,
       found = false,
-      task = tasks.doc();
+      task = tasks.doc(),
+      dbLoaded = utils.once(db, 'load');
 
     var nowStr = (new Date().toUTCString());
 
@@ -39,7 +40,7 @@ describe('persist', function () {
       priority: 'high'
     }).then(function () {
       // Wait until all the data has been loaded from the store
-      return utils.once(db, 'load');
+      return dbLoaded;
     }).then(function () {
       // Fake update of since
       return db._props.set({
