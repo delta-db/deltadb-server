@@ -49,7 +49,7 @@ describe('doc', function () {
         val: JSON.stringify(change.val),
         up: change.up.toUTCString(),
         re: change.up.toUTCString()
-      });
+      }, false, true);
     }).then(function () {
       // Make sure change was removed
       utils.empty(task._dat.changes).should.eql(true);
@@ -78,7 +78,7 @@ describe('doc', function () {
         name: change.name,
         up: change.up.toUTCString(),
         re: change.up.toUTCString()
-      });
+      }, false, true);
     }).then(function () {
       // Make sure change was removed
       utils.empty(task._dat.changes).should.eql(true);

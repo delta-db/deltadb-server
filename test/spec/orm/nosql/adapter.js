@@ -173,17 +173,6 @@ Adapter.prototype.test = function () {
       (user._include() !== null).should.eql(true);
     });
 
-    it('should register when missing', function () {
-      // TODO: this test is only for coverage, make it more meaningful
-      var users = db.col('users');
-
-      var user = users.doc({
-        $id: 1
-      });
-
-      return user._register();
-    });
-
   });
 
 };

@@ -12,10 +12,6 @@ var Collection = function (name, db) {
 
 inherits(Collection, EventEmitter);
 
-// Collection.prototype.doc = function (data) {
-//   return new Doc(data, this);
-// };
-
 // Collection.prototype.get = function ( /* id */ ) {};
 
 // Collection.prototype.find = function ( /* query */ ) {};

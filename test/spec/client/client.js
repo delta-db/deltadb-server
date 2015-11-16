@@ -901,8 +901,7 @@ describe('client', function () {
   it('should sync updates', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
       return db.sync(server);
@@ -966,8 +965,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
       return task1.destroy();
@@ -1044,8 +1042,7 @@ describe('client', function () {
     var server = new Server(); // mock server
     server.remoteChanges = null; // nothing recorded yet
     var destroyedAt = null;
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2013-01-01T05:00:00.000Z'));
     return task1.save().then(function () {
       return task1.unset('priority');
@@ -1131,8 +1128,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
       return db.sync(server);
@@ -1177,8 +1173,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T06:00:00.000Z'));
     return task1.save().then(function () {
       return db.sync(server);
@@ -1225,8 +1220,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
       return task1.destroy(new Date('2014-01-01T07:00:00.000Z'));
@@ -1280,8 +1274,7 @@ describe('client', function () {
       up: '2014-01-01T05:00:00.000Z',
       re: '2014-01-01T05:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
       return task1.unset('priority', new Date('2014-01-01T07:00:00.000Z'));
@@ -1338,8 +1331,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
       return task1.destroy(new Date('2014-01-01T05:00:00.000Z'));
@@ -1396,8 +1388,7 @@ describe('client', function () {
       up: '2014-01-01T06:00:00.000Z',
       re: '2014-01-01T06:00:00.000Z'
     }];
-    var task1 = tasks.doc();
-    task1.id('1');
+    var task1 = tasks.doc({ $id: '1' });
     task1._set('priority', 'high', new Date('2014-01-01T04:00:00.000Z'));
     return task1.save().then(function () {
       return task1.unset('priority', new Date('2014-01-01T05:00:00.000Z'));

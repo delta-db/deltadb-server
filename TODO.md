@@ -1,11 +1,6 @@
 Now
 ---
-- Home example broken
-	- changes not being sent to server
-		- problem is that new save needs to overwrite or how else does client's "thing" become the actual instance?
-		- SOLUTION? Automatically register all new docs so that no race conditions on who registers?
-			- if stick with this solution then remove concept of register and test throughout. Comment on why registration is immediate, i.e. to prevent race conditions with loading data
-			- create tests to simulate what is needed for home example
+- TODO: clean up commented out code, beautify, jshint, coverage
 - Prevent against bad chars in DB store name. Convert "-" to underscore--make note that assuming most db implementations allow underscore name, but may not allow hyphen, but we want to support hyphen. Throw error if contains any illegal chars.
 - Basic authentication
 	- tests:

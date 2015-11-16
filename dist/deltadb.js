@@ -38197,34 +38197,15 @@ Collection.prototype._ensureStore = function () {
   // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
   // the 'load'
   return self._db._loaded.then(function () {
-    self._createStore();
+    if (!self._store) {
+      self._createStore();
+    }
     return null; // prevent runaway promise warnings
   });
 };
 
-// Collection.prototype._doc = function (data) {
-//   var id = data ? data[this._db._idName] : null;
-//   if (id && this._docs[id]) { // has id and exists?
-//     // TODO: need to set data here??
-//     return this._docs[id];
-//   } else {
-//     return new Doc(data, this);
-//   }
-// };
-
 Collection.prototype._doc = function (data) {
-  var id = data ? data[this._db._idName] : utils.uuid();
-
-  if (!this._docs[id]) { // not registered?
-// TODO: use a reg fn instead?
-    this._docs[id] = new Doc(data, this);
-  }
-
-  return this._docs[id];
-};
-
-Collection.prototype.doc = function (data) {
-  return this._doc(data, true);
+  return new Doc(data, this);
 };
 
 Collection.prototype._initStore = function () {
@@ -38234,7 +38215,7 @@ Collection.prototype._initStore = function () {
   var all = self._store.all(function (docStore) {
     var data = {};
     data[self._db._idName] = docStore.id();
-    var doc = self._doc(data);
+    var doc = self.doc(data);
     doc._import(docStore);
     promises.push(doc._loaded);
   });
@@ -38256,8 +38237,9 @@ Collection.prototype._setChange = function (change) {
   return self.get(change.id).then(function (_doc) {
     doc = _doc;
     if (!doc) {
-      doc = self.doc();
-      doc.id(change.id);
+      var data = {};
+      data[self._db._idName] = change.id;
+      doc = self.doc(data);
     }
 
     // TODO: in future, if sequence of changes for same doc then set for all changes and then issue
@@ -38286,15 +38268,6 @@ Collection.prototype._emitColDestroy = function () {
   this._emit('col:destroy', this);
 };
 
-Collection.prototype._register = function (doc) {
-  // We need to notify the DB of the change as it isn't until the doc is registered that the DB
-  // can gather the changes. The sender will throttle any back-to-back change emissions.
-  doc._emitChange();
-
-  doc._emitDocCreate();
-  return MemCollection.prototype._register.apply(this, arguments);
-};
-
 Collection.prototype.destroy = function () {
   // Don't actually destroy the col as we need to keep tombstones
   this._emitColDestroy(); // TODO: move to common
@@ -38313,8 +38286,9 @@ Collection.prototype._createUser = function (userUUID, username, password, statu
   return self.get(id).then(function (doc) {
     // If we are updating the user, the doc may already exist
     if (!doc) { // doc missing?
-      doc = self.doc();
-      doc.id(id);
+      var data = {};
+      data[self._db._idName] = id;
+      doc = self.doc(data);
     }
     return doc._createUser(userUUID, username, password, status);
   });
@@ -38641,11 +38615,10 @@ DB.prototype.updateUser = function (userUUID, username, password, status) {
 // TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
-    // When adding a user to a role, the delta is id-less and so that cannot use an id to reconcile
+    // When adding a user to a role, the delta is id-less and so we cannot use an id to reconcile
     // the local doc. Instead we listen for a new doc on the parent collection and then delete the
     // local doc that was used to originate the delta so that we don't attempt to add the user to
-    // the role again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the creating delta id.
+    // the role again.
 
     var listener = function (doc) {
       var data = doc.get();
@@ -38660,13 +38633,13 @@ DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatin
         doc._dat.recordedAt.getTime() >= ts.getTime()) {
 
         // Remove listener so that we don't listen for other docs
-        originatingDoc._col.removeListener('doc:create', listener);
+        originatingDoc._col.removeListener('doc:record', listener);
 
         resolve(originatingDoc._destroyLocally());
       }
     };
 
-    originatingDoc._col.on('doc:create', listener);
+    originatingDoc._col.on('doc:record', listener);
   });
 };
 
@@ -38684,11 +38657,10 @@ DB.prototype.addRole = function (userUUID, roleName) {
 // TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
-    // When removing a user's role, the delta is id-less and so that cannot use an id to reconcile
+    // When removing a user's role, the delta is id-less and so we cannot use an id to reconcile
     // the local doc. Instead we listen for a new doc on the parent collection and then delete the
     // local doc that was used to originate the delta so that we don't attempt to remove the user's
-    // role again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the creating delta id.
+    // role again.
 
     var listener = function (doc) {
       var data = doc.get();
@@ -39033,11 +39005,14 @@ var inherits = require('inherits'),
 
 var Doc = function (data /* , col */ ) {
   MemDoc.apply(this, arguments); // apply parent constructor
-  this._initDat(data);
+  this._initDat();
 
   this._initLoaded();
 
   this._changeDoc(data);
+
+  // Emit on next tick so that the caller has time to listen for events
+  this._emitDocCreateOnNextTick();
 };
 
 inherits(Doc, MemDoc);
@@ -39061,35 +39036,68 @@ Doc.prototype._import = function (store) {
 };
 
 Doc.prototype._createStore = function () {
-  this._import(this._col._store.doc(this._dat));
+  // Only define the id as the attrs will be set in _loadFromStore
+  var data = {};
+  data[this._idName] = this.id();
+  this._import(this._col._store.doc(data));
 };
 
 Doc.prototype._pointToData = function () {
   this._data = this._dat.data; // point to wrapped location
 };
 
-Doc.prototype._initDat = function (data) {
+Doc.prototype._initDat = function () {
   // To reduce reads from the store, we will assume that this._dat is always up-to-date and
   // therefore changes can just be committed to the store for persistence
+  var id = this.id(); // use id generated by CommonDoc
   this._dat = {
-    data: data ? data : {},
+    data: this._data,
     changes: [],
     latest: {}, // TODO: best name as pending to be written to server?
     destroyedAt: null, // needed to exclude from cursor before del recorded
     updatedAt: null,
     recordedAt: null // used to determine whether doc has been recorded
   };
+  this._dat[this._idName] = id;
 
   this._pointToData();
 };
 
 Doc.prototype._loadFromStore = function () {
-  // TODO: use timestamps of existing data to determine whether data from store should replace
-  // existing data as the store might load after the data has already been set
-  // this._dat = this._store.get();
-  this._dat = this._store.getRef(); // actually point to data instead of copy
+  var self = this;
 
-  this._pointToData();
+  var store = self._store.getRef();
+
+  // Prepend any changes
+  if (store.changes) {
+    self._dat.changes = store.changes.concat(self._dat.changes);
+  }
+
+  // Take the latest updatedAt
+  if (!self._dat.updatedAt || (store.updatedAt && store.updatedAt.getTime() > self._dat.updatedAt.getTime())) {
+    self._dat.updatedAt = store.updatedAt;
+
+    // We have already determined that the store was updated later so take its destroyedAt
+    if (store.destroyedAt) {
+      self._dat.destroyedAt = store.destroyedAt;
+    }
+  }
+
+  // Take the latest recordedAt
+  if (!self._dat.recordedAt || (store.recordedAt && store.recordedAt.getTime() > self._dat.recordedAt.getTime())) {
+    self._dat.recordedAt = store.recordedAt;
+  }
+
+  // Iterate through all attributes and set if latest
+  utils.each(store.latest, function (attr, name) {
+
+    // Replay change by simulating a delta and tracking the changes
+    self._saveChange({ name: name, val: JSON.stringify(attr.val), up: attr.up, re: attr.re, seq: attr.seq }, false, false);
+  });
+};
+
+Doc.prototype._emitLoad = function () {
+  this.emit('load');
 };
 
 Doc.prototype._initStore = function () {
@@ -39097,32 +39105,16 @@ Doc.prototype._initStore = function () {
 
   this._loadFromStore();
 
-  if (self._store.id()) { // does the store have an id? e.g. are we reloading data?
-    self.id(self._store.id());
-    self._register().then(function () {
-      self.emit('load');
-    });
-  } else {
-    // We have just created the store and nothing has been saved yet so don't register
-    self.emit('load');
-  }
-};
-
-Doc.prototype._ensureId = function () {
-  // If there is no id, set one so that the id is not set by the store
-  var id = this.id();
-  if (!id) {
-    id = utils.uuid();
-    this.id(id);
-  }
-  this._store.id(id); // use id from data
+  this._emitLoad();
 };
 
 Doc.prototype._ensureStore = function () {
   var self = this;
   // Wait until col is loaded and then create store
   return self._col._ensureStore().then(function () {
-    self._createStore();
+    if (!self._store) {
+      self._createStore();
+    }
     return self._loaded; // resolves once doc has been loaded
   });
 };
@@ -39130,7 +39122,6 @@ Doc.prototype._ensureStore = function () {
 Doc.prototype._saveStore = function () {
   var self = this;
   return self._ensureStore().then(function () {
-    self._ensureId();
     return self._store.set(self._dat);
   });
 };
@@ -39154,6 +39145,7 @@ Doc.prototype._change = function (name, value, updated, recorded, untracked) {
     return;
   }
 
+  // TODO: remove as being set in _set?
   if (!updated) {
     updated = new Date();
   }
@@ -39238,6 +39230,13 @@ Doc.prototype._emit = function (evnt, name, value) {
 
     this._col._emit(evnt, attr, this); // bubble up to collection layer
   }
+};
+
+Doc.prototype._emitDocCreateOnNextTick = function () {
+  var self = this;
+  setTimeout(function () {
+    self._emitDocCreate();
+  });
 };
 
 Doc.prototype._emitDocCreate = function () {
@@ -39348,6 +39347,10 @@ Doc.prototype._allEvents = function (name, value, updated) {
 
 Doc.prototype._set = function (name, value, updated, recorded, untracked) {
 
+  if (!updated) {
+    updated = new Date();
+  }
+
   var events = this._change(name, value, updated, recorded, untracked);
 
   if (updated && (!this._dat.updatedAt || updated.getTime() > this._dat.updatedAt.getTime())) {
@@ -39406,13 +39409,14 @@ Doc.prototype._fromDeltaValue = function (val) {
   return typeof val === 'undefined' ? undefined : JSON.parse(val); // val is JSON
 };
 
-Doc.prototype._saveChange = function (change) {
+Doc.prototype._saveChange = function (change, tracked, record) {
   var self = this;
   var updated = new Date(change.up); // date is string
   var recorded = change.re ? new Date(change.re) : null; // date is string
   var val = self._fromDeltaValue(change.val);
   var latest = self._dat.latest[change.name];
   var promise = Promise.resolve();
+  var untracked = !tracked;
 
   self._markedAt = null;
   if (latest) {
@@ -39426,26 +39430,28 @@ Doc.prototype._saveChange = function (change) {
         (updated.getTime() === latest.up.getTime() &&
           change.seq === latest.seq))) {
       if (typeof val !== 'undefined') {
-        self._set(change.name, val, updated, recorded, true);
+        self._set(change.name, val, updated, recorded, untracked);
       } else {
-        self.unset(change.name, updated, recorded, true);
+        self.unset(change.name, updated, recorded, untracked);
       }
       promise = self.save();
     }
   } else if (!self._dat.updatedAt ||
     updated.getTime() > self._dat.updatedAt.getTime()) { // destroying doc?
-    promise = self.destroy(updated, true); // don't track as coming from server
+    promise = self.destroy(updated, untracked);
   }
 
   return promise.then(function () {
-    self._record(change.name, val, updated, change.seq, recorded);
+    if (record) {
+      self._record(change.name, val, updated, change.seq, recorded);
+    }
     return null; // prevent runaway promise warnings
   });
 };
 
 Doc.prototype._setChange = function (change) {
   var self = this;
-  return self._saveChange(change).then(function () {
+  return self._saveChange(change, null, true).then(function () {
     // Commit the changes to the store so that they aren't lost
     return self._saveStore();
   });
@@ -39812,7 +39818,9 @@ var Collection = function (db, name) {
 inherits(Collection, CommonCollection);
 
 Collection.prototype.doc = function (obj) {
-  return new Doc(obj, this);
+  var doc = new Doc(obj, this);
+  this._register(doc);
+  return doc;
 };
 
 Collection.prototype._get = function (id) {
@@ -40531,8 +40539,20 @@ var Collection = function (name, db) {
 
 inherits(Collection, CommonCollection);
 
-Collection.prototype.doc = function (data) {
+Collection.prototype._doc = function (data) {
   return new Doc(data, this);
+};
+
+Collection.prototype.doc = function (data) {
+  var id = data ? data[this._db._idName] : null;
+
+  if (id && this._docs[id]) { // already registered?
+    return this._docs[id];
+  } else {
+    var doc = this._doc(data);
+    this._register(doc);
+    return doc;
+  }
 };
 
 Collection.prototype.get = function (id) {
@@ -40697,10 +40717,6 @@ var Collection = function (name, db) {
 
 inherits(Collection, EventEmitter);
 
-// Collection.prototype.doc = function (data) {
-//   return new Doc(data, this);
-// };
-
 // Collection.prototype.get = function ( /* id */ ) {};
 
 // Collection.prototype.find = function ( /* query */ ) {};
@@ -40860,6 +40876,11 @@ var utils = require('../../../utils'),
 var Doc = function (data, col) {
   EventEmitter.apply(this, arguments); // apply parent constructor
   this._data = data ? data : {};
+
+  if (!this._data[Doc._idName]) { // no id?
+    this._data[Doc._idName] = utils.uuid(); // generate id
+  }
+
   this._col = col;
   this._dirty = {};
 };
@@ -40872,8 +40893,6 @@ Doc.prototype._idName = '$id'; // Move to DB layer?
 Doc.prototype.id = function (id) {
   if (typeof id === 'undefined') {
     return this.get(this._idName);
-  } else {
-    this._set(this._idName, id, null, null, true);
   }
 };
 
@@ -40959,32 +40978,15 @@ Doc.prototype._include = function () { // Include in cursor?
   return true;
 };
 
-Doc.prototype._register = function () {
-  var self = this;
-  return self._col.get(self.id()).then(function (doc) {
-    if (!doc) { // missing? Then register
-      return self._col._register(self);
-    }
-  });
-};
-
 Doc.prototype._unregister = function () {
   return this._col._unregister(this);
 };
 
 Doc.prototype.save = function () {
-  // We don't register the doc (consider it created) until after it is saved. This way docs can be
-  // instantiated but not committed to memory
-  var self = this;
-  return self._save().then(function () {
-    return self._register();
-  });
+  return this._save();
 };
 
 Doc.prototype._insert = function () {
-  // if (!this.id()) { // id missing? Then generate // TODO: remove?
-  this.id(utils.uuid());
-  // }
   return Promise.resolve();
 };
 
