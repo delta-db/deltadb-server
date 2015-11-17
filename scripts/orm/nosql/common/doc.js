@@ -8,6 +8,11 @@ var utils = require('../../../utils'),
 var Doc = function (data, col) {
   EventEmitter.apply(this, arguments); // apply parent constructor
   this._data = data ? data : {};
+
+  if (!this._data[Doc._idName]) { // no id?
+    this._data[Doc._idName] = utils.uuid(); // generate id
+  }
+
   this._col = col;
   this._dirty = {};
 };
@@ -17,12 +22,8 @@ inherits(Doc, EventEmitter);
 Doc._idName = '$id';
 Doc.prototype._idName = '$id'; // Move to DB layer?
 
-Doc.prototype.id = function (id) {
-  if (typeof id === 'undefined') {
-    return this.get(this._idName);
-  } else {
-    this._set(this._idName, id, null, null, true);
-  }
+Doc.prototype.id = function () {
+  return this.get(this._idName);
 };
 
 Doc.prototype.getRef = function () {
@@ -107,32 +108,15 @@ Doc.prototype._include = function () { // Include in cursor?
   return true;
 };
 
-Doc.prototype._register = function () {
-  var self = this;
-  return self._col.get(self.id()).then(function (doc) {
-    if (!doc) { // missing? Then register
-      return self._col._register(self);
-    }
-  });
-};
-
 Doc.prototype._unregister = function () {
   return this._col._unregister(this);
 };
 
 Doc.prototype.save = function () {
-  // We don't register the doc (consider it created) until after it is saved. This way docs can be
-  // instantiated but not committed to memory
-  var self = this;
-  return self._save().then(function () {
-    return self._register();
-  });
+  return this._save();
 };
 
 Doc.prototype._insert = function () {
-  // if (!this.id()) { // id missing? Then generate // TODO: remove?
-  this.id(utils.uuid());
-  // }
   return Promise.resolve();
 };
 

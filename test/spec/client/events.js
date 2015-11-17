@@ -29,8 +29,9 @@ describe('events', function () {
 
     tasks = db.col('tasks');
 
-    task = tasks.doc();
-    task.id('1');
+    task = tasks.doc({
+      $id: '1'
+    });
   });
 
   afterEach(function () {
@@ -418,8 +419,7 @@ describe('events', function () {
   };
 
   it('doc: doc:create remote already local', function () {
-    // Note: cannot receive doc:create event for doc that hasn't yet been created
-    return utils.doAndOnce(createLocal, task, 'attr:create').then(function () {
+    return utils.doAndOnce(createLocal, task, 'doc:create').then(function () {
       // Assert doc:create not received as already created
       return commonUtils.shouldDoAndNotOnce(createRemote, task, 'doc:create');
     });

@@ -269,11 +269,10 @@ DB.prototype.updateUser = function (userUUID, username, password, status) {
 // TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
-    // When adding a user to a role, the delta is id-less and so that cannot use an id to reconcile
+    // When adding a user to a role, the delta is id-less and so we cannot use an id to reconcile
     // the local doc. Instead we listen for a new doc on the parent collection and then delete the
     // local doc that was used to originate the delta so that we don't attempt to add the user to
-    // the role again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the creating delta id.
+    // the role again.
 
     var listener = function (doc) {
       var data = doc.get();
@@ -288,13 +287,13 @@ DB.prototype._resolveAfterRoleCreated = function (userUUID, roleName, originatin
         doc._dat.recordedAt.getTime() >= ts.getTime()) {
 
         // Remove listener so that we don't listen for other docs
-        originatingDoc._col.removeListener('doc:create', listener);
+        originatingDoc._col.removeListener('doc:record', listener);
 
         resolve(originatingDoc._destroyLocally());
       }
     };
 
-    originatingDoc._col.on('doc:create', listener);
+    originatingDoc._col.on('doc:record', listener);
   });
 };
 
@@ -312,11 +311,10 @@ DB.prototype.addRole = function (userUUID, roleName) {
 // TODO: better to implement "Generator" doc like create/destroy DB?
 DB.prototype._resolveAfterRoleDestroyed = function (userUUID, roleName, originatingDoc, ts) {
   return new Promise(function (resolve) {
-    // When removing a user's role, the delta is id-less and so that cannot use an id to reconcile
+    // When removing a user's role, the delta is id-less and so we cannot use an id to reconcile
     // the local doc. Instead we listen for a new doc on the parent collection and then delete the
     // local doc that was used to originate the delta so that we don't attempt to remove the user's
-    // role again. TODO: Another option for the future could be to create an id in the doc that
-    // corresponds to the creating delta id.
+    // role again.
 
     var listener = function (doc) {
       var data = doc.get();
@@ -580,7 +578,6 @@ DB.prototype._connectWhenReady = function () {
     return self._connect();
   });
 };
-
 
 /**
  * Each DB has an associated SystemDB as the DB needs to be able to point to any DB cluster and we

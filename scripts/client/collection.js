@@ -35,23 +35,15 @@ Collection.prototype._ensureStore = function () {
   // _ensureStore() is called by the doc which will create the doc store afterwards and then emit
   // the 'load'
   return self._db._loaded.then(function () {
-    self._createStore();
+    if (!self._store) {
+      self._createStore();
+    }
     return null; // prevent runaway promise warnings
   });
 };
 
 Collection.prototype._doc = function (data) {
-  var id = data ? data[this._db._idName] : null;
-  if (id && this._docs[id]) { // has id and exists?
-    // TODO: need to set data here??
-    return this._docs[id];
-  } else {
-    return new Doc(data, this);
-  }
-};
-
-Collection.prototype.doc = function (data) {
-  return this._doc(data, true);
+  return new Doc(data, this);
 };
 
 Collection.prototype._initStore = function () {
@@ -59,7 +51,9 @@ Collection.prototype._initStore = function () {
     promises = [];
 
   var all = self._store.all(function (docStore) {
-    var doc = self._doc();
+    var data = {};
+    data[self._db._idName] = docStore.id();
+    var doc = self.doc(data);
     doc._import(docStore);
     promises.push(doc._loaded);
   });
@@ -81,8 +75,9 @@ Collection.prototype._setChange = function (change) {
   return self.get(change.id).then(function (_doc) {
     doc = _doc;
     if (!doc) {
-      doc = self.doc();
-      doc.id(change.id);
+      var data = {};
+      data[self._db._idName] = change.id;
+      doc = self.doc(data);
     }
 
     // TODO: in future, if sequence of changes for same doc then set for all changes and then issue
@@ -111,15 +106,6 @@ Collection.prototype._emitColDestroy = function () {
   this._emit('col:destroy', this);
 };
 
-Collection.prototype._register = function (doc) {
-  // We need to notify the DB of the change as it isn't until the doc is registered that the DB
-  // can gather the changes. The sender will throttle any back-to-back change emissions.
-  doc._emitChange();
-
-  doc._emitDocCreate();
-  return MemCollection.prototype._register.apply(this, arguments);
-};
-
 Collection.prototype.destroy = function () {
   // Don't actually destroy the col as we need to keep tombstones
   this._emitColDestroy(); // TODO: move to common
@@ -138,8 +124,9 @@ Collection.prototype._createUser = function (userUUID, username, password, statu
   return self.get(id).then(function (doc) {
     // If we are updating the user, the doc may already exist
     if (!doc) { // doc missing?
-      doc = self.doc();
-      doc.id(id);
+      var data = {};
+      data[self._db._idName] = id;
+      doc = self.doc(data);
     }
     return doc._createUser(userUUID, username, password, status);
   });

@@ -1,16 +1,8 @@
 Now
 ---
+- Use toISOString() instead of toUTCString()
+- Prevent against bad chars in DB store name. Convert "-" to underscore--make note that assuming most db implementations allow underscore name, but may not allow hyphen, but we want to support hyphen. Throw error if contains any illegal chars.
 - Basic authentication
-	- Make DB record action deltas - only need to change db create/destroy for now?
-		- Rename Id-Less to Multipling, Dynamic, **Generator** Delta. Including info in TODO, NOTES, etc...
-	- auth test: getting destroy recording, but test not completing!!
-		- It appears that if don't have creating action stored then can't reconcile destroy as don't have id. In other words, we don't get the recording with the id unless we created in the same session.
-		- One dirty hack could be to require the client to issue another create even though the DB already exists--actually the server could do this on the client's behalf.
-		- *** Could we just have the action deltas be recorded?
-			- This would also make the filtering very simple
-	- when server checks for changes, need to be super. When server gets changes then need to use specific user
-		- allow connections with server where have $super access
-	- update wiki with username and password in new DeltaDB()
 	- tests:
 		- DONE: connect to server w/ valid user and update with cur user
 		- connect to server w/ valid user and update with other user => should fail
@@ -18,23 +10,30 @@ Now
 		- connect as anonymous and make sure that cannot specify changedByUUID
 		- connect to server w/ disabled user => error
 		- make sure deltas from server being filtered by user permissions
+	- when server checks for changes, need to be super. When server gets changes then need to use specific user
+		- allow connections with server where have $super access
+	- update wiki with username and password in new DeltaDB()
 - Remove uid from attr-recs as no longer needed
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 - Pagination from server to client and vise-versa
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - event for connect. Disconnect event already exists, but add info about both to wiki
-- impl deltadb-ng
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
 - create managed service on AWS
 - website
-	- The offline-first database. The world's first offline-first database
+	- An offline-first database
 	- Example: DeltaDB is ???
+		- Or: better to have messenger? Which is more simple?
+	- Slick example for demo on homepage. Easy example for getting started
+		- Probably best to have todomvc example on homepage and then use "DeltaDB is" for getting started
 - getting started tutorial
 
 
 Next 1
 ---
+- impl deltadb-ng
+- Clean up DeltaDB constructor? e.g. new DeltaDB('https://user:pass@example.com/mydb')
 - Tutorials:
 	- How to set up a DB cluster (note about if have only 1 server then need to set quorum config)
 - Tests:
@@ -55,7 +54,7 @@ Next 1
 	- DB per user
 - should be able to run spec that corresponds with module and get 100% coverage, ie don't rely on coverage from other modules
 - need proper error checking so that errors are reported, e.g. when reserved names are used for attr names
-- timestamp safeguard: server warns client if clock is off or else client might cause unintended doc updates
+- See Timestamp Skew in ISSUES
 - Wouldn't it be better if addRole/removeRole returned a doc that you could wait for 'doc:record' instead of the promise not resolving until the recording?? Is this possible?
 - System DB: Enhance so all system deltas must be recorded before db continues sending? Or would this cause problems with some use cases?
 - System DB: close socket when not needed or else we have 2 sockets per DB!

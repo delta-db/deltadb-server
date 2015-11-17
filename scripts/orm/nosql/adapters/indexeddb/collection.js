@@ -22,7 +22,9 @@ var Collection = function (db, name) {
 inherits(Collection, CommonCollection);
 
 Collection.prototype.doc = function (obj) {
-  return new Doc(obj, this);
+  var doc = new Doc(obj, this);
+  this._register(doc);
+  return doc;
 };
 
 Collection.prototype._get = function (id) {

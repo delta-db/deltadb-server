@@ -49,7 +49,7 @@ describe('doc', function () {
         val: JSON.stringify(change.val),
         up: change.up.toUTCString(),
         re: change.up.toUTCString()
-      });
+      }, false, true);
     }).then(function () {
       // Make sure change was removed
       utils.empty(task._dat.changes).should.eql(true);
@@ -78,7 +78,7 @@ describe('doc', function () {
         name: change.name,
         up: change.up.toUTCString(),
         re: change.up.toUTCString()
-      });
+      }, false, true);
     }).then(function () {
       // Make sure change was removed
       utils.empty(task._dat.changes).should.eql(true);
@@ -142,6 +142,31 @@ describe('doc', function () {
     return shouldSaveChange({
       thing: null
     });
+  });
+
+  it('should load deleted at timestamp from store', function () {
+    var now = new Date();
+
+    // Fake store
+    var store = {
+      updatedAt: now,
+      destroyedAt: now,
+      recordedAt: now
+    };
+
+    task._loadTimestampsFromStore(store);
+
+    // Make sure later timestamps from store
+    task._dat.updatedAt.should.eql(now);
+    task._dat.destroyedAt.should.eql(now);
+    task._dat.recordedAt.should.eql(now);
+
+  });
+
+  it('should convert to iso string when truthy', function () {
+    task._toISOStringIfTruthy(new Date('2015-11-17T04:11:38.620Z'))
+      .should.eql('2015-11-17T04:11:38.620Z');
+    (task._toISOStringIfTruthy(null) === null).should.eql(true);
   });
 
 });

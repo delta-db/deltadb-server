@@ -2,15 +2,14 @@
 
 var utils = require('../../../scripts/utils'),
   Client = require('../../../scripts/client/adapter'),
-  DB = require('../../../scripts/client/db'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  commonUtils = require('../../common-utils');
 
 describe('persist', function () {
 
   var client = null,
     db = null,
     tasks = null,
-    task = null,
     propsReady = null,
     db2 = null;
 
@@ -21,7 +20,6 @@ describe('persist', function () {
     });
     propsReady = utils.once(db, 'load');
     tasks = db.col('tasks');
-    task = tasks.doc();
   });
 
   afterEach(function () {
@@ -31,58 +29,23 @@ describe('persist', function () {
   it('should restore from store', function () {
 
     var client2 = null,
-      found = false;
+      found = false,
+      task = tasks.doc(),
+      dbLoaded = utils.once(db, 'load');
 
-    var nowStr = (new Date()).getTime();
+    var nowStr = (new Date().toUTCString());
 
-    // Fake dat to ensure that states are reloaded. The data is dummy data and is not logically
-    // sound.
-    var dat = {
-      data: {
-        $id: '1',
-        thing: 'sing',
-        priority: 'high'
-      },
-      changes: [{
-        id: '1',
-        col: 'tasks',
-        name: 'thing',
-        val: '"sing"',
-        up: nowStr,
-        re: nowStr
-      }, {
-        id: '2',
-        col: 'tasks',
-        name: 'priority',
-        val: '"high"',
-        up: nowStr,
-        re: nowStr
-      }],
-      latest: {
-        thing: {
-          val: 'sing',
-          up: nowStr,
-          seq: 2,
-          re: nowStr
-        }
-      },
-      destroyedAt: nowStr,
-      updatedAt: nowStr,
-      recordedAt: nowStr,
-      $id: '1' // this will be inserted when dat is stored in the payload of the docStore
-    };
-
-    task._dat = utils.clone(dat);
-    task.id(task._dat.data.$id);
-
-    return propsReady.then(function () {
-      // Populate since
-      return db._props.set({
-        since: nowStr,
-        version: DB.VERSION
-      });
+    return task.set({
+      thing: 'sing',
+      priority: 'high'
     }).then(function () {
-      return task.save();
+      // Wait until all the data has been loaded from the store
+      return dbLoaded;
+    }).then(function () {
+      // Fake update of since
+      return db._props.set({
+        since: nowStr
+      });
     }).then(function () {
       // Simulate a reload from store, e.g. when an app restarts, by destroying the DB, but keeping
       // the local store and then reloading the store
@@ -98,16 +61,14 @@ describe('persist', function () {
     }).then(function () {
       // Verify restoration of since
       var props = db2._props.get();
-      props.should.eql({
-        $id: 'props',
-        since: nowStr,
-        version: DB.VERSION
-      });
+      props.since.should.eql(nowStr);
 
+      // Verify task was loaded
       db2.all(function (tasks) {
         // Assuming only col is tasks
-        tasks.find(null, function (task) {
-          task._dat.should.eql(dat);
+        tasks.find(null, function (task2) {
+          // Check that all data, e.g. changes, latest, etc... was reloaded, not just the values
+          task2._dat.should.eql(task._dat);
           found = true;
         }, true); // include destroyed docs
       });
@@ -120,47 +81,49 @@ describe('persist', function () {
   it('should handle race conditions', function () {
     // Make sure there are no race conditions with loading, e.g.
     //   planner = client.db('planner');
-    //   tasks = web.col('tasks');
+    //   tasks = planner.col('tasks');
     //   write = tasks.doc({ thing: 'write' });
-    // What if write is already in the store and loads after we have the handles above?
+    // What if thing is already in the store and loads after we have the handles above?
 
-    var client2 = null,
+    var task = tasks.doc({
+        thing: 'sing',
+        priority: 'high',
+        notes: 'some notes'
+      }),
+      client2 = null,
       tasks2 = null,
       task2 = null;
 
     var setUpClient2 = function () {
       client2 = new Client(true);
       db2 = client2.db({
-        db: 'mydb',
-        store: db._store // reuse the store
+        db: 'mydb'
       });
       tasks2 = db2.col('tasks');
+      task2 = tasks2.doc({
+        $id: task.id(),
+        thing: 'write',
+        type: 'personal'
+      });
+      task2.unset('notes');
     };
 
     // Populate underlying store
-    return task.set({
-      thing: 'sing'
+    return task.save().then(function () {
+      // Sleep so that timestamps aren't the same and the 2nd set of changes come later
+      return commonUtils.sleep();
     }).then(function () {
+      // Simulate reload using a second client
       setUpClient2();
-      return null; // prevent runaway promise warning
-    }).then(function () {
       return utils.once(db2, 'load');
     }).then(function () {
-      // Simulate initializing of store after client was setup
-      db2._import(db._store);
-      return utils.once(db2, 'load');
-    }).then(function () {
-      // We need to wait to get the task as the doc isn't registered until save() is called.
-      // Alternatively, we could call task2.save() above in setUpClient2().
-      return tasks2.get(task.id());
-    }).then(function (doc) {
-      task2 = doc;
-      // Ensure that task was still loaded from store
+      // Make sure that we take the latest changes
       task2.get().should.eql({
         $id: task.id(),
-        thing: 'sing'
+        thing: 'write',
+        type: 'personal',
+        priority: 'high'
       });
-      return null; // prevent runaway promise warning
     });
 
   });

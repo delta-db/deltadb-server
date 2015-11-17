@@ -19,8 +19,20 @@ var Collection = function (name, db) {
 
 inherits(Collection, CommonCollection);
 
-Collection.prototype.doc = function (data) {
+Collection.prototype._doc = function (data) {
   return new Doc(data, this);
+};
+
+Collection.prototype.doc = function (data) {
+  var id = data ? data[this._db._idName] : null;
+
+  if (id && this._docs[id]) { // already registered?
+    return this._docs[id];
+  } else {
+    var doc = this._doc(data);
+    this._register(doc);
+    return doc;
+  }
 };
 
 Collection.prototype.get = function (id) {
