@@ -32,7 +32,8 @@ var Globals = require('./globals'),
   config = require('../../../config'),
   log = require('../../server/log'),
   EventEmitter = require('events').EventEmitter,
-  inherits = require('inherits');
+  inherits = require('inherits'),
+  clientUtils = require('../../client/utils');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {
@@ -106,13 +107,8 @@ Part.prototype._port = null;
 
 Part.prototype._DB_NAME_PREFIX = config.DB_NAME_PREFIX;
 
-Part.prototype._escape = function (value) {
-  // TODO: move to utils as used by SQL.escape?
-  return value.replace(/[^0-9a-z_.]/gim, '').toLowerCase();
-};
-
 Part.prototype._toUniqueDBName = function (dbName) {
-  return this._DB_NAME_PREFIX + this._escape(dbName);
+  return this._DB_NAME_PREFIX + clientUtils.escapeDBName(dbName);
 };
 
 Part.prototype.createTables = function () {

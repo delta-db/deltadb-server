@@ -38,9 +38,9 @@ describe('partitioner', function () {
     });
   });
 
-  it('should create and destroy db with non-alphanumeric chars', function () {
-    return part.createAnotherDatabase('test-db-2').then(function () {
-      return part.destroyAnotherDatabase('test-db-2');
+  it('should create and destroy db with hyphens and underscores', function () {
+    return part.createAnotherDatabase('my_test-db-2').then(function () {
+      return part.destroyAnotherDatabase('my_test-db-2');
     });
   });
 
