@@ -39082,6 +39082,10 @@ Doc.prototype._loadTimestampsFromStore = function (store) {
   }
 };
 
+Doc.prototype._toISOStringIfTruthy = function (date) {
+  return date ? date.toISOString() : date;
+};
+
 Doc.prototype._loadFromStore = function () {
   var self = this;
 
@@ -39102,7 +39106,7 @@ Doc.prototype._loadFromStore = function () {
       name: name,
       val: JSON.stringify(attr.val),
       up: attr.up.toISOString(),
-      re: attr.re ? attr.re.toISOString() : attr.re,
+      re: self._toISOStringIfTruthy(attr.re),
       seq: attr.seq
     }, false, false);
 
@@ -39287,7 +39291,7 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
 
     // Compare UTC strings as the timestamps with getTime() may be different
     if (change.name === name && val === value &&
-      change.up.toUTCString() === updated.toUTCString() &&
+      change.up.toISOString() === updated.toISOString() &&
       changeSeq === seq) {
 
       found = true; // TODO: stop looping once the change has been found

@@ -295,7 +295,7 @@ Doc.prototype._record = function (name, value, updated, seq, recorded) {
 
     // Compare UTC strings as the timestamps with getTime() may be different
     if (change.name === name && val === value &&
-      change.up.toUTCString() === updated.toUTCString() &&
+      change.up.toISOString() === updated.toISOString() &&
       changeSeq === seq) {
 
       found = true; // TODO: stop looping once the change has been found
