@@ -35,7 +35,7 @@ describe('db', function () {
       since: null
     }).then(function () {
       client.db({
-        db: 'mydb '
+        db: 'mydb'
       });
       return null; // prevent runaway promise warning
     });

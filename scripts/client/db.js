@@ -22,6 +22,8 @@ var inherits = require('inherits'),
 var DB = function (name, adapter, url, localOnly, noFilters, username, password) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
+  name = clientUtils.escapeDBName(name);
+
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};

@@ -38368,6 +38368,8 @@ var inherits = require('inherits'),
 var DB = function (name, adapter, url, localOnly, noFilters, username, password) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
+  name = clientUtils.escapeDBName(name);
+
   MemDB.apply(this, arguments); // apply parent constructor
 
   this._cols = {};
@@ -39738,7 +39740,7 @@ Utils.prototype.NAME_PRE_USER_ROLES = '$ur';
 Utils.prototype.ACTION_ADD = 'add';
 Utils.prototype.ACTION_REMOVE = 'remove';
 
-Utils.prototype.SYSTEM_DB_NAME = '$system';
+Utils.prototype.SYSTEM_DB_NAME = 'system';
 Utils.prototype.DB_COLLECTION_NAME = '$db';
 Utils.prototype.DB_ATTR_NAME = '$db'; // TODO: rename to ATTR_NAME_DB??
 
@@ -39770,6 +39772,19 @@ Utils.prototype.once = function (emitter, evnt) {
       resolve(arguments);
     });
   });
+};
+
+Utils.prototype.escapeDBName = function (dbName) {
+  // Allow hyphens, but convert to underscores in case DB doesn't support hyphens
+  var pat1 = new RegExp('-', 'g');
+  dbName = dbName.replace(pat1, '_').toLowerCase();
+
+  // Check for any invalid chars
+  var pat3 = new RegExp('[^0-9a-z_]', 'gim');
+  if (pat3.test(dbName)) {
+    throw new Error('DB name [' + dbName + '] contains invalid chars');
+  }
+  return dbName;
 };
 
 module.exports = new Utils();

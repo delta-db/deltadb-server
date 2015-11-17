@@ -1,6 +1,7 @@
 'use strict';
 
-var clientUtils = require('../../../scripts/client/utils');
+var clientUtils = require('../../../scripts/client/utils'),
+  commonUtils = require('../../common-utils');
 
 describe('utils', function () {
 
@@ -40,6 +41,12 @@ describe('utils', function () {
       var elapsed = after.getTime() - before.getTime();
       (elapsed >= 1000 && elapsed < 1200).should.eql(true); // allow for 200 ms window
     });
+  });
+
+  it('should throw when db name is invalid', function () {
+    return commonUtils.shouldNonPromiseThrow(function () {
+      clientUtils.escapeDBName('my^#invalid$ db%name!');
+    }, new Error());
   });
 
 });
