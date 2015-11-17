@@ -163,4 +163,10 @@ describe('doc', function () {
 
   });
 
+  it('should convert to iso string when truthy', function () {
+    task._toISOStringIfTruthy(new Date('2015-11-17T04:11:38.620Z'))
+      .should.eql('2015-11-17T04:11:38.620Z');
+    (task._toISOStringIfTruthy(null) === null).should.eql(true);
+  });
+
 });

@@ -86,6 +86,10 @@ Doc.prototype._loadTimestampsFromStore = function (store) {
   }
 };
 
+Doc.prototype._toISOStringIfTruthy = function (date) {
+  return date ? date.toISOString() : date;
+};
+
 Doc.prototype._loadFromStore = function () {
   var self = this;
 
@@ -106,7 +110,7 @@ Doc.prototype._loadFromStore = function () {
       name: name,
       val: JSON.stringify(attr.val),
       up: attr.up.toISOString(),
-      re: attr.re ? attr.re.toISOString() : attr.re,
+      re: self._toISOStringIfTruthy(attr.re),
       seq: attr.seq
     }, false, false);
 

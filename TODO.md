@@ -1,5 +1,6 @@
 Now
 ---
+- Use toISOString() instead of toUTCString()
 - Prevent against bad chars in DB store name. Convert "-" to underscore--make note that assuming most db implementations allow underscore name, but may not allow hyphen, but we want to support hyphen. Throw error if contains any illegal chars.
 - Basic authentication
 	- tests:
