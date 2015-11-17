@@ -579,7 +579,6 @@ DB.prototype._connectWhenReady = function () {
   });
 };
 
-
 /**
  * Each DB has an associated SystemDB as the DB needs to be able to point to any DB cluster and we
  * may have 2 DBs that point to different clusters so the same SystemDB could not be used.

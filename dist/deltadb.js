@@ -38925,7 +38925,6 @@ DB.prototype._connectWhenReady = function () {
   });
 };
 
-
 /**
  * Each DB has an associated SystemDB as the DB needs to be able to point to any DB cluster and we
  * may have 2 DBs that point to different clusters so the same SystemDB could not be used.
@@ -39102,10 +39101,11 @@ Doc.prototype._loadFromStore = function () {
     self._saveChange({
       name: name,
       val: JSON.stringify(attr.val),
-      up: attr.up,
-      re: attr.re,
+      up: attr.up.toISOString(),
+      re: attr.re ? attr.re.toISOString() : attr.re,
       seq: attr.seq
     }, false, false);
+
   });
 };
 

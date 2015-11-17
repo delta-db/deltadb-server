@@ -105,10 +105,11 @@ Doc.prototype._loadFromStore = function () {
     self._saveChange({
       name: name,
       val: JSON.stringify(attr.val),
-      up: attr.up,
-      re: attr.re,
+      up: attr.up.toISOString(),
+      re: attr.re ? attr.re.toISOString() : attr.re,
       seq: attr.seq
     }, false, false);
+
   });
 };
 
