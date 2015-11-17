@@ -143,7 +143,7 @@ Sessions.prototype.authenticated = function (token) {
     var expiresAt = results.rows[0].expires_at;
     if (expiresAt.getTime() >= (new Date()).getTime()) { // expired?
       return self._destroy(token).then(function () {
-        throw new SessionExpiredError('session expired at ' + expiresAt.toUTCString());
+        throw new SessionExpiredError('session expired at ' + expiresAt.toISOString());
       });
     }
     return results.rows[0].user_id;
@@ -158,14 +158,14 @@ Sessions.prototype.refresh = function (token) {
 
 Sessions.prototype._destroy = function (token) {
   // Make sure another thread didn't just refresh the session by qualifying with timestamp
-  var now = (new Date()).toUTCString(); // TODO: can this be automatically handled by ORM?
+  var now = (new Date()).toISOString(); // TODO: can this be automatically handled by ORM?
   return this._sql.destroy(Sessions.NAME, [
     ['token', '=', '"' + token + '"'], 'and', ['expires_at', '>=', '"' + now + '"']
   ]);
 };
 
 Sessions.prototype.destroyExpired = function () {
-  var now = (new Date()).toUTCString(); // TODO: can this be automatically handled by ORM?
+  var now = (new Date()).toISOString(); // TODO: can this be automatically handled by ORM?
   return this._sql.destroy(Sessions.NAME, ['expires_at', '>=', '"' + now + '"']);
 };
 

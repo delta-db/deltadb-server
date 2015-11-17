@@ -33,7 +33,7 @@ describe('persist', function () {
       task = tasks.doc(),
       dbLoaded = utils.once(db, 'load');
 
-    var nowStr = (new Date().toUTCString());
+    var nowStr = (new Date().toISOString());
 
     return task.set({
       thing: 'sing',

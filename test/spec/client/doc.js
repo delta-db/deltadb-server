@@ -47,8 +47,8 @@ describe('doc', function () {
       return task._saveChange({
         name: change.name,
         val: JSON.stringify(change.val),
-        up: change.up.toUTCString(),
-        re: change.up.toUTCString()
+        up: change.up.toISOString(),
+        re: change.up.toISOString()
       }, false, true);
     }).then(function () {
       // Make sure change was removed
@@ -76,8 +76,8 @@ describe('doc', function () {
       // Simulate recording of destroy
       return task._saveChange({
         name: change.name,
-        up: change.up.toUTCString(),
-        re: change.up.toUTCString()
+        up: change.up.toISOString(),
+        re: change.up.toISOString()
       }, false, true);
     }).then(function () {
       // Make sure change was removed
