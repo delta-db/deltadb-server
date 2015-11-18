@@ -261,44 +261,36 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
 
     var val = null;
 
-    if (typeof change.val === 'undefined') { // destroying
-      if (filters.docs[change.id]) { // include?
+    switch (change.name) {
+
+    case clientUtils.ATTR_NAME_ROLE: // adding user to role?
+      val = JSON.parse(change.val);
+      // Role user registered?
+      if (filters.userRoles.exists(val.userUUID, val.roleName)) {
+        // Set id so that we can filter destroy
+        filters.docs[change.id] = true;
         return true;
       }
-    } else { // creating
-      switch (change.name) {
+      return false;
 
-      case clientUtils.ATTR_NAME_ROLE: // adding user to role?
-        val = JSON.parse(change.val);
-        // Role user registered?
-        if (filters.userRoles.exists(val.userUUID, val.roleName)) {
-          // Set id so that we can filter destroy
-          filters.docs[change.id] = true;
-          return true;
-        }
-        return false;
+      // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
+      //   var val = JSON.parse(change.val);
+      //   // Role user registered?
+      //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
+      //     // Set id so that we can filter destroy
+      //     filters.docs[change.id] = true;
+      //     return true;
+      //   }
+      //   return false;
 
-        // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
-        //   var val = JSON.parse(change.val);
-        //   // Role user registered?
-        //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
-        //     // Set id so that we can filter destroy
-        //     filters.docs[change.id] = true;
-        //     return true;
-        //   }
-        //   return false;
-
-      default: // policy?
-        return filters.docs[change.id] ? true :
-          false;
-      }
+    default: // policy?
+      return filters.docs[change.id] ? true :
+        false;
     }
 
   } else {
     return true;
   }
-
-  return false;
 };
 
 Partitioners.prototype._filter = function (dbName, socket, changes) {
@@ -350,6 +342,17 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   return part.queue(msg.changes, quorum);
 };
 
+Partitioners.prototype._changes = function (partitioner, since, userId) {
+  // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  var all = true;
+  return partitioner.changes(since, null, null, null, all, userId).catch(function (err) {
+    // Ignore SocketClosedError as it could have been caused when a db was destroyed
+    if (!(err instanceof SocketClosedError)) {
+      throw err;
+    }
+  });
+};
+
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   var self = this,
@@ -364,16 +367,10 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   // need to report to client that there is more data and to do another sync, but don't need
   // client to resend changes. On the other side, how do we handle pagination from client?
   // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  var all = true;
-  return part.changes(since, null, null, null, all, userId).then(function (changes) {
+  return self._changes(part, since, userId).then(function (changes) {
     changes = self._filter(dbName, socket, changes);
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);
-    }
-  }).catch(function (err) {
-    // Ignore SocketClosedError as it could have been caused when a db was destroyed
-    if (!(err instanceof SocketClosedError)) {
-      throw err;
     }
   });
 };
