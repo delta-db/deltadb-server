@@ -47,6 +47,17 @@ Partitioners.prototype._defaultFilters = function () {
   };
 };
 
+Partitioners.prototype._setContainer = function (dbName, socket, container) {
+  // Has a competing registration already set the dbName?
+  if (this._partitioners[dbName]) {
+    // Add connection
+    this._partitioners[dbName].conns[socket.conn.id] = container.conns[socket.conn.id];
+  } else {
+    this._partitioners[dbName] = container;
+    this._poll(container.part);
+  }
+};
+
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since, filter, userUUID, userId) {
   var self = this;
@@ -85,16 +96,7 @@ Partitioners.prototype.register = function (dbName, socket, since, filter, userU
     // Save promise so that any registrations for the same partitioner that happen back-to-back can
     // wait until the partitioner is ready
     container.ready = part.connect().then(function () {
-
-      // Has a competing registration already set the dbName?
-      if (self._partitioners[dbName]) {
-        // Add connection
-        self._partitioners[dbName].conns[socket.conn.id] = conns[socket.conn.id];
-      } else {
-        self._partitioners[dbName] = container;
-        self._poll(part);
-      }
-
+      self._setContainer(dbName, socket, container);
       return part;
     });
 

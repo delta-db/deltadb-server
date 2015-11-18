@@ -25,4 +25,31 @@ describe('partitioners', function () {
     changes[0].uid.should.eql('user-uuid-2');
   });
 
+  it('should set container when exists', function () {
+    // This can occur when there is a race condition and can be hard to test w/o faking
+
+    // Fake
+    var socket = {
+      conn: {
+        id: 1
+      }
+    };
+
+    // Fake
+    var container = {
+      conns: {
+        1: {}
+      }
+    };
+
+    // Fake
+    partitioners._partitioners['dbname'] = {
+      conns: {}
+    };
+
+    partitioners._setContainer('dbname', socket, container);
+
+    partitioners._partitioners['dbname'].conns['1'].should.eql(container.conns['1']);
+  });
+
 });
