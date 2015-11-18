@@ -32,7 +32,7 @@ var fs = require('fs'),
   DBMissingError = require('../scripts/client/db-missing-error'),
   log = require('../scripts/client/log'),
   serverLog = require('../scripts/server/log'),
-  server = require('../scripts/server'),
+  ServerContainer = require('../scripts/server'),
   LogStream = require('../scripts/utils/log-stream');
 
 serverLog.console(false);
@@ -42,6 +42,7 @@ var Server = function (spawn) {
   this._manager = new Manager(this._partitioner);
   this._system = new System(this._manager);
   this._spawn = spawn;
+  this._serverContainer = new ServerContainer();
 };
 
 /**
@@ -94,7 +95,7 @@ Server.prototype._start = function (serverFilename) {
     this._doSpawn(serverFilename);
   } else {
     serverLog.stream(new LogStream('./test/' + serverFilename)); // enable server log
-    server.start();
+    this._serverContainer.start();
   }
 };
 

@@ -4,7 +4,6 @@
 
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
-  constants = require('../partitioner/sql/constants'),
   log = require('../server/log'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
@@ -298,11 +297,6 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
   }
 
   return false;
-};
-
-Partitioners.prototype._findUUID = function (dbName, attrName, attrVal) {
-  return this._partitioners[dbName].part._partitions[constants.LATEST]._docs
-    .findUUID(attrName, attrVal);
 };
 
 Partitioners.prototype._filter = function (dbName, socket, changes) {
