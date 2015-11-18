@@ -30,12 +30,18 @@ var fs = require('fs'),
   Manager = require('../scripts/manager'),
   System = require('../scripts/system'),
   DBMissingError = require('../scripts/client/db-missing-error'),
-  log = require('../scripts/client/log');
+  log = require('../scripts/client/log'),
+  serverLog = require('../scripts/server/log'),
+  server = require('../scripts/server'),
+  LogStream = require('../scripts/utils/log-stream');
 
-var Server = function () {
+serverLog.console(false);
+
+var Server = function (spawn) {
   this._partitioner = new Partitioner();
   this._manager = new Manager(this._partitioner);
   this._system = new System(this._manager);
+  this._spawn = spawn;
 };
 
 /**
@@ -67,7 +73,7 @@ Server.prototype._destroyAndCreateSystemDB = function () {
   });
 };
 
-Server.prototype._spawn = function (serverFilename) {
+Server.prototype._doSpawn = function (serverFilename) {
   this._log = fs.createWriteStream('./test/' + serverFilename, {
     flags: 'w'
   });
@@ -81,6 +87,17 @@ Server.prototype._spawn = function (serverFilename) {
   this._server.stderr.pipe(this._log);
 };
 
+Server.prototype._start = function (serverFilename) {
+  // Spawn the server or run it in the same process? Spawned processes don't trigger code coverage
+  // reporting
+  if (this._spawn) {
+    this._doSpawn(serverFilename);
+  } else {
+    serverLog.stream(new LogStream('./test/' + serverFilename)); // enable server log
+    server.start();
+  }
+};
+
 Server.prototype._kill = function () {
   this._server.kill();
 };
@@ -88,13 +105,17 @@ Server.prototype._kill = function () {
 Server.prototype.start = function (serverFilename) {
   var self = this;
   return self._destroyAndCreateSystemDB().then(function () {
-    self._spawn(serverFilename); // start test server
+    self._start(serverFilename); // start test server
   });
 };
 
 Server.prototype.stop = function () {
   var self = this;
-  self._server.kill(); // kill test server
+
+  if (self._spawn) {
+    self._server.kill(); // kill spawned server
+  }
+
   return self._system.destroy().then(function () {
     return self._partitioner.closeDatabase(); // close DB connection to return resources
   }).then(function () {

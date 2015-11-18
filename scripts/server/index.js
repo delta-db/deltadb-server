@@ -13,10 +13,15 @@ var Server = require('./server'),
 var process = new Process(),
   server = new Server(process);
 
+// TODO: rename?
+var ServerContainer = function () {
+
+};
+
 /**
  * Create the system DB if it doesn't already exist
  */
-var ensureSystemDBCreated = function () {
+ServerContainer.prototype._ensureSystemDBCreated = function () {
   var partitioner = new Partitioner();
   var manager = new Manager(partitioner);
   var system = new System(manager);
@@ -30,7 +35,11 @@ var ensureSystemDBCreated = function () {
   });
 };
 
-ensureSystemDBCreated().then(function () {
-  process.run();
-  server.listen();
-});
+ServerContainer.prototype.start = function () {
+  return this._ensureSystemDBCreated().then(function () {
+    process.run();
+    server.listen();
+  });
+};
+
+module.exports = new ServerContainer();

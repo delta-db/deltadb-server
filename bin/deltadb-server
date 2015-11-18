@@ -37,4 +37,5 @@ if (program.port) {
 }
 
 // Start server
-require('../scripts/server');
+var server = require('../scripts/server');
+server.start();

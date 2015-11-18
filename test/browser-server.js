@@ -2,4 +2,4 @@
 
 var ServerProcess = require('./server-process');
 
-module.exports = new ServerProcess();
+module.exports = new ServerProcess(true);
