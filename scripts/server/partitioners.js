@@ -324,10 +324,14 @@ Partitioners.prototype._filter = function (dbName, socket, changes) {
   return newChanges;
 };
 
+Partitioners.prototype._userUUID = function (dbName, socket) {
+  return this._partitioners[dbName].conns[socket.conn.id].userUUID;
+};
+
 Partitioners.prototype._addUserUUID = function (dbName, socket, changes) {
   // This will actually overwrite any ids set by the clients, which is a good safeguard against the
   // client trying to spoof its identity.
-  var userUUID = this._partitioners[dbName].conns[socket.conn.id].userUUID;
+  var userUUID = this._userUUID(dbName, socket);
   changes.forEach(function (change) {
     change.uid = userUUID;
   });

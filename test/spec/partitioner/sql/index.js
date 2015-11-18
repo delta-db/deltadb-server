@@ -15,5 +15,6 @@ describe('sql', function () {
   require('./policy');
   require('./roles');
   // require('./sessions');
+  require('./server');
 
 });
