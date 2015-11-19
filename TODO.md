@@ -1,6 +1,5 @@
 Now
 ---
-- Code coverage of server
 - filter for phantomjs tests
 - Basic authentication
 	- tests:
