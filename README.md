@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/delta-db/deltadb-server/master/deltadb.png" alt="DeltaDB" width="50" height="50" /> DeltaDB [![Build Status](https://travis-ci.org/delta-db/deltadb-server.svg)](https://travis-ci.org/delta-db/deltadb-server) [![Coverage Status](https://coveralls.io/repos/delta-db/deltadb-server/badge.svg?branch=master&service=github)](https://coveralls.io/github/delta-db/deltadb-server?branch=master) [![Dependency Status](https://david-dm.org/delta-db/deltadb-server.svg)](https://david-dm.org/delta-db/deltadb-server)
 ===
 
-DeltaDB is a Front-end-Only Offline-First (FOOF) database designed to talk directly to clients and works great offline and online.
+DeltaDB is an offline-first database designed to talk directly to clients and works great offline and online.
 
 
 Status
