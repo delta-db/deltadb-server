@@ -20,7 +20,9 @@ describe('partitioners', function () {
     };
 
     // Fake
-    var changes = [{ uid: 'user-uuid-1' }];
+    var changes = [{
+      uid: 'user-uuid-1'
+    }];
 
     partitioners._addUserUUID(null, null, changes);
 
@@ -65,7 +67,9 @@ describe('partitioners', function () {
     partitioners._hasChanges = testUtils.promiseErrorFactory(new Error('an error'));
 
     // Should not throw an error
-    partitioners._doPoll({ _dbName: 'dbname' });
+    partitioners._doPoll({
+      _dbName: 'dbname'
+    });
   });
 
   it('should throw error when there is a changes error', function () {
