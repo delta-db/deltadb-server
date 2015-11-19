@@ -2,7 +2,9 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils');
+  clientUtils = require('../../scripts/client/utils'),
+  commonUtils = require('../common-utils'),
+  AuthenticationError = require('../../scripts/client/authentication-error');
 
 describe('auth', function () {
 
@@ -43,6 +45,16 @@ describe('auth', function () {
     task1.save();
 
     return clientUtils.once(task1, 'attr:record');
+
+  });
+
+  it('should report error when authentication fails', function () {
+
+    db = new DeltaDB('mydb', config.URL, 'username', 'badsecret');
+
+    return clientUtils.once(db, 'error').then(function (args) {
+      (args[0].name === 'AuthenticationError').should.eql(true);
+    });
 
   });
 

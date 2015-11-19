@@ -5,7 +5,7 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   SQLError = require('../../../orm/sql/common/sql-error'),
   MissingError = require('../../../orm/sql/common/missing-error'),
-  AuthenticationError = require('../authentication-error'),
+  AuthenticationError = require('../../../client/authentication-error'),
   Cols = require('../col/cols'),
   clientUtils = require('../../../client/utils');
 

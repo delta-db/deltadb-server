@@ -11,7 +11,7 @@ var partUtils = require('../utils'),
   utils = require(partDir + '/../../utils'),
   SQLError = require('../../../../../scripts/orm/sql/common/sql-error'),
   MissingError = require('../../../../../scripts/orm/sql/common/missing-error'),
-  AuthenticationError = require('../../../../../scripts/partitioner/sql/authentication-error');
+  AuthenticationError = require('../../../../../scripts/client/authentication-error');
 
 describe('users', function () {
 
