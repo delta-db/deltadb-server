@@ -13,7 +13,6 @@ var Partitioner = require('../partitioner/sql'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error');
 
 var Process = function () {
-  this._initSystemDB();
   this._dbNames = {
     system: clientUtils.SYSTEM_DB_NAME
   };
@@ -57,9 +56,9 @@ Process.prototype._initSystemDB = function () {
   self._dbs.on('doc:destroy', function (doc) {
     var data = doc.get(),
       dbName = data[clientUtils.DB_ATTR_NAME];
-    if (dbName) { // destroying db? Ignore policy deltas
-      delete self._dbNames[dbName];
-    }
+    // if (dbName) { // destroying db? Ignore policy deltas
+    delete self._dbNames[dbName];
+    // }
   });
 };
 
@@ -129,6 +128,10 @@ Process.prototype._loop = function () {
 };
 
 Process.prototype.run = function () {
+  // Init System DB here so that we don't have to do it in the constructor, which would make our
+  // tests always create the System DB
+  this._initSystemDB();
+
   this._loop();
 };
 
