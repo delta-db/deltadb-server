@@ -54,10 +54,8 @@ describe('events', function () {
     laterStr = later.toISOString();
 
   var eventArgsShouldEql = function (args, id, name, value) {
-    args[0].should.eql({
-      name: name,
-      value: value
-    });
+    args[0].name.should.eql(name);
+    args[0].value.should.eql(value);
     args[1].id().should.eql(id);
   };
 

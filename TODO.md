@@ -6,7 +6,7 @@ Now
 		- DONE: connect to server w/ valid user and update with other user => should fail
 		- DONE: connect as anonymous and make sure that cannot specify changedByUUID
 		- DONE: connect to server w/o valid user => connection should get error and socket should be closed
-		- connect to server w/ disabled user => error
+		- DONE: connect to server w/ disabled user => error
 		- make sure deltas from server being filtered by user permissions
 	- when server checks for changes, need to be super. When server gets changes then need to use specific user
 		- allow connections with server where have $super access

@@ -6,6 +6,7 @@ var Promise = require('bluebird'),
   SQLError = require('../../../orm/sql/common/sql-error'),
   MissingError = require('../../../orm/sql/common/missing-error'),
   AuthenticationError = require('../../../client/authentication-error'),
+  DisabledError = require('../../../client/disabled-error'),
   Cols = require('../col/cols'),
   clientUtils = require('../../../client/utils');
 
@@ -280,14 +281,18 @@ Users.prototype._getSalt = function (username) {
 };
 
 Users.prototype._authenticate = function (username, hashedPwd) {
-  return this._sql.find(['id', 'uuid'], Users.NAME, null, [
+  return this._sql.find(['id', 'uuid', 'status'], Users.NAME, null, [
     ['username', '=', '"' + username + '"'], 'and', ['password', '=', '"' + hashedPwd + '"']
   ]).then(function (results) {
     if (!results.rows) {
       throw new AuthenticationError('username (username=' + username +
         ') and/or password invalid');
+    } else if (results.rows[0].status !== Users.STATUS_ENABLED) {
+      throw new DisabledError('user (username=' + username + ') disabled');
+    } else {
+      console.log('user=', results.rows[0]);
+      return results.rows[0];
     }
-    return results.rows[0];
   });
 };
 
