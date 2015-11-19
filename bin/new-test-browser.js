@@ -26,13 +26,20 @@ server.start('browser-server.log').then(function () {
 
 }).then(function () {
 
-  // Unless we have mocha-phantomjs installed globally we have to specify the full path
-  // var child = spawn('mocha-phantomjs', [
-  var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', [
+  var options = [
     'http://127.0.0.1:8001/test/new-index.html',
     '--timeout', '25000',
     '--hooks', 'test/phantom-hooks.js'
-  ]);
+  ];
+
+  if (process.env.GREP) {
+    options.push('-g');
+    options.push(process.env.GREP);
+  }
+
+  // Unless we have mocha-phantomjs installed globally we have to specify the full path
+  // var child = spawn('mocha-phantomjs', options);
+  var child = spawn('./node_modules/mocha-phantomjs/bin/mocha-phantomjs', options);
 
   child.stdout.on('data', function(data) {
     console.log(data.toString()); // echo output, including what could be errors
