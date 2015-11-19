@@ -1,6 +1,5 @@
 Now
 ---
-- filter for phantomjs tests
 - Basic authentication
 	- tests:
 		- DONE: connect to server w/ valid user and update with cur user

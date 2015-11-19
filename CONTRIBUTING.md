@@ -95,6 +95,10 @@ Running Tests in PhantomJS
 
 You can then view code coverage details by visiting coverage/lcov-report/index.html
 
+You can filter the PhantomJS tests using the GREP env variable, e.g.
+
+    $ GREP='e2e basic' npm run new-test-phantomjs 
+
 
 Running Tests in Chrome and Firefox Automatically
 ---
