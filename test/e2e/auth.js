@@ -2,9 +2,7 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils'),
-  commonUtils = require('../common-utils'),
-  AuthenticationError = require('../../scripts/client/authentication-error');
+  clientUtils = require('../../scripts/client/utils');
 
 describe('auth', function () {
 

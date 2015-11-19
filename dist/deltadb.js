@@ -38863,7 +38863,7 @@ DB.prototype._onDeltaError = function (err) {
     log.info(this._id + ' creating DB ' + this._name);
     this._createDatabaseAndInit();
   } else {
-    throw err;
+    this.emit('error', err);
   }
 };
 
