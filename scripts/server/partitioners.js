@@ -4,7 +4,6 @@
 
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
-  constants = require('../partitioner/sql/constants'),
   log = require('../server/log'),
   utils = require('../utils'),
   clientUtils = require('../client/utils'),
@@ -48,6 +47,17 @@ Partitioners.prototype._defaultFilters = function () {
   };
 };
 
+Partitioners.prototype._setContainer = function (dbName, socket, container) {
+  // Has a competing registration already set the dbName?
+  if (this._partitioners[dbName]) {
+    // Add connection
+    this._partitioners[dbName].conns[socket.conn.id] = container.conns[socket.conn.id];
+  } else {
+    this._partitioners[dbName] = container;
+    this._poll(container.part);
+  }
+};
+
 // TODO: split up
 Partitioners.prototype.register = function (dbName, socket, since, filter, userUUID, userId) {
   var self = this;
@@ -86,16 +96,7 @@ Partitioners.prototype.register = function (dbName, socket, since, filter, userU
     // Save promise so that any registrations for the same partitioner that happen back-to-back can
     // wait until the partitioner is ready
     container.ready = part.connect().then(function () {
-
-      // Has a competing registration already set the dbName?
-      if (self._partitioners[dbName]) {
-        // Add connection
-        self._partitioners[dbName].conns[socket.conn.id] = conns[socket.conn.id];
-      } else {
-        self._partitioners[dbName] = container;
-        self._poll(part);
-      }
-
+      self._setContainer(dbName, socket, container);
       return part;
     });
 
@@ -260,49 +261,36 @@ Partitioners.prototype._includeChange = function (dbName, socket, change) {
 
     var val = null;
 
-    if (typeof change.val === 'undefined') { // destroying
-      if (filters.docs[change.id]) { // include?
+    switch (change.name) {
+
+    case clientUtils.ATTR_NAME_ROLE: // adding user to role?
+      val = JSON.parse(change.val);
+      // Role user registered?
+      if (filters.userRoles.exists(val.userUUID, val.roleName)) {
+        // Set id so that we can filter destroy
+        filters.docs[change.id] = true;
         return true;
       }
-    } else { // creating
-      switch (change.name) {
+      return false;
 
-      case clientUtils.ATTR_NAME_ROLE: // adding user to role?
-        val = JSON.parse(change.val);
-        // Role user registered?
-        if (filters.userRoles.exists(val.userUUID, val.roleName)) {
-          // Set id so that we can filter destroy
-          filters.docs[change.id] = true;
-          return true;
-        }
-        return false;
+      // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
+      //   var val = JSON.parse(change.val);
+      //   // Role user registered?
+      //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
+      //     // Set id so that we can filter destroy
+      //     filters.docs[change.id] = true;
+      //     return true;
+      //   }
+      //   return false;
 
-        // case clientUtils.ATTR_NAME_ROLE_USER: // adding user to role?
-        //   var val = JSON.parse(change.val);
-        //   // Role user registered?
-        //   if (filters.roleUsers[val.roleName] && filters.roleUsers[val.roleName][val.userUUID]) {
-        //     // Set id so that we can filter destroy
-        //     filters.docs[change.id] = true;
-        //     return true;
-        //   }
-        //   return false;
-
-      default: // policy?
-        return filters.docs[change.id] ? true :
-          false;
-      }
+    default: // policy?
+      return filters.docs[change.id] ? true :
+        false;
     }
 
   } else {
     return true;
   }
-
-  return false;
-};
-
-Partitioners.prototype._findUUID = function (dbName, attrName, attrVal) {
-  return this._partitioners[dbName].part._partitions[constants.LATEST]._docs
-    .findUUID(attrName, attrVal);
 };
 
 Partitioners.prototype._filter = function (dbName, socket, changes) {
@@ -324,10 +312,14 @@ Partitioners.prototype._filter = function (dbName, socket, changes) {
   return newChanges;
 };
 
+Partitioners.prototype._userUUID = function (dbName, socket) {
+  return this._partitioners[dbName].conns[socket.conn.id].userUUID;
+};
+
 Partitioners.prototype._addUserUUID = function (dbName, socket, changes) {
   // This will actually overwrite any ids set by the clients, which is a good safeguard against the
   // client trying to spoof its identity.
-  var userUUID = this._partitioners[dbName].conns[socket.conn.id].userUUID;
+  var userUUID = this._userUUID(dbName, socket);
   changes.forEach(function (change) {
     change.uid = userUUID;
   });
@@ -350,6 +342,17 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   return part.queue(msg.changes, quorum);
 };
 
+Partitioners.prototype._changes = function (partitioner, since, userId) {
+  // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
+  var all = true;
+  return partitioner.changes(since, null, null, null, all, userId).catch(function (err) {
+    // Ignore SocketClosedError as it could have been caused when a db was destroyed
+    if (!(err instanceof SocketClosedError)) {
+      throw err;
+    }
+  });
+};
+
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   var self = this,
@@ -364,16 +367,10 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
   // need to report to client that there is more data and to do another sync, but don't need
   // client to resend changes. On the other side, how do we handle pagination from client?
   // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  var all = true;
-  return part.changes(since, null, null, null, all, userId).then(function (changes) {
+  return self._changes(part, since, userId).then(function (changes) {
     changes = self._filter(dbName, socket, changes);
     if (changes.length > 0) { // Are there local changes?
       self._emitChanges(socket, changes, newSince);
-    }
-  }).catch(function (err) {
-    // Ignore SocketClosedError as it could have been caused when a db was destroyed
-    if (!(err instanceof SocketClosedError)) {
-      throw err;
     }
   });
 };

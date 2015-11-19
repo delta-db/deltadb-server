@@ -183,8 +183,6 @@ ChangesQuery.prototype._changesNestedSQL = function () {
   return self._sql.build(sql, replacements);
 };
 
-// TODO: should changes return uuid of user who changed the data or should there be an option to
-// return this?
 ChangesQuery.prototype._changes = function () {
 
   var self = this;
@@ -194,7 +192,7 @@ ChangesQuery.prototype._changes = function () {
   };
   attrs[self._partition + 'attrs.name'] = 'name';
   attrs[self._partition + 'attrs.value'] = 'val';
-  attrs[self._partition + 'attrs.changed_by_user_id'] = 'auth'; // change to uid and get userUUID?
+  attrs['users.uuid'] = 'uid';
   attrs[self._partition + 'attrs.recorded_at'] = 're';
   attrs[self._partition + 'attrs.updated_at'] = 'up';
   attrs[self._partition + 'docs.uuid'] = 'id';
@@ -207,6 +205,7 @@ ChangesQuery.prototype._changes = function () {
     'attrs.doc_id'
   ];
   joins.joins['cols'] = ['cols.id', '=', self._partition + 'docs.col_id'];
+  joins.left_joins['users'] = ['users.id', '=', self._partition + 'attrs.changed_by_user_id'];
 
   var nestedSQL = self._changesNestedSQL();
 

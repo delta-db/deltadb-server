@@ -1,11 +1,12 @@
 Now
 ---
+- filter for phantomjs tests
 - Basic authentication
 	- tests:
 		- DONE: connect to server w/ valid user and update with cur user
-		- connect to server w/ valid user and update with other user => should fail
+		- DONE: connect to server w/ valid user and update with other user => should fail
+		- DONE: connect as anonymous and make sure that cannot specify changedByUUID
 		- connect to server w/o valid user => connection should get error and socket should be closed
-		- connect as anonymous and make sure that cannot specify changedByUUID
 		- connect to server w/ disabled user => error
 		- make sure deltas from server being filtered by user permissions
 	- when server checks for changes, need to be super. When server gets changes then need to use specific user
@@ -32,6 +33,7 @@ Next 1
 ---
 - impl deltadb-ng
 - Clean up DeltaDB constructor? e.g. new DeltaDB('https://user:pass@example.com/mydb')
+	- Probably not a good idea as we eventually want password to be char array for security!!
 - Tutorials:
 	- How to set up a DB cluster (note about if have only 1 server then need to set quorum config)
 - Tests:
@@ -76,7 +78,6 @@ Next 2
 			 .then(function (results) { })
 	 Also do something similar for NoSQL ORM
 - update to travis' new infrastructure (away from legacy setup)
-- there are two "Servers" in the server code -- one should be renamed
 - run on Amazon lambda and other similar services
 - when using socket API, use internal sockets so that different processes can communicate changes without polling
 - create mechanism for running multiple processes in case there are multiple cores on the server: server, process, archive. Make this configurable

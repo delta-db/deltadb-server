@@ -34,6 +34,10 @@ Server.prototype._findAndEmitChanges = function (socket, partitioner) {
   this._partitioners.findAndEmitChanges(partitioner._dbName, socket);
 };
 
+Server.prototype._since = function (msg) {
+  return msg.since ? new Date(msg.since) : null;
+};
+
 Server.prototype._registerInitListener = function (socket) {
   var self = this;
   socket.on('init', function (msg) {
@@ -43,7 +47,7 @@ Server.prototype._registerInitListener = function (socket) {
     // TODO: error checking if msg not in correct format
 
     // Lookup/create partitioner for DB name
-    var since = msg.since ? new Date(msg.since) : null;
+    var since = self._since(msg);
 
     var promise = null;
     if (msg.username) { // authenticate?
@@ -69,13 +73,17 @@ Server.prototype._registerInitListener = function (socket) {
   });
 };
 
+Server.prototype._unregister = function (dbName, socket) {
+  return this._partitioners.unregister(dbName, socket).catch(function (err) {
+    log.warning('unregister error=' + err);
+  });
+};
+
 Server.prototype._onDisconnectFactory = function (socket, partitioner) {
   var self = this;
   return function () {
     log.info(socket.conn.id + ' disconnected');
-    return self._partitioners.unregister(partitioner._dbName, socket).catch(function ( /* err */ ) {
-      // TODO: write to log if error?
-    });
+    return self._unregister(partitioner._dbName, socket);
   };
 };
 
@@ -85,14 +93,22 @@ Server.prototype._registerDisconnectListener = function (socket, partitioner) {
   socket.on('disconnect', this._onDisconnectFactory(socket, partitioner));
 };
 
-Server.prototype._registerChangesListener = function (socket, partitioner) {
-  var self = this;
-  socket.on('changes', function (msg) {
-    // TODO: error checking if msg not in correct format
-    self._partitioners._queueChanges(partitioner._dbName, socket, msg).catch(function (err) {
-      log.warning('changes error=' + err);
-    });
+Server.prototype._queueChanges = function (dbName, socket, msg) {
+  this._partitioners._queueChanges(dbName, socket, msg).catch(function (err) {
+    log.warning('changes error=' + err);
   });
+};
+
+Server.prototype._onChangesFactory = function (socket, partitioner) {
+  var self = this;
+  return function (msg) {
+    // TODO: error checking if msg not in correct format
+    self._queueChanges(partitioner._dbName, socket, msg);
+  };
+};
+
+Server.prototype._registerChangesListener = function (socket, partitioner) {
+  socket.on('changes', this._onChangesFactory(socket, partitioner));
 };
 
 Server.prototype.listen = function () {

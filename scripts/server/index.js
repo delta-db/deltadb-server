@@ -13,24 +13,38 @@ var Server = require('./server'),
 var process = new Process(),
   server = new Server(process);
 
+// TODO: rename? Or rename Server in server.js?
+var ServerContainer = function () {
+  this._partitioner = new Partitioner();
+  this._manager = new Manager(this._partitioner);
+  this._system = new System(this._manager);
+};
+
+ServerContainer.prototype._createSystemAndClose = function () {
+  var self = this;
+  var adminParty = true; // allow everyone to CRUD by default
+  return self._system.create(adminParty).then(function () {
+    return self._partitioner.closeDatabase(); // close DB connection to return resources
+  });
+};
+
 /**
  * Create the system DB if it doesn't already exist
  */
-var ensureSystemDBCreated = function () {
-  var partitioner = new Partitioner();
-  var manager = new Manager(partitioner);
-  var system = new System(manager);
-  var adminParty = true; // allow everyone to CRUD by default
-  return partitioner.dbExists(partitioner._dbName).then(function (exists) {
+ServerContainer.prototype._ensureSystemDBCreated = function () {
+  var self = this;
+  return self._partitioner.dbExists(self._partitioner._dbName).then(function (exists) {
     if (!exists) {
-      return system.create(adminParty).then(function () {
-        return partitioner.closeDatabase(); // close DB connection to return resources
-      });
+      return self._createSystemAndClose();
     }
   });
 };
 
-ensureSystemDBCreated().then(function () {
-  process.run();
-  server.listen();
-});
+ServerContainer.prototype.start = function () {
+  return this._ensureSystemDBCreated().then(function () {
+    process.run();
+    server.listen();
+  });
+};
+
+module.exports = ServerContainer;
