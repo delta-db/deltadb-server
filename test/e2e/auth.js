@@ -29,7 +29,7 @@ describe('auth', function () {
   var resolveOnUpdate = function (ts, doc) {
     return new Promise(function (resolve) {
       doc.on('attr:record', function (attr) {
-        if (attr.recorded.getTime() > ts.getTime()) {
+        if (attr.recorded.getTime() >= ts.getTime()) {
           resolve();
         }
       });
@@ -83,7 +83,7 @@ describe('auth', function () {
 
   });
 
-  it('should report error when user disabled fails', function () {
+  it('should report error when user disabled', function () {
 
     // Disable user
     return updateUser('disabled').then(function () {

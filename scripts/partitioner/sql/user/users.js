@@ -290,7 +290,6 @@ Users.prototype._authenticate = function (username, hashedPwd) {
     } else if (results.rows[0].status !== Users.STATUS_ENABLED) {
       throw new DisabledError('user (username=' + username + ') disabled');
     } else {
-      console.log('user=', results.rows[0]);
       return results.rows[0];
     }
   });
