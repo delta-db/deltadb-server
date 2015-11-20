@@ -235,14 +235,15 @@ Doc.prototype._eventLayer = function (evnt) {
   return parts[0];
 };
 
-Doc.prototype._emit = function (evnt, name, value) {
+Doc.prototype._emit = function (evnt, name, value, recorded) {
   if (this._eventLayer(evnt) === 'doc') {
     this.emit(evnt, this);
     this._col._emit(evnt, this);
   } else {
     var attr = {
       name: name,
-      value: value
+      value: value,
+      recorded: recorded
     };
     this.emit(evnt, attr, this);
 
@@ -268,7 +269,7 @@ Doc.prototype._emitDocCreate = function () {
 Doc.prototype._saveRecording = function (name, value, recorded) {
   if (name && this._dat.latest[name]) {
 
-    this._emit('attr:record', name, value);
+    this._emit('attr:record', name, value, recorded);
     this._emit('doc:record', name, value);
 
     this._dat.latest[name].re = recorded; // TODO: is this needed?

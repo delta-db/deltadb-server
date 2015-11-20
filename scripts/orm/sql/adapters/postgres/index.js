@@ -13,7 +13,8 @@ var Promise = require('bluebird'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
   log = require('../../../../server/log'),
-  connections = require('./connections');
+  connections = require('./connections'),
+  utils = require('../../../../utils');
 
 var SQL = function () {
   AbstractSQL.apply(this, arguments); // apply parent constructor
@@ -108,6 +109,12 @@ SQL.prototype._isDBExistsError = function (err) {
 SQL.prototype._query = function (sql, replacements) {
   var self = this;
   self._log('sql=' + sql + ', replacements=' + JSON.stringify(replacements) + '\n');
+
+  if (!self._connection) {
+    // Handle race conditions were another tick closes the connection
+    return utils.promiseError(new SocketClosedError('socket closed'));
+  }
+
   return self._connection.connection.query(sql, replacements).then(function (results) {
     return {
       rows: results.rows.length > 0 ? results.rows : null,

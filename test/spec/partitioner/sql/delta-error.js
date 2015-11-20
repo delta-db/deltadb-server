@@ -1,8 +1,6 @@
 'use strict';
 
-var partDir = '../../../../scripts/partitioner/sql';
-
-var DeltaError = require(partDir + '/delta-error');
+var DeltaError = require('../../../../scripts/client/delta-error');
 
 describe('delta-error', function () {
 
