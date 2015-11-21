@@ -1,6 +1,7 @@
 'use strict';
 
-var utils = require('../../../new-utils');
+var utils = require('../../../new-utils'),
+  Promise = require('bluebird');
 
 // TODO: split into separate tests
 
@@ -171,6 +172,30 @@ Adapter.prototype.test = function () {
       var users = db.col('users');
       var user = users.doc();
       (user._include() !== null).should.eql(true);
+    });
+
+    it('should stop all if callback returns false', function () {
+      var tasks = db.col('tasks'),
+        promises = [];
+
+      // Populate tasks
+      for (var i = 0; i < 10; i++) {
+        promises.push(tasks.doc().save());
+      }
+
+      var max = 2,
+        n = 0;
+
+      return Promise.all(promises).then(function () {
+        return tasks.all(function () {
+          if (++n === max) {
+            return false;
+          }
+        });
+      }).then(function () {
+        // Make sure that all loop only executed max times
+        n.should.eql(max);
+      });
     });
 
   });

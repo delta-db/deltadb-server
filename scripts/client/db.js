@@ -26,6 +26,7 @@ var DB = function (name, adapter, url, localOnly, noFilters, username, password,
 
   MemDB.apply(this, arguments); // apply parent constructor
 
+  this._batchSize = DB.DEFAULT_BATCH_SIZE;
   this._cols = {};
   this._retryAfterMSecs = 180000;
   this._recorded = false;
@@ -62,6 +63,9 @@ DB.PROPS_DOC_ID = 'props';
 
 // Use a version # to allow for patching of the store between versions when the schema changes
 DB.VERSION = 1;
+
+// The max number of deltas to send in a batch
+DB.DEFAULT_BATCH_SIZE = 100;
 
 DB.prototype._prepInitDone = function () {
   // This promise ensures that the we have already received init-done from the server
@@ -176,20 +180,45 @@ DB.prototype._emitColCreate = function (col) {
   this._adapter._emit('col:create', col); // also bubble up to adapter layer
 };
 
-DB.prototype._localChanges = function (retryAfter, returnSent) {
-  var promises = [],
-    changes = [];
+DB.prototype._localChanges = function (retryAfter, returnSent, limit) {
+  var chain = Promise.resolve(),
+    changes = [],
+    more = false;
 
-  // TODO: create and use db.all() to iterate through collections
-  utils.each(this._cols, function (col) {
-    var promise = col._localChanges(retryAfter, returnSent).then(function (_changes) {
-      changes = changes.concat(_changes);
+  // Use a container so that other methods can modify the value
+  var nContainer = {
+    n: 0
+  };
+
+  this.all(function (col) {
+    // We need to process changes sequentially so that we can reliably limit the total number of
+    // deltas sent to the server
+    chain = chain.then(function () {
+      // Have we processed the max batch size? Then stop
+      if (!limit || nContainer.n < limit) {
+        return col._localChanges(retryAfter, returnSent, limit, nContainer).then(function (
+          _changes) {
+          changes = changes.concat(_changes.changes);
+
+          // More changes that we won't fit in this batch?
+          if (_changes.more) {
+            more = true;
+          }
+        });
+      } else {
+        // More changes that we won't fit in this batch? We need to set more here as we may not have
+        // reached our limit within a single col, but we do when we consider all the cols in this
+        // db.
+        more = true;
+      }
     });
-    promises.push(promise);
   });
 
-  return Promise.all(promises).then(function () {
-    return changes;
+  return chain.then(function () {
+    return {
+      changes: changes,
+      more: more
+    };
   });
 };
 
@@ -221,7 +250,7 @@ DB.prototype.sync = function (part, quorum) {
   var self = this,
     newSince = null;
   return self._localChanges(self._retryAfterMSecs).then(function (changes) {
-    return part.queue(changes, quorum);
+    return part.queue(changes.changes, quorum);
   }).then(function () {
     newSince = new Date();
     return self._loaded; // ensure props have been loaded/created first
@@ -425,8 +454,31 @@ DB.prototype._emitChanges = function (changes) {
   this._socket.emit('changes', msg);
 };
 
-// TODO: it appears that the local changes don't get cleared until they are recorded, which is
-// correct, but investigate further to make sure that changes won't be duplicated back and forth.
+DB.prototype._findAndEmitBatchOfChanges = function () {
+  // If we happen to disconnect when reading _localChanges then we'll rely on the retry to send
+  // the deltas later
+  var self = this;
+  return self._localChanges(self._retryAfterMSecs, null, self._batchSize).then(function (changes) {
+    // The length could be zero if there is a race condition where two back-to-back changes result
+    // in the first change emitting all the changes with a single call to _localChanges.
+    if (changes.changes && changes.changes.length > 0) {
+      self._emitChanges(changes.changes);
+    }
+
+    return changes.more;
+  });
+};
+
+DB.prototype._findAndEmitAllChangesInBatches = function () {
+  // We have to sequentially find the changes so that we can reliably limit their number
+  var self = this;
+  return self._findAndEmitBatchOfChanges().then(function (more) {
+    if (more) { // more changes?
+      return self._findAndEmitAllChangesInBatches();
+    }
+  });
+};
+
 DB.prototype._findAndEmitChanges = function () {
   // TODO: keep sync and this fn so that can test w/o socket, right? If so, then better way to reuse
   // code?
@@ -438,16 +490,7 @@ DB.prototype._findAndEmitChanges = function () {
   }
 
   return self._ready().then(function () { // ensure props have been loaded/created first
-    // If we happen to disconnect when reading _localChanges then we'll rely on the retry to send
-    // the deltas later
-    return self._localChanges(self._retryAfterMSecs);
-  }).then(function (changes) {
-    // The length could be zero if there is a race condition where two back-to-back changes result
-    // in the first change emitting all the changes with a single call to _localChanges.
-    if (changes.length > 0) {
-      self._emitChanges(changes);
-    }
-    return null; // prevent runaway promise warnings
+    return self._findAndEmitAllChangesInBatches();
   });
 
 };

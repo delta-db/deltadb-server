@@ -567,18 +567,34 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
 
     changes.push(chng);
     change.sent = new Date();
+    return true;
   }
 };
 
-Doc.prototype._localChanges = function (retryAfter, returnSent) {
+Doc.prototype._localChanges = function (retryAfter, returnSent, limit, nContainer) {
   var self = this,
     changes = [],
-    now = (new Date()).getTime();
+    now = (new Date()).getTime(),
+    more = false;
+
   retryAfter = typeof retryAfter === 'undefined' ? 0 : retryAfter;
-  utils.each(this._dat.changes, function (change) {
-    self._formatChange(retryAfter, returnSent, changes, change, now);
+
+  utils.each(self._dat.changes, function (change) {
+    // newChange is true if this change has already been marked for sending, but isn't yet ready to
+    // be retried
+    var newChange = self._formatChange(retryAfter, returnSent, changes, change, now);
+
+    // Have we processed the max batch size? Then exit loop early
+    if (newChange && limit && ++nContainer.n === limit) {
+      more = true;
+      return false;
+    }
   });
-  return changes;
+
+  return {
+    changes: changes,
+    more: more
+  };
 };
 
 module.exports = Doc;

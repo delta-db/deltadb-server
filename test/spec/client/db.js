@@ -6,7 +6,8 @@ var DB = require('../../../scripts/client/db'),
   clientUtils = require('../../../scripts/client/utils'),
   commonUtils = require('../../common-utils'),
   utils = require('../../../scripts/utils'),
-  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
+  MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
+  Promise = require('bluebird');
 
 describe('db', function () {
 
@@ -130,6 +131,98 @@ describe('db', function () {
     return clientUtils.once(db, 'load').then(function () {
       var msg = db._emitInitMsg();
       msg.filter.should.eql(false);
+    });
+  });
+
+  it('should limit local changes within collection', function () {
+    var client = new Client(true);
+
+    var db = client.db({
+      db: 'mydb'
+    });
+
+    var tasks = db.col('tasks');
+
+    var limit = 2,
+      n = 0,
+      promises = [];
+
+    // Populate docs
+    for (var i = 0; i < 10; i++) {
+      var task = tasks.doc({
+        thing: 'paint'
+      });
+      promises.push(task.save());
+    }
+
+    return Promise.all(promises).then(function () {
+      return db._localChanges(null, null, limit, n);
+    }).then(function (changes) {
+      // Make sure changes limited
+      changes.changes.length.should.eql(limit);
+    });
+  });
+
+  it('should limit local changes across collections', function () {
+    var client = new Client(true),
+      promises = [],
+      limit = 1,
+      n = 0;
+
+    var db = client.db({
+      db: 'mydb'
+    });
+
+    var tasks = db.col('tasks');
+    var users = db.col('users');
+
+    promises.push(tasks.doc({
+      thing: 'paint'
+    }).save());
+
+    promises.push(users.doc({
+      name: 'myuser'
+    }).save());
+
+    return Promise.all(promises).then(function () {
+      return db._localChanges(null, null, limit, n);
+    }).then(function (changes) {
+      // Make sure changes limited
+      changes.changes.length.should.eql(limit);
+    });
+  });
+
+  it('should find and emit changes in batches', function () {
+    var timesEmitted = 0,
+      client = new Client(true),
+      promises = [];
+
+    db = client.db({
+      db: 'mydb',
+      store: new MemAdapter().db('mydb')
+    });
+
+    db._batchSize = 3;
+
+    var tasks = db.col('tasks');
+
+    db._emitChanges = function () {
+      timesEmitted++;
+    };
+
+    // Populate docs
+    for (var i = 0; i < 10; i++) {
+      var task = tasks.doc({
+        thing: 'paint' + i
+      });
+      promises.push(task.save());
+    }
+
+    return Promise.all(promises).then(function () {
+      return db._findAndEmitAllChangesInBatches();
+    }).then(function () {
+      // ceil(10/3) = 4
+      timesEmitted.should.eql(4);
     });
   });
 

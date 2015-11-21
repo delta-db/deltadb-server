@@ -122,10 +122,11 @@ describe('client', function () {
       });
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
       // Note: the second set of seq numbers could be non-zero if the timestamps are the same
+      var changes = _changes.changes;
       changesShouldEql(
         [{
           id: changes[0].id,
@@ -199,9 +200,10 @@ describe('client', function () {
       return task1.save();
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -242,9 +244,10 @@ describe('client', function () {
       task1._set('priority', 'high', nextUpdated);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -293,9 +296,10 @@ describe('client', function () {
     task1._set('priority', 'low', updated);
     return task1.unset('priority', updated).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -333,8 +337,9 @@ describe('client', function () {
       return task1.destroy(updated);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -368,9 +373,10 @@ describe('client', function () {
     });
     return task1.save().then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -404,11 +410,12 @@ describe('client', function () {
       return task1.save();
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
 
       // check local changes
       // TODO: ensure up in the last couple seconds
       // priority=low, seq could be 1 if updates on same timestamp
+      var changes = _changes.changes;
       changesShouldEql(
         [{
           id: changes[0].id,
@@ -453,9 +460,10 @@ describe('client', function () {
       return task2.save();
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure "up" in the last couple seconds
+      var changes = _changes.changes;
       changesShouldEql(
         [{
           id: changes[0].id,
@@ -644,12 +652,14 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       thingUpdated = new Date(changes[0].up);
       priorityUpdated = new Date(changes[1].up);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       server.queue(changes);
 
       // check latest
@@ -738,7 +748,8 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       changes.should.eql([]); // check local changes
 
       // check latest
@@ -792,7 +803,8 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       changes.should.eql([]); // check local changes
 
       // check latest
@@ -828,9 +840,10 @@ describe('client', function () {
       return task1.destroy();
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: changes[0].id,
@@ -867,9 +880,10 @@ describe('client', function () {
       return task1.save();
     }).then(function () {
       return db._localChanges();
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes
       // TODO: ensure up in the last couple seconds
+      var changes = _changes.changes;
       changesShouldEql(
         [{
           id: changes[0].id,
@@ -909,9 +923,10 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -946,7 +961,8 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(); // get all local changes
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       changes.should.eql([]); // check local changes
 
       // check latest
@@ -977,9 +993,10 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1025,7 +1042,8 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(); // get all local changes
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       changes.should.eql([]); // check local changes
 
       // check latest
@@ -1056,9 +1074,10 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       destroyedAt = changes[1].up;
       changesShouldEql(
         [{
@@ -1107,7 +1126,8 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(); // get all local changes
-    }).then(function (changes) {
+    }).then(function (_changes) {
+      var changes = _changes.changes;
       changes.should.eql([]); // check local changes
 
       // check latest
@@ -1142,8 +1162,9 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1189,8 +1210,9 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1240,11 +1262,12 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // Update should be processed but doc should still remain destroyed
 
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1296,11 +1319,12 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // Update should be processed but doc should still remain destroyed
 
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1355,11 +1379,12 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // Update should restore doc as update is later
 
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',
@@ -1414,11 +1439,12 @@ describe('client', function () {
       return db.sync(server);
     }).then(function () {
       return db._localChanges(0, true); // get all local changes with sent
-    }).then(function (changes) {
+    }).then(function (_changes) {
       // Update should restore attr as update is later
 
       // check local changes - shouldn't be cleared yet as not recorded by quorum of servers
       // TODO: ensure sent in the last couple seconds
+      var changes = _changes.changes;
       changes.should.eql(
         [{
           id: '1',

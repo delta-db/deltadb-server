@@ -16,11 +16,10 @@ FilterCursor.prototype.each = function (callback) {
   var self = this;
   if (self._filter) {
     return self._cursor.each(function (doc) {
-      // if (self._filter(doc.get())) { // TODO: remove or needed?
-      //   callback(doc);
-      // }
       self._filter(doc.get());
-      callback(doc);
+
+      // Return value so that each loop can be ended early
+      return callback(doc);
     });
   } else {
     return self._cursor.each(callback);
