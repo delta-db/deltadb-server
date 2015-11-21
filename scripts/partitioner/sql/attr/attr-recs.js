@@ -60,13 +60,7 @@ AttrRecs.prototype.createTable = function () {
       type: 'boolean',
       null: false,
       index: true
-    },
-
-    // TODO: after refactor QUEUE to use files, remove this attr as not needed for other partitions
-    uid: {
-      type: 'varbinary',
-      length: 36
-    } // userUUID
+    }
 
   };
 

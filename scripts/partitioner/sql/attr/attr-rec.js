@@ -39,7 +39,6 @@ AttrRec.prototype._rec = function () {
     updated_at: this._params.updatedAt,
     seq: this._params.seq ? this._params.seq : 0,
     quorum: this._params.quorum,
-    uid: this._params.uid,
     recorded_at: new Date(),
     omit: core.reserved(this._params.name)
   };
