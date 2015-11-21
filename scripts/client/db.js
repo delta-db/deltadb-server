@@ -19,7 +19,7 @@ var inherits = require('inherits'),
   config = require('./config');
 
 // TODO: shouldn't password be a char array?
-var DB = function (name, adapter, url, localOnly, noFilters, username, password) {
+var DB = function (name, adapter, url, localOnly, noFilters, username, password, hashedPassword) {
   this._id = Math.floor(Math.random() * 10000000); // used to debug multiple connections
 
   name = clientUtils.escapeDBName(name);
@@ -33,6 +33,7 @@ var DB = function (name, adapter, url, localOnly, noFilters, username, password)
   this._url = url ? url : config.URL;
   this._username = username;
   this._password = password;
+  this._hashedPassword = hashedPassword;
 
   this._prepInitDone();
 
@@ -401,7 +402,8 @@ DB.prototype._emitInitMsg = function () {
     since: this._props.get('since'),
     filter: this._noFilters ? false : true,
     username: this._username,
-    password: this._password
+    password: this._password,
+    hashed: this._hashedPassword
   };
 };
 

@@ -300,7 +300,9 @@ Users.prototype.authenticated = function (username, password, hashedPassword) {
     promise = null;
 
   if (hashedPassword) { // password already hashed?
-    promise = Promise.resolve({ hash: hashedPassword });
+    promise = Promise.resolve({
+      hash: hashedPassword
+    });
   } else {
     promise = self._getSalt(username).then(function (salt) {
       return utils.hashPassword(password, salt);
