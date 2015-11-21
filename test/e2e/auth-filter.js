@@ -100,8 +100,8 @@ describe('auth-filter', function () {
     });
 
     // Wait a little bit and make sure that we only received the change for the attr to which we
-    // have access
-    return clientUtils.timeout(2000).then(function () {
+    // have access. 2 secs is not enough time to guarantee we receive any changes on TravisCI.
+    return clientUtils.timeout(4000).then(function () {
       received.should.eql(['thing']);
       return null; // prevent runaway promise warnings
     });
