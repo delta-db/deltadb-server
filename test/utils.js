@@ -205,7 +205,6 @@ Utils.prototype.attrsEql = function (expected, actual, quorum) {
       changed_by_user_id: actual[i] ? actual[i].changed_by_user_id : null,
       seq: 0,
       quorum: quorum ? quorum : null,
-      uid: actual[i].uid,
       omit: actual[i] ? actual[i].omit : null,
       recorded_at: actual[i].recorded_at,
       updated_at: actual[i].updated_at,
