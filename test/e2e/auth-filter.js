@@ -2,8 +2,7 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils'),
-  Promise = require('bluebird');
+  clientUtils = require('../../scripts/client/utils');
 
 describe('auth-filter', function () {
 
@@ -23,7 +22,7 @@ describe('auth-filter', function () {
   var createUsers = function () {
     // Connect anonymously first and create the users as Admin Party is in effect
     db = new DeltaDB('mydb', config.URL);
-    return createUser('user-uuid-1', 'username1', 'secret').then(function (doc) {
+    return createUser('user-uuid-1', 'username1', 'secret').then(function () {
       return createUser('user-uuid-2', 'username2', 'secret');
     }).then(function () {
       return db.destroy(true); // keep remote
@@ -72,7 +71,10 @@ describe('auth-filter', function () {
     return setPolicy().then(function () {
       // Create a doc
       var tasks = db.col('tasks');
-      var task = tasks.doc({ thing: 'write', private: 'something private' });
+      var task = tasks.doc({
+        thing: 'write',
+        private: 'something private'
+      });
       uuid = task.id();
       task.save();
       return clientUtils.once(task, 'doc:record'); // wait for doc to be recorded
@@ -87,7 +89,9 @@ describe('auth-filter', function () {
     db = new DeltaDB('mydb', config.URL, 'username2', 'secret');
 
     var tasks = db.col('tasks');
-    var task = tasks.doc({ $id: uuid });
+    var task = tasks.doc({
+      $id: uuid
+    });
 
     var received = [];
 
