@@ -155,16 +155,26 @@ Collection.prototype.find = function (query, callback, destroyed) {
 };
 
 Collection.prototype._localChanges = function (retryAfter, returnSent, limit, nContainer) {
-  var changes = [];
+  var changes = [],
+    more = false;
+
   return this.find(null, function (doc) {
-    changes = changes.concat(doc._localChanges(retryAfter, returnSent, limit, nContainer));
+    var _changes = doc._localChanges(retryAfter, returnSent, limit, nContainer);
+    changes = changes.concat(_changes.changes);
+
+    if (_changes.more) {
+      more = true;
+    }
 
     // Have we already retrieved the max batch size? Then exit find loop early
-    if (nContainer.n === limit) {
+    if (limit && nContainer.n === limit) {
+      // We need to set more here as we may not have reached our limit within a single doc, but we
+      // do when we consider all the docs in this collection.
+      more = true;
       return false;
     }
   }, true).then(function () {
-    return changes;
+    return { changes: changes, more: more };
   });
 };
 

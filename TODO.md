@@ -1,7 +1,6 @@
 Now
 ---
-- Pagination from server to client and vise-versa
-	- if cursor each returns false then stop -- test!
+- Pagination from server to client
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
@@ -125,6 +124,7 @@ NoSQL support
 
 Future?
 ---
+- make checking for local changes more efficient? Currently, need to loop through all docs, even those that have not changed and this could be very inefficient when there are a lot of docs. Could make the collection keep track of doc ids that have changed and only check these docs.
 - does ring of servers provide enough syncing speed, e.g. A->B->C->A or need a star, star of rings or star of stars? Or variation of star where two servers are in middle, e.g. A<->M1, B<->M1, C<->M1, A<->M2, B<->M2, C<->M2
 - https://github.com/axemclion/IndexedDBShim?
 - use deltadb to sync different types of DBs, e.g. Mongo with MySQL

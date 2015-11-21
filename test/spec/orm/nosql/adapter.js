@@ -178,13 +178,13 @@ Adapter.prototype.test = function () {
 
       // Populate tasks
       for (var i = 0; i < 10; i++) {
-        var task = tasks.doc();
+        tasks.doc();
       }
 
       var max = 2,
         n = 0;
 
-      return tasks.all(function (task) {
+      return tasks.all(function () {
         if (++n === max) {
           return false;
         }
