@@ -1,9 +1,5 @@
 Now
 ---
-- Basic authentication
-	- when server checks for changes, need to be super. When server gets changes then need to use specific user
-		- allow connections with server where have $super access
-	- update wiki with username and password in new DeltaDB()
 - Remove uid from attr-recs as no longer needed
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 - Pagination from server to client and vise-versa

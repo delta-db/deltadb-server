@@ -204,6 +204,17 @@ describe('users', function () {
     });
   });
 
+  it('should authenticate with hashed password', function () {
+    var userId = testUtils.userId;
+    return userUtils.createUser(userUtils.userUUID, 'user', 'secret').then(function () {
+      return args.db._users.getUser(userId);
+    }).then(function (user) {
+      return args.db._users.authenticated('user', null, user.password);
+    }).then(function (user) {
+      user.id.should.eql(userId);
+    });
+  });
+
   it('should throw if user missing when authenticating', function () {
     return testUtils.shouldThrow(function () {
       return args.db._users.authenticated('user', 'secret');

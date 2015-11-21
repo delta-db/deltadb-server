@@ -10,12 +10,11 @@ var Partitioner = require('../partitioner/sql'),
   utils = require('../utils'),
   Promise = require('bluebird'),
   DBMissingError = require('../client/db-missing-error'),
-  SocketClosedError = require('../orm/sql/common/socket-closed-error');
+  SocketClosedError = require('../orm/sql/common/socket-closed-error'),
+  Users = require('../partitioner/sql/user/users');
 
 var Process = function () {
-  this._dbNames = {
-    system: clientUtils.SYSTEM_DB_NAME
-  };
+  this._dbNames = {};
 
   this._partitioners = {};
 };
@@ -26,25 +25,8 @@ var Process = function () {
  */
 Process.SLEEP_MS = 500;
 
-// TODO: split up
-// Use a client to connect to the System DB to load and track the creation/destruction of DBs
-Process.prototype._initSystemDB = function () {
+Process.prototype._createSystemDBCreateListener = function () {
   var self = this;
-
-  self._client = new Client();
-
-  // TODO: doesn't url need to be set here?
-  self._systemDB = self._client.db({
-    db: clientUtils.SYSTEM_DB_NAME,
-
-    // Receive all deltas don't filter for just deltas that originate from this client
-    filter: false
-
-    // TODO: do we need super access? How can this be done?
-  });
-
-  self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
-
   self._dbs.on('doc:create', function (doc) {
     var data = doc.get(),
       dbName = data[clientUtils.DB_ATTR_NAME];
@@ -52,13 +34,62 @@ Process.prototype._initSystemDB = function () {
       self._dbNames[dbName] = dbName;
     }
   });
+};
 
+Process.prototype._createSystemDBDestroyListener = function () {
+  var self = this;
   self._dbs.on('doc:destroy', function (doc) {
     var data = doc.get(),
       dbName = data[clientUtils.DB_ATTR_NAME];
     // if (dbName) { // destroying db? Ignore policy deltas
     delete self._dbNames[dbName];
     // }
+  });
+};
+
+Process.prototype._newSystemDB = function (hashedPassword) {
+  // TODO: doesn't url need to be set here?
+  this._systemDB = this._client.db({
+    db: clientUtils.SYSTEM_DB_NAME,
+
+    // Receive all deltas don't filter for just deltas that originate from this client
+    filter: false,
+
+    // We need super user access so that we can guarantee that we will be monitoring all the DBs
+    hashed: hashedPassword
+  });
+};
+
+Process.prototype._superHashedPassword = function () {
+  return this._partitioner(clientUtils.SYSTEM_DB_NAME).then(function (partitioner) {
+    return partitioner._users.getUser(Users.ID_SUPER);
+  }).then(function (user) {
+    return user.password;
+  });
+};
+
+// Use a client to connect to the System DB to load and track the creation/destruction of DBs
+Process.prototype._initSystemDB = function () {
+  var self = this;
+
+  return self._superHashedPassword().then(function (hashedPassword) {
+
+    self._client = new Client();
+
+    self._newSystemDB(hashedPassword);
+
+    self._dbs = self._systemDB.col(clientUtils.DB_COLLECTION_NAME);
+
+    self._createSystemDBCreateListener();
+
+    self._createSystemDBDestroyListener();
+
+    // Register DB name for processing as we have finished initialization
+    self._dbNames = {
+      system: clientUtils.SYSTEM_DB_NAME
+    };
+
+    return null; // prevent runaway promise warning
   });
 };
 
@@ -88,7 +119,9 @@ Process.prototype._partitioner = function (dbName) {
   }
 
   return promise.then(function () {
-    return self._partitioners[dbName];
+    //    return self._partitioners[dbName];
+    var part = self._partitioners[dbName];
+    return part;
   });
 };
 
@@ -135,7 +168,7 @@ Process.prototype.run = function () {
   this._loop();
 };
 
-Process.prototype.authenticated = function (dbName, username, password) {
+Process.prototype.authenticated = function (dbName, username, password, hashedPassword) {
   // TODO: if decided to stick with partitioner pooling then what happens when there are many DBs?
 
   var self = this,
@@ -145,7 +178,7 @@ Process.prototype.authenticated = function (dbName, username, password) {
 
   return self._partitioner(dbName).then(function (_part) {
     part = _part;
-    return part._users.authenticated(username, password).then(function (_user) {
+    return part._users.authenticated(username, password, hashedPassword).then(function (_user) {
       user = _user;
     }).catch(function (_err) {
       err = _err;

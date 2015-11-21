@@ -43,6 +43,7 @@ Server.prototype._registerInitListener = function (socket) {
   socket.on('init', function (msg) {
     var clonedMsg = utils.clone(msg);
     clonedMsg.password = '[hidden from log]';
+    clonedMsg.hashed = '[hidden from log]';
     log.info('received (from ' + socket.conn.id + ') init:' + JSON.stringify(clonedMsg));
     // TODO: error checking if msg not in correct format
 
@@ -51,7 +52,7 @@ Server.prototype._registerInitListener = function (socket) {
 
     var promise = null;
     if (msg.username) { // authenticate?
-      promise = self._process.authenticated(msg.db, msg.username, msg.password);
+      promise = self._process.authenticated(msg.db, msg.username, msg.password, msg.hashed);
     } else {
       promise = Promise.resolve();
     }
