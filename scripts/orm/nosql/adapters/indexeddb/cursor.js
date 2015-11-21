@@ -18,8 +18,12 @@ Cursor.prototype.each = function (callback) {
   return new Promise(function (resolve) {
     self._callbackWrapper.callback = function (cursor) {
       if (cursor) {
-        callback(new Doc(cursor.value, self._col));
-        cursor.continue();
+        var cont = callback(new Doc(cursor.value, self._col));
+        if (cont === false) { // stop early?
+          resolve();
+        } else {
+          cursor.continue();
+        }
       } else {
         resolve();
       }
