@@ -63,6 +63,9 @@ DB.PROPS_DOC_ID = 'props';
 // Use a version # to allow for patching of the store between versions when the schema changes
 DB.VERSION = 1;
 
+// The max number of deltas to send in a batch
+DB.BATCH_SIZE = 100;
+
 DB.prototype._prepInitDone = function () {
   // This promise ensures that the we have already received init-done from the server
   this._initDone = utils.once(this, 'init-done');
@@ -176,19 +179,27 @@ DB.prototype._emitColCreate = function (col) {
   this._adapter._emit('col:create', col); // also bubble up to adapter layer
 };
 
-DB.prototype._localChanges = function (retryAfter, returnSent) {
-  var promises = [],
+DB.prototype._localChanges = function (retryAfter, returnSent, limit) {
+  var chain = Promise.resolve(),
     changes = [];
 
-  // TODO: create and use db.all() to iterate through collections
-  utils.each(this._cols, function (col) {
-    var promise = col._localChanges(retryAfter, returnSent).then(function (_changes) {
-      changes = changes.concat(_changes);
+  // Use a container so that other methods can modify the value
+  var nContainer = { n: 0 };
+
+  this.all(function (col) {
+    // We need to process changes sequentially so that we can reliably limit the total number of
+    // deltas sent to the server
+    chain = chain.then(function () {
+      // Have we processed the max batch size? Then stop
+      if (nContainer.n <= limit) {
+        return col._localChanges(retryAfter, returnSent, limit, nContainer).then(function (_changes) {
+          changes = changes.concat(_changes);
+        });
+      }
     });
-    promises.push(promise);
   });
 
-  return Promise.all(promises).then(function () {
+  return chain.then(function () {
     return changes;
   });
 };

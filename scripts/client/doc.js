@@ -570,14 +570,22 @@ Doc.prototype._formatChange = function (retryAfter, returnSent, changes, change,
   }
 };
 
-Doc.prototype._localChanges = function (retryAfter, returnSent) {
+Doc.prototype._localChanges = function (retryAfter, returnSent, limit, nContainer) {
   var self = this,
     changes = [],
     now = (new Date()).getTime();
+
   retryAfter = typeof retryAfter === 'undefined' ? 0 : retryAfter;
+
   utils.each(this._dat.changes, function (change) {
     self._formatChange(retryAfter, returnSent, changes, change, now);
+
+    // Have we processed the max batch size? Then exit loop early
+    if (++nContainer.n === limit) {
+      return false;
+    }
   });
+
   return changes;
 };
 
