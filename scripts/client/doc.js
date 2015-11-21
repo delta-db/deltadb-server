@@ -591,7 +591,10 @@ Doc.prototype._localChanges = function (retryAfter, returnSent, limit, nContaine
     }
   });
 
-  return { changes: changes, more: more };
+  return {
+    changes: changes,
+    more: more
+  };
 };
 
 module.exports = Doc;

@@ -174,7 +174,10 @@ Collection.prototype._localChanges = function (retryAfter, returnSent, limit, nC
       return false;
     }
   }, true).then(function () {
-    return { changes: changes, more: more };
+    return {
+      changes: changes,
+      more: more
+    };
   });
 };
 
