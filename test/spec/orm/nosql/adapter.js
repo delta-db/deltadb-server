@@ -173,6 +173,27 @@ Adapter.prototype.test = function () {
       (user._include() !== null).should.eql(true);
     });
 
+    it('should stop all if callback returns false', function () {
+      var tasks = db.col('tasks');
+
+      // Populate tasks
+      for (var i = 0; i < 10; i++) {
+        var task = tasks.doc();
+      }
+
+      var max = 2,
+        n = 0;
+
+      return tasks.all(function (task) {
+        if (++n === max) {
+          return false;
+        }
+      }).then(function () {
+        // Make sure that all loop only executed max times
+        n.should.eql(max);
+      });
+    });
+
   });
 
 };

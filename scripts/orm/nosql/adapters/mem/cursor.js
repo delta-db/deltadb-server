@@ -18,7 +18,8 @@ Cursor.prototype.each = function (callback) {
   return new Promise(function (resolve) {
     utils.each(self._docs, function (doc) {
       if (self._all || doc._include()) {
-        callback(doc);
+        // Return value so that each loop can be ended early
+        return callback(doc);
       }
     });
     resolve();
