@@ -26,6 +26,8 @@ describe('e2e', function () {
 
   require('./basic');
 
+  require('./auth-filter');
+
   require('./auth');
 
   require('./separate');

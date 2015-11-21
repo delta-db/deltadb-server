@@ -1,13 +1,6 @@
 Now
 ---
 - Basic authentication
-	- tests:
-		- DONE: connect to server w/ valid user and update with cur user
-		- DONE: connect to server w/ valid user and update with other user => should fail
-		- DONE: connect as anonymous and make sure that cannot specify changedByUUID
-		- DONE: connect to server w/o valid user => connection should get error and socket should be closed
-		- DONE: connect to server w/ disabled user => error
-		- make sure deltas from server being filtered by user permissions
 	- when server checks for changes, need to be super. When server gets changes then need to use specific user
 		- allow connections with server where have $super access
 	- update wiki with username and password in new DeltaDB()
@@ -30,6 +23,12 @@ Now
 
 Next 1
 ---
+- How to best handle timing of initial connection? (needs to be streamlined and handled behind the scenes)
+	- User registers with account
+	- Creates docs
+	- Initial connection creates user and then a new connection is made that authenticates with the new user?
+	- Then the docs are synced?
+	- Changes? Need a way to save that user creation is in progress and make sure this is done before anything else and then force a reconnect? Have to imagine that the app could be completely offline when the user is created and docs are created and it doesn't go online until after quite some use.
 - impl deltadb-ng
 - Clean up DeltaDB constructor? e.g. new DeltaDB('https://user:pass@example.com/mydb')
 	- Probably not a good idea as we eventually want password to be char array for security!!
