@@ -1,6 +1,5 @@
 Now
 ---
-- Pagination from server to client
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 - split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
