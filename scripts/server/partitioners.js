@@ -10,7 +10,8 @@ var Promise = require('bluebird'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
   DBMissingError = require('../client/db-missing-error'),
   Dictionary = require('../utils/dictionary'),
-  Users = require('../partitioner/sql/user/users');
+  Users = require('../partitioner/sql/user/users'),
+  Changes = require('../partitioner/sql/changes');
 
 var Partitioners = function () {
   this._partitioners = {};
@@ -342,15 +343,47 @@ Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   return part.queue(msg.changes, quorum);
 };
 
-Partitioners.prototype._changes = function (partitioner, since, userId) {
+Partitioners.prototype._changes = function (partitioner, since, limit, offset, userId) {
   // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
   var all = true;
-  return partitioner.changes(since, null, null, null, all, userId).catch(function (err) {
+  return partitioner.changes(since, null, limit, offset, all, userId).catch(function (err) {
     // Ignore SocketClosedError as it could have been caused when a db was destroyed
     if (!(err instanceof SocketClosedError)) {
       throw err;
     }
   });
+};
+
+Partitioners.prototype._filteredChanges = function (dbName, socket, partitioner, since, limit,
+  offset, userId) {
+  var self = this;
+  return self._changes(partitioner, since, limit, offset, userId).then(function (changes) {
+    return self._filter(dbName, socket, changes);
+  });
+};
+
+Partitioners.prototype._findAndEmitChangesByPage = function (dbName, socket, partitioner, since,
+  limit, offset, userId, newSince) {
+  var self = this;
+  return self._filteredChanges(dbName, socket, partitioner, since, limit, offset, userId).then(
+    function (changes) {
+      if (changes.length > 0) { // Are there local changes?
+        // TODO: should we refactor so that changes = { changes: changes, more: more } instead of
+        // using Changes._HAS_MORE?
+        if (changes[changes.length - 1] === Changes._HAS_MORE) { // more pages?
+          // Not done so don't update since
+          self._emitChanges(socket, changes, since);
+          offset += limit;
+          changes.splice(changes.length - 1, 1); // remove last change
+          return self._findAndEmitChangesByPage(dbName, socket, partitioner, since, limit,
+            offset,
+            userId, newSince);
+        } else {
+          // Done so update since
+          self._emitChanges(socket, changes, newSince);
+        }
+      }
+    });
 };
 
 // TODO: remove dbName parameter as can derive dbName from socket
@@ -363,16 +396,11 @@ Partitioners.prototype.findAndEmitChanges = function (dbName, socket) {
 
   self._partitioners[dbName].conns[socket.conn.id].since = newSince;
 
-  // TODO: need to support pagination. Need to cap the results with the offset param, but then
-  // need to report to client that there is more data and to do another sync, but don't need
-  // client to resend changes. On the other side, how do we handle pagination from client?
   // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  return self._changes(part, since, userId).then(function (changes) {
-    changes = self._filter(dbName, socket, changes);
-    if (changes.length > 0) { // Are there local changes?
-      self._emitChanges(socket, changes, newSince);
-    }
-  });
+  var limit = Changes._MAX_LIMIT;
+  var offset = 0; // start at beginning
+  return self._findAndEmitChangesByPage(dbName, socket, part, since, limit, offset, userId,
+    newSince);
 };
 
 module.exports = Partitioners;
