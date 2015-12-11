@@ -8,12 +8,12 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  DBMissingError = require('../../../client/db-missing-error'),
-  DBExistsError = require('../../../client/db-exists-error'),
-  utils = require('../../../utils'),
-  clientUtils = require('../../../client/utils');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
+  commonUtils = require('deltadb-common-utils'),
+  clientUtils = require('deltadb/scripts/utils');
 
-var Doc = require('../../../client/doc');
+var Doc = require('deltadb/scripts/doc');
 
 var Attr = function (sql, partitionName, policy, partitions, users, docs, params, roles,
   partitioner) {
@@ -187,7 +187,7 @@ Attr.prototype._createOrDestroyDatabase = function () {
       return self._partitioner.queue([change], quorum, superUUID);
     });
   } else {
-    change.id = utils.uuid(); // generate uuid
+    change.id = commonUtils.uuid(); // generate uuid
     change.name = clientUtils.DB_ATTR_NAME;
     change.val = JSON.stringify(dbName);
     return self._createDB().then(function () {

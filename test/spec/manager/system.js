@@ -7,11 +7,9 @@ var testUtils = require('../../utils'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
-  DBMissingError = require('../../../scripts/client/db-missing-error');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
 
 describe('system', function () {
-
-  testUtils.setUp(this);
 
   var partitioner = null,
     manager = null,

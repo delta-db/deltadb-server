@@ -1,14 +1,14 @@
 'use strict';
 
 var Promise = require('bluebird'),
-  utils = require('../../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
-  SQLError = require('../../../orm/sql/common/sql-error'),
-  MissingError = require('../../../orm/sql/common/missing-error'),
-  AuthenticationError = require('../../../client/authentication-error'),
-  DisabledError = require('../../../client/disabled-error'),
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
+  AuthenticationError = require('deltadb/scripts/authentication-error'),
+  DisabledError = require('deltadb/scripts/disabled-error'),
   Cols = require('../col/cols'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var Users = function (sql, roles, userRoles, partitioner) {
   this._sql = sql;
@@ -109,7 +109,7 @@ Users.prototype.create = function (userUUID, username, salt, password, status, u
 Users.prototype._hashPasswordAndCreate = function (userUUID, username, password, status, updatedAt,
   id) {
   var self = this;
-  return utils.genSaltAndHashPassword(password).then(function (hash) {
+  return commonUtils.genSaltAndHashPassword(password).then(function (hash) {
     return self.create(userUUID, username, hash.salt, hash.hash, status, updatedAt, id);
   });
 };
@@ -137,7 +137,7 @@ Users.prototype._createReservedUsers = function () {
   var self = this,
     users = self._reservedUsers(),
     promises = [];
-  utils.each(users, function (user, id) {
+  commonUtils.each(users, function (user, id) {
     promises.push(self._createUser(user.userUUID, user.username, user.salt, user.password,
       Users.STATUS_ENABLED, new Date(), id));
   });
@@ -170,7 +170,7 @@ Users.prototype.createUserAndImplicitRole = function (userUUID, username, salt, 
     _userId) {
     // TODO: make updatedAt propagate to addRole
     userId = _userId;
-    var docUUID = utils.uuid(); // Generate docUUID for user role
+    var docUUID = commonUtils.uuid(); // Generate docUUID for user role
     var colName = Cols.NAME_PRE_USER_ROLES + userUUID;
     var attrName = null; // don't use Doc._roleName as this would create an inifinite loop
     return self._partitioner._docs._createDoc(constants.LATEST, colName, docUUID, userId,
@@ -305,7 +305,7 @@ Users.prototype.authenticated = function (username, password, hashedPassword) {
     });
   } else {
     promise = self._getSalt(username).then(function (salt) {
-      return utils.hashPassword(password, salt);
+      return commonUtils.hashPassword(password, salt);
     });
   }
 

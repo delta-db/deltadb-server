@@ -11,8 +11,6 @@ Utils.prototype.init = function (thisArg, beforeEach, afterEach, noAll /* , befo
   // Instead of creating and destroying DB for each test, it is much faster to just truncate the
   // tables after each test
 
-  utils.setUp(thisArg);
-
   var args = {};
   args.userUtils = new UserUtils(args);
   args.utils = utils; // TODO: rename to testUtils

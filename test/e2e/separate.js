@@ -1,9 +1,9 @@
 'use strict';
 
-var Client = require('../../scripts/client/adapter'),
-  DB = require('../../scripts/client/db'),
+var Client = require('deltadb/scripts/adapter'),
+  DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
-  commonUtils = require('../common-utils');
+  testUtils = require('../utils');
 
 describe('separate', function () {
 
@@ -68,7 +68,7 @@ describe('separate', function () {
     });
 
     var setChangesShouldEql = function (changes) {
-      commonUtils.changesShouldEql([{
+      testUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -80,7 +80,7 @@ describe('separate', function () {
     };
 
     var aEmitChangesShouldEql = function () {
-      commonUtils.changesShouldEql([{
+      testUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -88,7 +88,7 @@ describe('separate', function () {
     };
 
     var bEmitChangesShouldEql = function () {
-      commonUtils.changesShouldEql([{
+      testUtils.changesShouldEql([{
         name: 'priority',
         val: '"high"',
         col: 'tasks'
@@ -141,7 +141,7 @@ describe('separate', function () {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
         shouldResolve(resolve, reject);
-      }, commonUtils.TIMEOUT - 2000); // commonUtils.TIMEOUT - 1 sec is not enough time
+      }, testUtils.TIMEOUT - 2000); // testUtils.TIMEOUT - 1 sec is not enough time
 
     });
 

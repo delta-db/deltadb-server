@@ -15,13 +15,13 @@
 var Promise = require('bluebird'),
   constants = require('./constants'),
   Attr = require('./attr/attr'),
-  utils = require('../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   ForbiddenError = require('./forbidden-error'),
   AttrParams = require('./attr/attr-params'),
   QueueAttrRec = require('./queue/queue-attr-rec'),
   Cols = require('./col/cols'),
   Users = require('./user/users'),
-  Doc = require('../../client/doc'),
+  Doc = require('deltadb/scripts/doc'),
   UserRoles = require('./user/user-roles'),
   log = require('../../server/log');
 
@@ -156,7 +156,7 @@ Process.prototype._destroyQueueAttrRec = function (attr) {
 };
 
 Process.prototype._cacheSuperUser = function (attr) {
-  if (attr.super_uuid && utils.notDefined(this._userIds[attr.super_uuid])) {
+  if (attr.super_uuid && commonUtils.notDefined(this._userIds[attr.super_uuid])) {
     return this._getOrCreateUser(attr.super_uuid, attr.updated_at, attr.super_uuid,
       attr.super_uuid);
   } else {
@@ -165,7 +165,7 @@ Process.prototype._cacheSuperUser = function (attr) {
 };
 
 Process.prototype._cacheCreatingUser = function (attr) {
-  if (attr.user_uuid && utils.notDefined(this._userIds[attr.user_uuid])) {
+  if (attr.user_uuid && commonUtils.notDefined(this._userIds[attr.user_uuid])) {
     return this._getOrCreateUser(attr.user_uuid, attr.updated_at, attr.user_uuid, attr.super_uuid);
   } else {
     return Promise.resolve();
@@ -174,7 +174,7 @@ Process.prototype._cacheCreatingUser = function (attr) {
 
 Process.prototype._cacheForUser = function (attr) {
   var userUUID = this._forUserUUID(attr);
-  if (userUUID && userUUID !== attr.user_uuid && utils.notDefined(this._userIds[userUUID])) {
+  if (userUUID && userUUID !== attr.user_uuid && commonUtils.notDefined(this._userIds[userUUID])) {
     return this._getOrCreateUser(userUUID, attr.updated_at, attr.user_uuid);
   } else {
     return Promise.resolve();
@@ -319,7 +319,7 @@ Process.prototype._lookupOrCreateCols = function () {
   var self = this,
     promises = [];
   // We don't need to sequentially chain as all the colIds have already been added sequentially
-  utils.each(self._colIds, function (attr) {
+  commonUtils.each(self._colIds, function (attr) {
     promises.push(self._getOrCreateCol(attr));
   });
   return Promise.all(promises);
@@ -396,7 +396,7 @@ Process.prototype._lookupOrCreateDocs = function () {
   var self = this,
     promises = [];
   // We don't need to sequentially chain as all the colIds have already been added sequentially
-  utils.each(self._docIds[constants.ALL], function (attr) {
+  commonUtils.each(self._docIds[constants.ALL], function (attr) {
     promises.push(self._getOrCreateDocs(attr));
   });
   return Promise.all(promises);
@@ -467,7 +467,7 @@ Process.prototype._lookupOrCreateUserRoleDocs = function (userDocUUID, roleDocUU
 
 Process.prototype._getDocUUID = function (forUserId, roleUUID) {
   var roleId = this._roleIds[roleUUID],
-    promise = Promise.resolve(utils.uuid());
+    promise = Promise.resolve(commonUtils.uuid());
   if (roleId) {
     return this._partitions[constants.LATEST]._docs.getUserRoleDocUUID(forUserId, roleId).then(
       function (docUUID) {
@@ -583,7 +583,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
         }).then(function () {
           // We have permission to modify user and role so dynamically create a change to modify the
           // role users
-          var roleUserAttr = utils.clone(attr);
+          var roleUserAttr = commonUtils.clone(attr);
 
           // TODO: clone has been enhanced so the code below can probably be removed
           // Clone sets Dates to strings, is there a better way? Yeah, enhance clone
@@ -617,7 +617,7 @@ Process.prototype._takeUserRoleInventoryForAttr = function (index) {
 // -----
 
 Process.prototype._takeColInventoryForAttr = function (attr) {
-  if (utils.notDefined(this._colIds[attr.col_name])) { // lookup/create col?
+  if (commonUtils.notDefined(this._colIds[attr.col_name])) { // lookup/create col?
     var recordedByUserId = this._getRecordedByUserId(attr);
     this._colIds[attr.col_name] = {
       userUUID: attr.user_uuid,
@@ -629,7 +629,7 @@ Process.prototype._takeColInventoryForAttr = function (attr) {
 };
 
 Process.prototype._takeDocInventoryForAttr = function (attr) {
-  if (utils.notDefined(this._docIds[constants.ALL][attr.doc_uuid])) { // lookup/create doc?
+  if (commonUtils.notDefined(this._docIds[constants.ALL][attr.doc_uuid])) { // lookup/create doc?
     var recordedByUserId = this._getRecordedByUserId(attr);
     this._docIds[constants.ALL][attr.doc_uuid] = {
       docUUID: attr.doc_uuid,

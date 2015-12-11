@@ -4,7 +4,7 @@
 // the config first so that all of the following code uses this config.
 var config = require('../config'),
   testConfig = require('./config'),
-  clientConfig = require('../scripts/client/config'); // server also uses client
+  clientConfig = require('deltadb/scripts/config'); // server also uses client
 for (var i in testConfig) {
   config[i] = testConfig[i];
   clientConfig[i] = testConfig[i];
@@ -29,11 +29,11 @@ var fs = require('fs'),
   Partitioner = require('../scripts/partitioner/sql'),
   Manager = require('../scripts/manager'),
   System = require('../scripts/system'),
-  DBMissingError = require('../scripts/client/db-missing-error'),
-  log = require('../scripts/client/log'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  log = require('deltadb/scripts/log'),
   serverLog = require('../scripts/server/log'),
   ServerContainer = require('../scripts/server'),
-  LogStream = require('../scripts/utils/log-stream');
+  fs = require('fs');
 
 serverLog.console(false);
 
@@ -94,7 +94,9 @@ Server.prototype._start = function (serverFilename) {
   if (this._spawn) {
     this._doSpawn(serverFilename);
   } else {
-    serverLog.stream(new LogStream('./test/' + serverFilename)); // enable server log
+    serverLog.stream(fs.createWriteStream('./test/' + serverFilename, { // enable server log
+      'flags': 'w'
+    }));
     this._serverContainer.start();
   }
 };

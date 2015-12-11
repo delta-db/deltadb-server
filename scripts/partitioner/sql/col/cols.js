@@ -1,10 +1,10 @@
 'use strict';
 
 var Promise = require('bluebird'),
-  utils = require('../../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
   ForbiddenError = require('../forbidden-error'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var Cols = function (sql, policy) {
   this._sql = sql;
@@ -92,7 +92,7 @@ Cols.prototype.createReservedCols = function () {
   var self = this,
     cols = self.reservedCols(),
     promises = [];
-  utils.each(cols, function (id, name) {
+  commonUtils.each(cols, function (id, name) {
     promises.push(self.create(name, null, id));
   });
   return Promise.all(promises);

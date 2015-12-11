@@ -1,10 +1,10 @@
 'use strict';
 
-var utils = require('../../../utils'),
+var commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  SQLError = require('../../../orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 // AttrRec should closely mimic the attrs table, e.g. the value of the attr is stored in JSON
 var AttrRec = function (sql, partition, params, partitioner) {
@@ -24,7 +24,7 @@ AttrRec.prototype._stringify = function (col) {
 };
 
 AttrRec.prototype._toRec = function (params) {
-  var rec = utils.merge({}, params); // use merge so that original col isn't modified
+  var rec = commonUtils.merge({}, params); // use merge so that original col isn't modified
   rec.value = this._stringify(rec.value);
   rec.uid = rec.userUUID;
   return rec;

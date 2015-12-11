@@ -1,9 +1,8 @@
 'use strict';
 
-/* global before, after */
-
 var partUtils = require('../utils'),
-  constants = require('../../../../../scripts/partitioner/sql/constants');
+  constants = require('../../../../../scripts/partitioner/sql/constants'),
+  clientTestUtils = require('deltadb/test/utils');
 
 describe('archive', function () {
 
@@ -36,7 +35,7 @@ describe('archive', function () {
     }];
 
     return utils.queueAndProcess(args.db, createChanges, quorum).then(function () {
-      return utils.sleep(); // ensure different timestamp
+      return clientTestUtils.sleep(); // ensure different timestamp
     }).then(function () {
       updated = new Date();
       return utils.queueAndProcess(args.db, updateChanges, quorum);

@@ -12,7 +12,7 @@
 // TODO: separate DB specific logic to doc-rec & doc-recs and use doc and docs for layer above
 
 var constants = require('../constants'),
-  SQLError = require('../../../orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 var DocRecs = function (sql, partition, policy, attrRecs, userRoles) {
   this._sql = sql;

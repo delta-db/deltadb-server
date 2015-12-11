@@ -2,11 +2,9 @@
 
 var testUtils = require('../../../utils'),
   Partitioner = require('../../../../scripts/partitioner/sql'),
-  DBMissingError = require('../../../../scripts/client/db-missing-error');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
 
 describe('partitioner', function () {
-
-  testUtils.setUp(this);
 
   var part = null;
 

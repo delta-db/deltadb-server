@@ -8,11 +8,9 @@
 //
 // MySQL: TODO
 
-/* global before, after */
-
 var Promise = require('bluebird');
 
-var SQL = require('../../scripts/orm/sql/adapters/postgres'),
+var SQL = require('deltadb-orm-sql/scripts/adapters/postgres'),
   config = require('../../config'),
   Promise = require('bluebird');
 

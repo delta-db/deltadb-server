@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 // TODO: throw exception when errors in changes formatting
 
 // TODO: split up and/or abstract boilerplate code

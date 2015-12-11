@@ -1,11 +1,11 @@
 'use strict';
 
-var utils = require('../utils'),
-  Doc = require('../client/doc'),
+var Doc = require('deltadb/scripts/doc'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
   UserRoles = require('../partitioner/sql/user/user-roles'),
-  clientUtils = require('../client/utils');
+  clientUtils = require('deltadb/scripts/utils'),
+  commonUtils = require('deltadb-common-utils');
 
 var Manager = function (partitioner) {
   this._partitioner = partitioner;
@@ -21,7 +21,7 @@ Manager.prototype.queueCreateUser = function (docUUID, user, changedByUUID) {
   // to create user's dynamically when we first encounter a change and need a way to reference that
   // user later
   docUUID = Users.toDocUUID(user.uuid);
-  changedByUUID = utils.notDefined(changedByUUID) ? user.uuid : changedByUUID;
+  changedByUUID = commonUtils.notDefined(changedByUUID) ? user.uuid : changedByUUID;
   var changes = [{
     col: Doc._userName,
     id: docUUID,
@@ -49,7 +49,7 @@ Manager.prototype.queueUpdateUser = function (docUUID, user, changedByUUID) {
 Manager.prototype.queueAddRole = function (userUUID, roleName, changedByUUID) {
   // Create a user role by adding a doc to the user's collection
   var col = Cols.NAME_PRE_USER_ROLES + userUUID;
-  changedByUUID = utils.notDefined(changedByUUID) ? userUUID : changedByUUID;
+  changedByUUID = commonUtils.notDefined(changedByUUID) ? userUUID : changedByUUID;
   // Note: we store the userUUID and roleName in the val so that the user and role modifications are
   // consistent and so that the userUUID can be retrieved for the role modifications and the
   // roleName can be retrieve for the user modifications.
@@ -70,7 +70,7 @@ Manager.prototype.queueAddRole = function (userUUID, roleName, changedByUUID) {
 Manager.prototype.queueRemoveRole = function (userUUID, roleName, changedByUUID) {
   // Each user needs their own roles collection so that roles can be added or removed independently
   var col = Cols.NAME_PRE_USER_ROLES + userUUID;
-  changedByUUID = utils.notDefined(changedByUUID) ? userUUID : changedByUUID;
+  changedByUUID = commonUtils.notDefined(changedByUUID) ? userUUID : changedByUUID;
   // Note: we store the userUUID and roleName in the val so that the user and role modifications are
   // consistent and so that the userUUID can be retrieved for the role modifications and the
   // roleName can be retrieve for the user modifications.
@@ -91,7 +91,7 @@ Manager.prototype.queueRemoveRole = function (userUUID, roleName, changedByUUID)
 Manager.prototype.queueSetPolicy = function (policy, col, id, userUUID) {
   var changes = [{
     col: col,
-    id: id ? id : utils.uuid(),
+    id: id ? id : commonUtils.uuid(),
     name: Doc._policyName,
     val: JSON.stringify(policy),
     up: (new Date()).toISOString(),
@@ -104,7 +104,7 @@ Manager.prototype._queueDatabaseAction = function (dbName, userUUID, action) {
   // We don't specify an id as we want the client to destroy the db without having to have the id
   // that was used when the db was created
   var changes = [{
-    id: utils.uuid(), // generate uuid
+    id: commonUtils.uuid(), // generate uuid
     col: clientUtils.DB_COLLECTION_NAME,
     name: clientUtils.ATTR_NAME_ACTION,
     val: JSON.stringify({

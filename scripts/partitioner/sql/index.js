@@ -9,9 +9,9 @@
 // TODO: (Globaly) Only protected function names need to start with underscore
 
 var Promise = require('bluebird'),
-  utils = require('../../utils');
+  commonUtils = require('deltadb-common-utils');
 
-var SQL = require('../../orm/sql/adapters/postgres'); // needs to be dynamic
+var SQL = require('deltadb-orm-sql/scripts/adapters/postgres'); // needs to be dynamic
 
 var Globals = require('./globals'),
   Cols = require('./col/cols'),
@@ -33,7 +33,7 @@ var Globals = require('./globals'),
   log = require('../../server/log'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
-  clientUtils = require('../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {
@@ -119,7 +119,7 @@ Part.prototype.createTables = function () {
     promises.push(model.createTable());
   });
 
-  utils.each(this._partitions, function (partition) {
+  commonUtils.each(this._partitions, function (partition) {
     promises.push(partition.createTables());
   });
 
@@ -134,7 +134,7 @@ Part.prototype.truncateTables = function () {
     promises.push(model.truncateTable());
   });
 
-  utils.each(this._partitions, function (partition) {
+  commonUtils.each(this._partitions, function (partition) {
     promises.push(partition.truncateTables());
   });
 

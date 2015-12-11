@@ -1,9 +1,9 @@
 'use strict';
 
 var Partitioners = require('../../../scripts/server/partitioners'),
-  testUtils = require('../../utils'),
-  commonUtils = require('../../common-utils'),
-  SocketClosedError = require('../../../scripts/orm/sql/common/socket-closed-error'),
+  commonUtils = require('deltadb-common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   Changes = require('../../../scripts/partitioner/sql/changes'),
   Promise = require('bluebird');
 
@@ -66,7 +66,7 @@ describe('partitioners', function () {
     };
 
     // Mock
-    partitioners._hasChanges = testUtils.promiseErrorFactory(new Error('an error'));
+    partitioners._hasChanges = commonUtils.promiseErrorFactory(new Error('an error'));
 
     // Should not throw an error
     partitioners._doPoll({
@@ -78,10 +78,10 @@ describe('partitioners', function () {
     // Fake
     var err = new Error('an error');
     var partitioner = {
-      changes: testUtils.promiseErrorFactory(err)
+      changes: commonUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return partitioners._hasChanges(partitioner);
     }, err);
   });
@@ -90,10 +90,10 @@ describe('partitioners', function () {
     // Fake
     var err = new Error('an error');
     var partitioner = {
-      changes: testUtils.promiseErrorFactory(err)
+      changes: commonUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return partitioners._changes(partitioner);
     }, err);
   });
@@ -102,7 +102,7 @@ describe('partitioners', function () {
     // Fake
     var err = new SocketClosedError('an error');
     var partitioner = {
-      changes: testUtils.promiseErrorFactory(err)
+      changes: commonUtils.promiseErrorFactory(err)
     };
 
     // An SocketClosedErrors are not thrown as the DB may have just been destroyed

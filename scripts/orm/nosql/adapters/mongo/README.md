@@ -1,1 +1,0 @@
-The code in this directory is out of date and needs to be brought into the adapter tests and refactored to match the current API.

@@ -1,113 +1,31 @@
 'use strict';
 
 var Promise = require('bluebird'),
-  utils = require('../scripts/utils'),
   Cols = require('../scripts/partitioner/sql/col/cols'),
   ColRoles = require('../scripts/partitioner/sql/col/col-roles'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
-  commonUtils = require('./common-utils'),
-  clientUtils = require('../scripts/client/utils');
+  commonUtils = require('deltadb-common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
+  clientTestUtils = require('deltadb/test/utils');
 
 var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
-Utils.prototype.TIMEOUT = commonUtils.TIMEOUT;
-
-Utils.prototype.setUp = function (thisArg) {
-  thisArg.timeout(this.TIMEOUT); // increase timeout
-};
-
-Utils.prototype.toTime = function ( /* rows */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.toTime.apply(commonUtils, arguments);
-};
-
-Utils.prototype.eqls = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.eqls.apply(commonUtils, arguments);
-};
-
-Utils.prototype.eql = function (v1, v2) {
-  // If the v1 and v2 are dates and v1.toISOString() === v2.toISOString(), v may not be === to v2
-  // and for the sake of testing, it should be
-  if (v1 instanceof Date && v2 instanceof Date) {
-    return v1.toISOString() === v2.toISOString();
-  }
-  return v1 === v2;
-};
-
-/**
- * Chai's should doesn't always output which piece of data is different, e.g. it just says they
- * aren't equal so we can use the following to check ourselves when we are stuck.
- */
-Utils.prototype.shouldEql = function (expected, actual) {
-  if (expected === null && actual === null) {
-    return;
-  }
-
-  if (!Array.isArray(expected)) {
-    throw new Error('expected not array');
-  }
-
-  if (!Array.isArray(expected)) {
-    throw new Error('actual not array');
-  }
-
-  if (expected.length !== actual.length) {
-    throw new Error(
-      'expected.length(' + expected.length + ')!=actual.length(' + actual.length + ')');
-  }
-
-  var toStr = function (val) {
-    // in case milliseconds differ
-    return val instanceof Date ? val.toISOString() + '(' + val.getTime() + ')' : val;
-  };
-
-  var self = this;
-  expected.forEach(function (exp, i) {
-    if (!actual[i]) {
-      throw new Error("actual[" + i + "] doesn't exist");
-    }
-    utils.each(exp, function (val, j) {
-      if (typeof actual[i][j] === 'undefined') {
-        throw new Error("actual[" + i + "][" + j + "] doesn't exist");
-      }
-
-      if (!self.eql(actual[i][j], val)) {
-        throw new Error('expected[' + i + '][' + j + '](' + toStr(val) + ')!=actual[' + i +
-          '][' + j + '](' + toStr(actual[i][j]) + ')');
-      }
-    });
-
-  });
-};
+Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.contains = function (expected, actual) {
-  utils.each(expected, function (item, i) {
-    expected[i] = utils.merge(actual[i], item);
+  commonUtils.each(expected, function (item, i) {
+    expected[i] = commonUtils.merge(actual[i], item);
   });
   actual.should.eql(expected);
 };
 
-Utils.prototype.timeout = function () {
-  // TODO: change all callers to use utils
-  return clientUtils.timeout.apply(clientUtils, arguments);
-};
-
-Utils.prototype.sleep = function ( /* sleepMs */ ) {
-  // TODO: change all callers to use utils
-  return commonUtils.sleep.apply(clientUtils, arguments);
-};
-
-Utils.prototype._toDate = function (val) {
-  return val instanceof Date ? val : new Date(val);
-};
 
 Utils.prototype.allShouldEql = function ( /* collection, expected */ ) {
-  // TODO: change all callers to use utils
-  return commonUtils.allShouldEql.apply(clientUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.allShouldEql.apply(clientTestUtils, arguments);
 };
 
 // docUUID id of first data attr
@@ -138,7 +56,7 @@ Utils.prototype.docsEql = function (expected, actual) {
         doc[j] = self._toDate(doc[j]);
       }
     });
-    expected[i] = utils.merge({
+    expected[i] = commonUtils.merge({
       id: actual[i] ? actual[i].id : null,
       uuid: null,
       col_id: self.colId,
@@ -183,7 +101,7 @@ Utils.prototype.findAttrs = function (db, partition, where) {
 
 Utils.prototype.sortAttrs = function (attrs) {
   var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value', 'quorum'];
-  return utils.sort(attrs, sortAttrs);
+  return commonUtils.sort(attrs, sortAttrs);
 };
 
 Utils.prototype.attrsEql = function (expected, actual, quorum) {
@@ -197,7 +115,7 @@ Utils.prototype.attrsEql = function (expected, actual, quorum) {
         attr[j] = self._toDate(attr[j]);
       }
     });
-    expected[i] = utils.merge({
+    expected[i] = commonUtils.merge({
       id: actual[i].id,
       doc_id: actual[i] ? actual[i].doc_id : null,
       name: null,
@@ -222,12 +140,12 @@ Utils.prototype.attrsShouldEql = function (db, partition, expected, quorum, wher
 };
 
 Utils.prototype.sortChanges = function ( /* changes */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.sortChanges.apply(commonUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.sortChanges.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype.findColRoles = function (db, where) {
-  where = utils.notDefined(where) ? ['col_id', '>=', this.colId] : where;
+  where = commonUtils.notDefined(where) ? ['col_id', '>=', this.colId] : where;
   return db._sql.find(null, ColRoles.NAME, null, where, [
     ['col_id', 'asc'],
     ['name', 'asc'],
@@ -294,34 +212,33 @@ Utils.prototype.userId = Users.ID_LAST_RESERVED + 1;
 Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
 
 Utils.prototype.never = function () {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.never.apply(commonUtils, arguments);
+  // TODO: change all callers to use commonTestUtils
+  return commonTestUtils.never.apply(commonTestUtils, arguments);
 };
 
 Utils.prototype.shouldThrow = function () {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.shouldThrow.apply(commonUtils, arguments);
+  // TODO: change all callers to use commonTestUtils
+  return commonTestUtils.shouldThrow.apply(commonTestUtils, arguments);
 };
 
 // TODO: refactor test code to use this more
 Utils.prototype.promiseErrorFactory = function (err) {
-  return function () {
-    return new Promise(function () {
-      throw err;
-    });
-  };
+  // TODO: change all callers to use commonTestUtils
+  return commonUtils.promiseErrorFactory.apply(commonUtils, arguments);
 };
 
 // TODO: refactor test code to use this more
 Utils.prototype.promiseResolveFactory = function (data) {
-  return utils.resolveFactory(data);
+  // TODO: change all callers to use commonTestUtils
+  return commonUtils.promiseResolveFactory.apply(commonUtils, arguments);
 };
 
 Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.changesShouldEql.apply(commonUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.changesShouldEql.apply(clientTestUtils, arguments);
 };
 
+// TODO: move to commonTestUtils
 Utils.prototype.shouldOnce = function (emitter, evnt) {
   var self = this,
     err = true,
@@ -341,14 +258,14 @@ Utils.prototype.shouldOnce = function (emitter, evnt) {
 };
 
 Utils.prototype.shouldDoAndOnce = function ( /* promiseFactory, emitter, evnt */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.shouldDoAndOnce.apply(commonUtils, arguments);
+  // TODO: change all callers to use commonTestUtils
+  return commonTestUtils.shouldDoAndOnce.apply(commonTestUtils, arguments);
 };
 
 // Execute promise and wait to make sure that event is not emitted
 Utils.prototype.shouldDoAndNotOnce = function ( /* promiseFactory, emitter, evnt */ ) {
-  // TODO: change all callers to use commonUtils
-  return commonUtils.shouldDoAndNotOnce.apply(commonUtils, arguments);
+  // TODO: change all callers to use commonTestUtils
+  return commonTestUtils.shouldDoAndNotOnce.apply(commonTestUtils, arguments);
 };
 
 module.exports = new Utils();

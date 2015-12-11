@@ -8,38 +8,23 @@ addons:
   # TODO: remove after 9.3 becomes the default.
   postgresql: "9.4"
 
-script: npm run $COMMAND
-
 before_script:
-  # As per https://github.com/travis-ci/travis-ci/issues/272 chrome not working with travisci
-  # - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-  # - sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
-  # - sudo apt-get update
-  # - sudo apt-get install google-chrome-stable
-
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - "sleep 5"
-
-  # Workaround for Selenium #3280 issue
-  - "sudo sed -i 's/^127\\.0\\.0\\.1.*$/127.0.0.1 localhost/' /etc/hosts"
-
   # Change postgres password
   - sudo -u postgres psql -c "ALTER USER Postgres WITH PASSWORD 'secret'"
 
-  - cp config-default.js config.js
+  # Set default config
+  - cp test/config-default.js test/config.js
 
-after_script: "cat ./coverage/node/lcov.info ./coverage/browser/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+script: npm run $COMMAND
+
+after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 
 after_failure:
-  - cat /home/travis/build/delta-db/deltadb-server/npm-debug.log
+  - cat /home/travis/build/delta-db/deltadb-orm-sql/npm-debug.log
 
 env:
   matrix:
-  - COMMAND=new-test-phantomjs
-  - COMMAND=test-firefox
-  # - COMMAND=test-chrome
-  - COMMAND=coverage
+  - COMMAND=node-full-test
   - COMMAND=assert-beautified
 
 branches:
