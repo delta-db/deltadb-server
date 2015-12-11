@@ -49,7 +49,7 @@ QueueAttrRecs.prototype.createTable = function () {
     recorded_at: {
       type: 'datetime',
       default: 'currenttimestamp',
-      null: false
+      null: true
     },
     updated_at: {
       type: 'datetime',
