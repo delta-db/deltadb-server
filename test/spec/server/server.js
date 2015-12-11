@@ -1,7 +1,7 @@
 'use strict';
 
 var Server = require('../../../scripts/server/server'),
-  testUtils = require('../../utils');
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('server', function () {
 
@@ -20,7 +20,7 @@ describe('server', function () {
 
   it('should catch error when unregistering', function () {
     // Fake
-    server._partitioners.unregister = testUtils.promiseErrorFactory(new Error('some error'));
+    server._partitioners.unregister = commonTestUtils.promiseErrorFactory(new Error('some error'));
 
     // _queueChanges should catch the error so it should not be thrown
     return server._unregister();
@@ -28,7 +28,7 @@ describe('server', function () {
 
   it('should catch error when queuing changes', function () {
     // Fake
-    server._partitioners._queueChanges = testUtils.promiseErrorFactory(new Error(
+    server._partitioners._queueChanges = commonTestUtils.promiseErrorFactory(new Error(
       'some error'));
 
     // _queueChanges should catch the error so it should not be thrown

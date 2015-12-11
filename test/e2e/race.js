@@ -1,11 +1,9 @@
 'use strict';
 
-/* global after */
-
-var Client = require('../../scripts/client/adapter'),
+var Client = require('deltadb/scripts/adapter'),
   Promise = require('bluebird'),
-  clientUtils = require('../../scripts/client/utils'),
-  commonUtils = require('../common-utils');
+  clientUtils = require('deltadb/scripts/utils'),
+  testUtils = require('../utils');
 
 describe('race', function () {
 

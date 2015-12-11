@@ -9,11 +9,9 @@ var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
   System = require('../../../scripts/system'),
-  Doc = require('../../../scripts/client/doc');
+  Doc = require('deltadb/scripts/doc');
 
 describe('system', function () {
-
-  testUtils.setUp(this);
 
   var partitioner = new Partitioner();
   var manager = new Manager(partitioner);

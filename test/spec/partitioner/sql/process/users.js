@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partUtils = require('../utils'),
   Promise = require('bluebird');
 

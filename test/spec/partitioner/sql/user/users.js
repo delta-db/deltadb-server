@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partDir = '../../../../../scripts/partitioner/sql';
 
 var partUtils = require('../utils'),
@@ -9,9 +7,9 @@ var partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
   utils = require(partDir + '/../../utils'),
-  SQLError = require('../../../../../scripts/orm/sql/common/sql-error'),
-  MissingError = require('../../../../../scripts/orm/sql/common/missing-error'),
-  AuthenticationError = require('../../../../../scripts/client/authentication-error');
+  SQLError = require('deltadb/scripts/common/sql-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
+  AuthenticationError = require('deltadb/scripts/authentication-error');
 
 describe('users', function () {
 

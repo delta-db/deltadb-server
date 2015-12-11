@@ -8,7 +8,7 @@
 //
 // MySQL: TODO
 
-/* global before, after */
+
 
 var Promise = require('bluebird');
 

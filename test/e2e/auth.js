@@ -1,8 +1,8 @@
 'use strict';
 
-var DeltaDB = require('../../scripts/client/delta-db'),
+var DeltaDB = require('deltadb'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils'),
+  clientUtils = require('deltadb/scripts/utils'),
   Promise = require('bluebird');
 
 describe('auth', function () {

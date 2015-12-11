@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 // TODO: $super user can CRUD even if no policy
 
 // TODO: split into smaller files

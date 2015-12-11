@@ -5,10 +5,10 @@
 // users can't create conflicting roles.
 
 var Promise = require('bluebird'),
-  utils = require('../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   constants = require('./constants'),
   Cols = require('./col/cols'),
-  SQLError = require('../../orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 var Roles = function (sql, partitioner) {
   this._sql = sql;
@@ -107,7 +107,7 @@ Roles.prototype.createReservedRoles = function () {
   var self = this,
     cols = self.reservedRoles(),
     promises = [];
-  utils.each(cols, function (id, name) {
+  commonUtils.each(cols, function (id, name) {
     var uuid = self.toUUID(name);
     promises.push(self.create(uuid, null, null, null, id));
   });

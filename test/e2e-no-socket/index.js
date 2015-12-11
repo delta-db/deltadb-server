@@ -1,9 +1,9 @@
 'use strict';
 
-/* global before, after */
-
-var utils = require('../utils'),
-  Client = require('../../scripts/client/adapter'),
+var testUtils = require('../utils'),
+  commonUtils = require('deltadb-common-utils'),
+  clientTestUtils = require('deltadb/test/utils'),
+  Client = require('deltadb/scripts/adapter'),
   partUtils = require('../spec/partitioner/sql/utils');
 
 describe('e2e-no-socket', function () {
@@ -60,7 +60,7 @@ describe('e2e-no-socket', function () {
       return syncAndProcess(b);
     }).then(function () {
       bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'high'
@@ -79,7 +79,7 @@ describe('e2e-no-socket', function () {
       return syncAndProcess(b);
     }).then(function () {
       bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'medium'
@@ -93,7 +93,7 @@ describe('e2e-no-socket', function () {
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'high'
@@ -116,7 +116,7 @@ describe('e2e-no-socket', function () {
       return syncAndProcess(b);
     }).then(function () {
       bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'medium'
@@ -143,7 +143,7 @@ describe('e2e-no-socket', function () {
       return syncAndProcess(b);
     }).then(function () {
       bTasks = b.col('tasks');
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'medium'
@@ -153,7 +153,7 @@ describe('e2e-no-socket', function () {
         priority: 'high'
       });
     }).then(function () {
-      return utils.sleep(); // ensure following update not on same timestamp
+      return clientTestUtils.sleep(); // ensure following update not on same timestamp
     }).then(function () {
       return bTasks.get(task1.id());
     }).then(function (bTask1) {
@@ -161,19 +161,19 @@ describe('e2e-no-socket', function () {
         priority: 'low'
       });
     }).then(function () {
-      return utils.sleep(); // ensure sync happens after last update
+      return clientTestUtils.sleep(); // ensure sync happens after last update
     }).then(function () {
       return syncAndProcess(b);
     }).then(function () {
       return syncAndProcess(a);
     }).then(function () {
-      return utils.allShouldEql(aTasks, [{
+      return testUtils.allShouldEql(aTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'low'
       }]);
     }).then(function () {
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write a song',
         priority: 'low'
@@ -207,13 +207,13 @@ describe('e2e-no-socket', function () {
       // For the sake of this test, we need to guarantee that the deleting and restoring changes
       // happen at different times as deletions are given priority and we want to ensure that the
       // update happens after the delete
-      return utils.timeout(10);
+      return commonUtils.timeout(10);
     }).then(function () {
       return task1.set({
         priority: 'medium'
       });
     }).then(function () {
-      return utils.sleep(); // ensure update happens before sync
+      return clientTestUtils.sleep(); // ensure update happens before sync
     }).then(function () {
       return syncAndProcess(b); // send del
     }).then(function () {
@@ -223,13 +223,13 @@ describe('e2e-no-socket', function () {
     }).then(function () {
       return syncAndProcess(b); // get auto restore
     }).then(function () {
-      return utils.allShouldEql(aTasks, [{
+      return testUtils.allShouldEql(aTasks, [{
         $id: task1.id(),
         thing: 'write',
         priority: 'medium'
       }]);
     }).then(function () {
-      return utils.allShouldEql(bTasks, [{
+      return testUtils.allShouldEql(bTasks, [{
         $id: task1.id(),
         thing: 'write',
         priority: 'medium'

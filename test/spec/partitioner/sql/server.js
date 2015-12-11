@@ -8,8 +8,6 @@ var testUtils = require('../../../utils'),
 
 describe('server', function () {
 
-  testUtils.setUp(this);
-
   var a = null,
     b = null;
 

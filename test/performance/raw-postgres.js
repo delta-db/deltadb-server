@@ -6,7 +6,7 @@
 
 // raw-postgres take 5326ms to insert 10,000 records. Why so slow??
 
-/* global before, after */
+
 
 var Promise = require('bluebird');
 

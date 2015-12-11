@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var ServerProcess = require('../server-process'),
   log = require('../../scripts/client/log'),
   LogStream = require('../../scripts/utils/log-stream');

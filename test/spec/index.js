@@ -1,9 +1,6 @@
 'use strict';
 
-require('./utils');
-require('./orm');
-require('./partitioner');
-require('./client');
 require('./manager');
+require('./partitioner');
 require('./server');
 require('./system');

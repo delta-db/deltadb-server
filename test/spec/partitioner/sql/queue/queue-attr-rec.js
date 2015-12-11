@@ -1,10 +1,8 @@
 'use strict';
 
-/* global before, after */
-
 var QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs'),
   QueueAttrRec = require('../../../../../scripts/partitioner/sql/queue/queue-attr-rec'),
-  utils = require('../../../../utils'),
+  testUtils = require('../../../../utils'),
   partUtils = require('../utils');
 
 describe('queue-attr-rec', function () {
@@ -27,7 +25,7 @@ describe('queue-attr-rec', function () {
     return rec.create().then(function () {
       return recs.get();
     }).then(function (rows) {
-      utils.contains([{
+      testUtils.contains([{
         id: QueueAttrRecs.ID_LAST_RESERVED + 1,
         col_name: 'col',
         doc_uuid: 'doc-uuid',

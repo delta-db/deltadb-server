@@ -4,8 +4,6 @@
 
 'use strict';
 
-/* global before, after *
-
 var partDir = '../../../../scripts/partitioner/sql';
 
 var partUtils = require('./utils'),
@@ -73,7 +71,7 @@ describe('sessions', function () {
     args.db._sessions._createRecord = function () {
       return new Promise(function (resolve) {
         if (++attempt < 3) {
-          throw new SQLError('err'); // fake duplicate token          
+          throw new SQLError('err'); // fake duplicate token
         } else {
           resolve('token');
         }

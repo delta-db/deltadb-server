@@ -5,12 +5,12 @@
 
 var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
-  Client = require('../client/adapter'),
-  clientUtils = require('../client/utils'),
-  utils = require('../utils'),
+  Client = require('deltadb/scripts/adapter'),
+  clientUtils = require('deltadb/scripts/utils'),
+  commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
-  DBMissingError = require('../client/db-missing-error'),
-  SocketClosedError = require('../orm/sql/common/socket-closed-error'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   Users = require('../partitioner/sql/user/users');
 
 var Process = function () {
@@ -145,7 +145,7 @@ Process.prototype._processDB = function (dbName) {
 Process.prototype._process = function () {
   var self = this,
     promises = [];
-  utils.each(self._dbNames, function (dbName) {
+  commonUtils.each(self._dbNames, function (dbName) {
     promises.push(self._processDB(dbName));
   });
   return Promise.all(promises);

@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../../../../utils'),
+var testUtils = require('../../../../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants');
 
 var Utils = function (db) {
@@ -9,12 +9,12 @@ var Utils = function (db) {
 
 Utils.prototype.queueAndProcess = function (changes) {
   // Force quorum=true. We will test the processing of quorum elsewhere
-  return utils.queueAndProcess(this._db, changes, true);
+  return testUtils.queueAndProcess(this._db, changes, true);
 };
 
 Utils.prototype.docs = function (partition, destroyedAt, updatedAt) {
   // TODO: ensure rows[0].recorded_at is from the last couple seconds
-  return utils.docsShouldEql(this._db, partition, [{
+  return testUtils.docsShouldEql(this._db, partition, [{
     uuid: '1',
     destroyed_at: (destroyedAt ? destroyedAt : null),
     last_destroyed_at: (destroyedAt ? destroyedAt : null),

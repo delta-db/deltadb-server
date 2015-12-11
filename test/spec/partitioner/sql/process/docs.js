@@ -1,12 +1,10 @@
 'use strict';
 
-/* global before, after */
-
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
   Promise = require('bluebird'),
-  utils = require(partDir + '/../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   ForbiddenError = require(partDir + '/forbidden-error');
 
 describe('docs', function () {
@@ -19,14 +17,14 @@ describe('docs', function () {
     uuidOrig = null;
   beforeEach(function () {
     origDocId = testUtils.docId;
-    uuidOrig = utils.uuid;
+    uuidOrig = commonUtils.uuid;
     return args.db._partitions[constants.ALL]._docs.truncateTable();
   });
 
   afterEach(function () {
     // restore as modified below
     testUtils.docId = origDocId;
-    utils.uuid = uuidOrig;
+    commonUtils.uuid = uuidOrig;
   });
 
   it('should take doc inventory', function () {

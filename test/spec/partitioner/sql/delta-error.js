@@ -1,6 +1,6 @@
 'use strict';
 
-var DeltaError = require('../../../../scripts/client/delta-error');
+var DeltaError = require('deltadb/scripts/delta-error');
 
 describe('delta-error', function () {
 

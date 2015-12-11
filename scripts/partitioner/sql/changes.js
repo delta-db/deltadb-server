@@ -1,7 +1,7 @@
 'use strict';
 
 var constants = require('./constants'),
-  utils = require('../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   ChangesQuery = require('./changes-query');
 
 var Changes = function (sql, globals) {
@@ -15,7 +15,7 @@ Changes.prototype._formatChanges = function (changes) {
   if (changes) {
     changes.forEach(function (change) {
       var chng = {};
-      utils.each(change, function (value, name) {
+      commonUtils.each(change, function (value, name) {
         if (value !== null) {
           if (name === 'up' || name === 're') {
             chng[name] = new Date(value).toISOString();
@@ -93,8 +93,7 @@ Changes.prototype.changes = function (since, history, limit, offset, all, userId
   var self = this;
 
   if (limit && limit > Changes._MAX_LIMIT) {
-    return utils.promiseError(new Error('limit (' + limit + ') cannot be greater than ' + Changes
-      ._MAX_LIMIT));
+    return commonUtils.promiseError(new Error('limit (' + limit + ') cannot be greater than ' + Changes._MAX_LIMIT));
   }
 
   if (!limit || limit <= 0) {

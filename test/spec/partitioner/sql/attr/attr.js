@@ -1,17 +1,15 @@
 'use strict';
 
-/* global before, after */
-
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
-  commonUtils = require('../../../../common-utils'),
+  testUtils = require('../../../../utils'),
   constants = require(partDir + '/constants'),
   ForbiddenError = require(partDir + '/forbidden-error'),
   Attr = require(partDir + '/attr/attr'),
   System = require('../../../../../scripts/system'),
   Promise = require('bluebird'),
-  DBExistsError = require('../../../../../scripts/client/db-exists-error'),
-  DBMissingError = require('../../../../../scripts/client/db-missing-error');
+  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
 
 describe('attr', function () {
 
@@ -56,7 +54,7 @@ describe('attr', function () {
   it('should throw non-forbidden error when creating', function () {
     var attr = new Attr(),
       err = new Error();
-    return commonUtils.shouldNonPromiseThrow(function () {
+    return testUtils.shouldNonPromiseThrow(function () {
       attr._processCreateErr(err);
     }, err);
   });
@@ -104,7 +102,7 @@ describe('attr', function () {
       createAnotherDatabase: testUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return testUtils.shouldThrow(function () {
       return attr._createDB();
     }, err);
   });
@@ -140,7 +138,7 @@ describe('attr', function () {
       destroyAnotherDatabase: testUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return testUtils.shouldThrow(function () {
       return attr._destroyDB();
     }, err);
   });
