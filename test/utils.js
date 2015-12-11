@@ -1,7 +1,6 @@
 'use strict';
 
 var Promise = require('bluebird'),
-  utils = require('../scripts/utils'),
   Cols = require('../scripts/partitioner/sql/col/cols'),
   ColRoles = require('../scripts/partitioner/sql/col/col-roles'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
@@ -14,10 +13,10 @@ var Promise = require('bluebird'),
 var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
-Utils.prototype.TIMEOUT = commonUtils.TIMEOUT;
+Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.contains = function (expected, actual) {
-  utils.each(expected, function (item, i) {
+  commonUtils.each(expected, function (item, i) {
     expected[i] = commonUtils.merge(actual[i], item);
   });
   actual.should.eql(expected);
@@ -57,7 +56,7 @@ Utils.prototype.docsEql = function (expected, actual) {
         doc[j] = self._toDate(doc[j]);
       }
     });
-    expected[i] = utils.merge({
+    expected[i] = commonUtils.merge({
       id: actual[i] ? actual[i].id : null,
       uuid: null,
       col_id: self.colId,
@@ -102,7 +101,7 @@ Utils.prototype.findAttrs = function (db, partition, where) {
 
 Utils.prototype.sortAttrs = function (attrs) {
   var sortAttrs = ['doc_id', 'name', 'updated_at', 'seq', 'value', 'quorum'];
-  return utils.sort(attrs, sortAttrs);
+  return commonUtils.sort(attrs, sortAttrs);
 };
 
 Utils.prototype.attrsEql = function (expected, actual, quorum) {
@@ -116,7 +115,7 @@ Utils.prototype.attrsEql = function (expected, actual, quorum) {
         attr[j] = self._toDate(attr[j]);
       }
     });
-    expected[i] = utils.merge({
+    expected[i] = commonUtils.merge({
       id: actual[i].id,
       doc_id: actual[i] ? actual[i].doc_id : null,
       name: null,
@@ -146,7 +145,7 @@ Utils.prototype.sortChanges = function ( /* changes */ ) {
 };
 
 Utils.prototype.findColRoles = function (db, where) {
-  where = utils.notDefined(where) ? ['col_id', '>=', this.colId] : where;
+  where = commonUtils.notDefined(where) ? ['col_id', '>=', this.colId] : where;
   return db._sql.find(null, ColRoles.NAME, null, where, [
     ['col_id', 'asc'],
     ['name', 'asc'],

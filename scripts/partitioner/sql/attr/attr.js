@@ -13,7 +13,7 @@ var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   clientUtils = require('deltadb/scripts/utils');
 
-var Doc = require('../../../client/doc');
+var Doc = require('deltadb/scripts/doc');
 
 var Attr = function (sql, partitionName, policy, partitions, users, docs, params, roles,
   partitioner) {

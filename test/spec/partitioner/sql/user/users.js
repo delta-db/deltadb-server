@@ -6,8 +6,8 @@ var partUtils = require('../utils'),
   Roles = require(partDir + '/roles'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
-  utils = require(partDir + '/../../utils'),
-  SQLError = require('deltadb/scripts/common/sql-error'),
+  commonUtils = require('deltadb-common-utils'),
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   AuthenticationError = require('deltadb/scripts/authentication-error');
 
@@ -189,7 +189,7 @@ describe('users', function () {
 
   it('should get user when missing', function () {
     return args.db._users.getUser(-1).then(function (user) {
-      utils.notDefined(user).should.eql(true);
+      commonUtils.notDefined(user).should.eql(true);
     });
   });
 

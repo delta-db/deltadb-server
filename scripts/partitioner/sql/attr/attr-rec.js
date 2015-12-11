@@ -1,11 +1,10 @@
 'use strict';
 
-var utils = require('../../../utils'),
-  commonUtils = require('deltadb-common-utils'),
+var commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
   core = require('../core'),
   AttrRecs = require('./attr-recs'),
-  SQLError = require('deltadb-orm-sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 // AttrRec should closely mimic the attrs table, e.g. the value of the attr is stored in JSON
 var AttrRec = function (sql, partition, params, partitioner) {

@@ -6,7 +6,7 @@ var partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
   Roles = require(partDir + '/roles'),
-  SQLError = require('deltadb/scripts/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 describe('user-roles', function () {
 

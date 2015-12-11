@@ -1,7 +1,6 @@
 'use strict';
 
-var utils = require('../utils'),
-  Doc = require('../client/doc'),
+var Doc = require('deltadb/scripts/doc'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
   UserRoles = require('../partitioner/sql/user/user-roles'),

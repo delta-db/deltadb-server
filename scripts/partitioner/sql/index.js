@@ -11,7 +11,7 @@
 var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils');
 
-var SQL = require('../../orm/sql/adapters/postgres'); // needs to be dynamic
+var SQL = require('deltadb-orm-sql/scripts/adapters/postgres'); // needs to be dynamic
 
 var Globals = require('./globals'),
   Cols = require('./col/cols'),
