@@ -75,10 +75,12 @@ var Part = function (dbName, sql) {
 
 inherits(Part, EventEmitter);
 
+Part.prototype._onError = function (err) {
+  log.warning('partitioner sql err=' + err.message);
+};
+
 Part.prototype._addSqlErrorListener = function () {
-  SQL.error(function (err) {
-    log.warning('partitioner sql err=' + err.message);
-  });
+  SQL.error(this._onError);
 };
 
 Part.prototype._registerDisconnectListener = function () {

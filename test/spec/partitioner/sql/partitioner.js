@@ -44,4 +44,8 @@ describe('partitioner', function () {
     });
   });
 
+  it('should process error', function () {
+    part._onError(new Error('some error'));
+  });
+
 });
