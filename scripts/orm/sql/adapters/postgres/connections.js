@@ -2,7 +2,7 @@
 
 var Promise = require('bluebird'),
   Connection = require('./connection'),
-  utils = require('../../../../utils');
+  utils = require('deltadb-common-utils');
 
 /**
  * A construct that allows a single process to share connections between ticks

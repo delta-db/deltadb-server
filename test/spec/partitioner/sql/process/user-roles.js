@@ -7,7 +7,7 @@ var partDir = '../../../../../scripts/partitioner/sql';
 var partUtils = require('../utils'),
   Promise = require('bluebird'),
   ForbiddenError = require(partDir + '/forbidden-error'),
-  utils = require(partDir + '/../../utils');
+  commonUtils = require('deltadb-common-utils');
 
 describe('user-roles', function () {
 
@@ -64,7 +64,7 @@ describe('user-roles', function () {
           attr_val: actionAddStr
         }],
         args.db._process._deltas);
-      utils.isDefined(args.db._process._deltas[0].doc_uuid).should.eql(true);
+      commonUtils.isDefined(args.db._process._deltas[0].doc_uuid).should.eql(true);
       args.db._process._deltas[1].doc_uuid.should.eql('$g' + args.db._process._deltas[0]
         .doc_uuid);
     });

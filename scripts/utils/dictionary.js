@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./index');
+var utils = require('deltadb-common-utils');
 
 // We need an obj to help us determine which data is a value and which is a holder of keys
 var Items = function () {};

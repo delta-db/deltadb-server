@@ -8,7 +8,7 @@
 
 var inherits = require('inherits'),
   Promise = require('bluebird'),
-  utils = require('../utils'),
+  utils = require('deltadb-common-utils'),
   MemDB = require('../orm/nosql/adapters/mem/db'),
   Doc = require('./doc'),
   Collection = require('./collection'),

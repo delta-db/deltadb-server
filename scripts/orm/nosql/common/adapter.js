@@ -2,7 +2,7 @@
 
 var EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
-  utils = require('../../../utils');
+  utils = require('deltadb-common-utils');
 
 var Adapter = function () {
   EventEmitter.apply(this, arguments); // apply parent constructor

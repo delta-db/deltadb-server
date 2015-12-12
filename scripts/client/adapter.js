@@ -5,7 +5,7 @@
 var inherits = require('inherits'),
   MemAdapter = require('../orm/nosql/adapters/mem/adapter'),
   DB = require('./db'),
-  utils = require('../utils'),
+  utils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
   adapterStore = require('./adapter-store'),
   config = require('./config');

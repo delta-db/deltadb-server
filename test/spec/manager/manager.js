@@ -6,7 +6,7 @@ var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
   Doc = require('../../../scripts/client/doc'),
-  partUtils = require('../../../scripts/utils'),
+  commonUtils = require('deltadb-common-utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
   SQL = require('../../../scripts/orm/sql/adapters/postgres'); // needs to be dynamic
 
@@ -59,7 +59,7 @@ describe('manager', function () {
     }).then(function () {
       return manager._partitioner.process();
     }).then(function () {
-      updatedUser = partUtils.clone(user);
+      updatedUser = commonUtils.clone(user);
       updatedUser.username = 'newusername';
       updatedUser.password = 'newpwd';
       // updatedUser.status = 'disabled'; // if we disable the user then we need to allow all policy

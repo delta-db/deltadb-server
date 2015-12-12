@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../scripts/utils'),
+var commonUtils = require('deltadb-common-utils'),
   clientUtils = require('../scripts/client/utils');
 
 var Utils = function () {};
@@ -8,7 +8,7 @@ var Utils = function () {};
 Utils.prototype.TIMEOUT = 8000;
 
 Utils.prototype.never = function (msg) {
-  throw new Error(utils.notDefined(msg) ? 'must never execute' : msg);
+  throw new Error(commonUtils.notDefined(msg) ? 'must never execute' : msg);
 };
 
 Utils.prototype._errShouldEql = function (expErr, actErr) {
@@ -67,7 +67,7 @@ Utils.prototype.changesShouldEql = function (expected, actual) {
 
 Utils.prototype.sortChanges = function (changes) {
   var attrs = ['col', 'name', 'up', 'seq', 'val'];
-  return utils.sort(changes, attrs);
+  return commonUtils.sort(changes, attrs);
 };
 
 Utils.prototype.eqls = function (expected, actual) {
@@ -120,7 +120,7 @@ Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
   var self = this,
     err = true;
 
-  var doOncePromise = utils.doAndOnce(promiseFactory, emitter, evnt).then(function (args) {
+  var doOncePromise = commonUtils.doAndOnce(promiseFactory, emitter, evnt).then(function (args) {
     err = false;
     return args;
   });
@@ -138,7 +138,7 @@ Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
 Utils.prototype.shouldDoAndNotOnce = function (promiseFactory, emitter, evnt) {
   var self = this,
     err = false;
-  utils.doAndOnce(promiseFactory, emitter, evnt).then(function () {
+  commonUtils.doAndOnce(promiseFactory, emitter, evnt).then(function () {
     err = true;
   });
   return clientUtils.timeout(100).then(function () {

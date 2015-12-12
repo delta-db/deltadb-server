@@ -3,7 +3,7 @@
 // TODO: is this the best dir for this file?
 
 var commonUtils = require('../common-utils'),
-  oldUtils = require('../../scripts/utils'),
+  oldUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
   IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
   newUtils = require('../new-utils'),

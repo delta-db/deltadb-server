@@ -3,7 +3,7 @@
 var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonCursor = require('../../common/cursor'),
-  utils = require('../../../../utils');
+  utils = require('deltadb-common-utils');
 
 var Cursor = function (docs, col, all) {
   this._docs = docs;

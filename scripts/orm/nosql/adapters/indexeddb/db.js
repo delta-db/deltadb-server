@@ -8,7 +8,7 @@ var Promise = require('bluebird'),
   inherits = require('inherits'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
-  utils = require('../../../../utils'),
+  utils = require('deltadb-common-utils'),
   idbUtils = require('./utils'),
   clientUtils = require('../../../../../scripts/client/utils');
 

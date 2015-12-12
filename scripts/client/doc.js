@@ -1,7 +1,7 @@
 'use strict';
 
 var inherits = require('inherits'),
-  utils = require('../utils'),
+  utils = require('deltadb-common-utils'),
   clientUtils = require('./utils'),
   MemDoc = require('../orm/nosql/adapters/mem/doc'),
   Promise = require('bluebird');

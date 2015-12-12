@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('./index');
+var utils = require('deltadb-common-utils');
 
 var Collection = function () {
   this._objs = {};
