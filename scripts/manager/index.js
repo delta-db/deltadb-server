@@ -1,11 +1,11 @@
 'use strict';
 
 var commonUtils = require('deltadb-common-utils'),
-  Doc = require('../client/doc'),
+  Doc = require('deltadb/scripts/doc'),
   Users = require('../partitioner/sql/user/users'),
   Cols = require('../partitioner/sql/col/cols'),
   UserRoles = require('../partitioner/sql/user/user-roles'),
-  clientUtils = require('../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var Manager = function (partitioner) {
   this._partitioner = partitioner;
