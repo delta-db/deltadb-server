@@ -12,7 +12,6 @@ var Promise = require('bluebird'),
   SocketClosedError = require('../../common/socket-closed-error'),
   DBMissingError = require('../../../../client/db-missing-error'),
   DBExistsError = require('../../../../client/db-exists-error'),
-  log = require('../../../../server/log'),
   connections = require('./connections'),
   utils = require('deltadb-common-utils');
 
@@ -24,17 +23,25 @@ var SQL = function () {
 
 inherits(SQL, AbstractSQL);
 
+// Some errors, e.g. "terminating connection due to administrator command" caused from the server
+// closing the connection will cause your app to crash unless we listen for them here.
 pg.on('error', function (err) {
-  // Some errors, e.g. "terminating connection due to administrator command" caused from the server
-  // closing the connection will cause your app to crash unless we listen for them here.
-  log.warning('postgres err=' + err.message);
+  SQL._onPGError(err);
 });
 
-// TODO: causes a listener memory leak with as there is only one instance of pg. Should each ORM
-// have its own instance? Isn't that inefficient? Better to register error function instead?
-// SQL.prototype.on = function (event, callback) {
-//   pg.on(event, callback);
-// };
+SQL._onPGError = function (err) {
+  if (SQL._onError) {
+    SQL._onError(err);
+  } else {
+    throw err;
+  }
+};
+
+// We provide a global way to set the error listener so that we prevent memory leaks from listeners
+// that are not cleaned up when the ORM instance is destroyed.
+SQL.error = function (callback) {
+  SQL._onError = callback;
+};
 
 SQL.prototype._template = function (i) {
   return '$' + i;
@@ -298,6 +305,9 @@ SQL.prototype._resetSequence = function (table, attr, primaryStart) {
 //   uuid: { type: 'varbinary', length: 36, unique: true },
 //   status: { type: 'enum', values: ['enabled', 'disabled'] }
 // }
+/**
+ * @param primaryStart index The starting value of the auto index
+ */
 SQL.prototype.createTable = function (table, schema, unique, primaryStart) {
   var sql = ' CREATE TABLE IF NOT EXISTS ' + this.escape(table) + '(',
     prefixSql = '',

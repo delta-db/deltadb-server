@@ -42,16 +42,16 @@ SQL.prototype._escapeAndJoin = function (obj, raw) {
     delim = '',
     i = 1;
   utils.each(obj, function (val, key) {
-    if (typeof val !== 'undefined') {
-      keys += delim + self.escape(key);
-      if (raw && raw[key]) {
-        templates += delim + val;
-      } else {
-        templates += delim + self._template(i++);
-        values.push(val);
-      }
-      delim = ',';
+    if (typeof val !== 'undefined') { // TODO: remove?
+    keys += delim + self.escape(key);
+    if (raw && raw[key]) {
+      templates += delim + val;
+    } else {
+      templates += delim + self._template(i++);
+      values.push(val);
     }
+    delim = ',';
+    } // TODO: remove?
   });
   return {
     attrs: keys,
@@ -122,6 +122,11 @@ SQL.prototype.dropTable = function (table) {
   return this._query('DROP TABLE ' + this.escape(table));
 };
 
+SQL.prototype._escapeTableAndAlias = function (table) {
+  var parsedTbl = table.split(' ');
+  return this.escape(parsedTbl[0]) + (parsedTbl[1] ? ' ' + this.escape(parsedTbl[1]) : '');
+};
+
 // SQL.prototype._query = function ( /* sql, replacements */ ) {};
 
 // e.g. var joins = {
@@ -136,16 +141,14 @@ SQL.prototype.dropTable = function (table) {
 SQL.prototype._from = function (table, joins, replacements) {
   // Note: join aliases can be done like
   // joins = { joins: { "mytable mytablealias": ['mytablealis.id', '=', '1'] } }
-  var from = ' FROM ' + this.escape(table);
+  var from = ' FROM ' + this._escapeTableAndAlias(table);
   if (typeof joins !== 'undefined') {
     for (var op in joins) {
       var tbls = joins[op];
       for (var tbl in tbls) {
         var stmt = tbls[tbl];
-        var parsedTbl = tbl.split(' ');
-        var tblAndAlias =
-          this.escape(parsedTbl[0]) + (parsedTbl[1] ? ' ' + this.escape(parsedTbl[1]) : '');
-        from += this._joinOp(op) + ' ' + tblAndAlias + ' ON ' + this._whereExp(stmt, replacements);
+        from += this._joinOp(op) + ' ' + this._escapeTableAndAlias(tbl) + ' ON ' + this._whereExp(
+          stmt, replacements);
       }
     }
   }

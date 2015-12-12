@@ -70,18 +70,16 @@ var Part = function (dbName, sql) {
     // this._sessions
   ];
 
-  // TODO: causes "listener memory leak" as there is only one pg instance
-  // this._addSqlErrorListener();
+  this._addSqlErrorListener();
 };
 
 inherits(Part, EventEmitter);
 
-// TODO: causes "listener memory leak" as there is only one pg instance. Better way?
-// Part.prototype._addSqlErrorListener = function () {
-//   this._sql.on('error', function (err) {
-//     log.warning('partitioner sql err=' + err.message);
-//   });
-// };
+Part.prototype._addSqlErrorListener = function () {
+  SQL.error(function (err) {
+    log.warning('partitioner sql err=' + err.message);
+  });
+};
 
 Part.prototype._registerDisconnectListener = function () {
   var self = this;
