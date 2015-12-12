@@ -2,7 +2,7 @@
 
 /* global after */
 
-var Client = require('../../scripts/client/adapter'),
+var Client = require('deltadb/scripts/adapter'),
   Promise = require('bluebird'),
   commonUtilsRENAME = require('../common-utils'),
   commonUtils = require('deltadb-common-utils');

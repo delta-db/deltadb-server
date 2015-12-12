@@ -5,8 +5,7 @@
 
 var Partitioner = require('../partitioner/sql'),
   Promise = require('bluebird'),
-  Client = require('../client/adapter'),
-  // Client = require('deltadb/scripts/adapter'),
+  Client = require('deltadb/scripts/adapter'),
   clientUtils = require('deltadb/scripts/utils'),
   commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),

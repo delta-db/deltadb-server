@@ -3,7 +3,7 @@
 /* global before, after */
 
 var utils = require('../utils'),
-  Client = require('../../scripts/client/adapter'),
+  Client = require('deltadb/scripts/adapter'),
   partUtils = require('../spec/partitioner/sql/utils');
 
 describe('e2e-no-socket', function () {

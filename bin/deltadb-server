@@ -5,7 +5,7 @@
 var program = require('commander'),
   fs = require('fs'),
   config = require('../config'),
-  clientConfig = require('../scripts/client/config');
+  clientConfig = require('deltadb/scripts/config');
 
 // Options
 program

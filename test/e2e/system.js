@@ -1,10 +1,10 @@
 'use strict';
 
-var DeltaDB = require('../../scripts/client/delta-db'),
+var DeltaDB = require('deltadb/scripts/delta-db'),
   config = require('../../config'),
   commonUtils = require('deltadb-common-utils'),
-  clientUtils = require('../../scripts/client/utils'),
-  Doc = require('../../scripts/client/doc'),
+  clientUtils = require('deltadb/scripts/utils'),
+  Doc = require('deltadb/scripts/doc'),
   Promise = require('bluebird');
 
 /**

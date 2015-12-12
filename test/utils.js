@@ -8,7 +8,7 @@ var Promise = require('bluebird'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
   commonTestUtils = require('./common-utils'),
-  clientUtils = require('../scripts/client/utils'),
+  clientUtils = require('deltadb/scripts/utils'),
   clientTestUtils = require('deltadb/test/utils');
 
 var Utils = function () {};

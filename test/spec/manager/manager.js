@@ -5,7 +5,7 @@
 var testUtils = require('../../utils'),
   Partitioner = require('../../../scripts/partitioner/sql'),
   Manager = require('../../../scripts/manager'),
-  Doc = require('../../../scripts/client/doc'),
+  Doc = require('deltadb/scripts/doc'),
   commonUtils = require('deltadb-common-utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
   SQL = require('deltadb-orm-sql/scripts/adapters/postgres'); // needs to be dynamic

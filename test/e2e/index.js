@@ -3,7 +3,7 @@
 /* global before, after */
 
 var ServerProcess = require('../server-process'),
-  log = require('../../scripts/client/log'),
+  log = require('deltadb/scripts/log'),
   fs = require('fs');
 
 describe('e2e', function () {

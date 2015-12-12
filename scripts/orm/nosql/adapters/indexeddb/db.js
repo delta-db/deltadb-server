@@ -10,7 +10,7 @@ var Promise = require('bluebird'),
   Collection = require('./collection'),
   utils = require('deltadb-common-utils'),
   idbUtils = require('./utils'),
-  clientUtils = require('../../../../../scripts/client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 // Ignore the next line as we only want to execute it if IndexedDB is not supported and this depends
 // on the browser being used.

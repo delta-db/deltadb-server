@@ -2,9 +2,9 @@
 
 /* global before */
 
-var log = require('../../scripts/client/log'),
+var log = require('deltadb/scripts/log'),
   IDBAdapter = require('../../scripts/orm/nosql/adapters/indexeddb/adapter'),
-  adapterStore = require('../../scripts/client/adapter-store');
+  adapterStore = require('deltadb/scripts/adapter-store');
 
 // Use IndexedDB
 adapterStore.newAdapter = function () {
@@ -21,8 +21,6 @@ describe('browser', function () {
   require('./adapters');
 
   require('../spec/orm/nosql');
-
-  require('../spec/client');
 
   require('../e2e/e2e');
 
