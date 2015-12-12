@@ -8,7 +8,7 @@ var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   constants = require('./constants'),
   Cols = require('./col/cols'),
-  SQLError = require('../../orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 var Roles = function (sql, partitioner) {
   this._sql = sql;

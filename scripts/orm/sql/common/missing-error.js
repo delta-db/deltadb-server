@@ -1,6 +1,6 @@
 'use strict';
 
-var SQLError = require('./sql-error'),
+var SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   inherits = require('inherits');
 
 var MissingError = function (message) {

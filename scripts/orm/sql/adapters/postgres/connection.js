@@ -2,7 +2,7 @@
 
 var pg = require('pg'),
   Promise = require('bluebird'),
-  SocketClosedError = require('../../common/socket-closed-error'),
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   inherits = require('inherits'),
   EventEmitter = require('events').EventEmitter;
 

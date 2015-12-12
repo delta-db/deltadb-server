@@ -8,7 +8,7 @@ var partUtils = require('./utils'),
   Cols = require(partDir + '/col/cols'),
   Roles = require(partDir + '/roles'),
   Promise = require('bluebird'),
-  SQLError = require('../../../../scripts/orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 describe('roles', function () {
 

@@ -3,7 +3,7 @@
 var Partitioners = require('../../../scripts/server/partitioners'),
   testUtils = require('../../utils'),
   commonUtils = require('../../common-utils'),
-  SocketClosedError = require('../../../scripts/orm/sql/common/socket-closed-error'),
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   Changes = require('../../../scripts/partitioner/sql/changes'),
   Promise = require('bluebird');
 

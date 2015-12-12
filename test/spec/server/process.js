@@ -3,7 +3,7 @@
 var Process = require('../../../scripts/server/process'),
   testUtils = require('../../utils'),
   commonUtils = require('../../common-utils'),
-  SocketClosedError = require('../../../scripts/orm/sql/common/socket-closed-error');
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error');
 
 describe('process', function () {
 

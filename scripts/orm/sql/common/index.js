@@ -5,7 +5,7 @@
 // TODO: replace new Error() with something like new QueryError()
 
 var utils = require('deltadb-common-utils'),
-  MissingError = require('./missing-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
 

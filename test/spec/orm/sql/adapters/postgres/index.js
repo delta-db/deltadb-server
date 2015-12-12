@@ -3,7 +3,7 @@
 var SQL = require('../../../../../../scripts/orm/sql/adapters/postgres'),
   commonUtils = require('../../../../../common-utils'),
   connections = require('../../../../../../scripts/orm/sql/adapters/postgres/connections'),
-  SocketClosedError = require('../../../../../../scripts/orm/sql/common/socket-closed-error');
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error');
 
 describe('postgres', function () {
   var sql = null;

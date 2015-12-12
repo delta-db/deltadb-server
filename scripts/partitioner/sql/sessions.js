@@ -22,8 +22,8 @@ var CryptoJS = require("crypto-js"),
   Promise = require('bluebird'),
   constants = require('./constants'),
   TokenError = require('./token-error'),
-  MissingError = require('../../orm/sql/common/missing-error'),
-  SQLError = require('../../orm/sql/common/sql-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   SessionExpiredError = require('./session-expired-error');
 
 var Sessions = function (sql, users) {

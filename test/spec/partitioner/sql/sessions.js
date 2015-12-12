@@ -12,8 +12,8 @@ var partUtils = require('./utils'),
   Cols = require(partDir + '/col/cols'),
   Roles = require(partDir + '/roles'),
   Promise = require('bluebird'),
-  SQLError = require('../../../../scripts/orm/sql/common/sql-error'),
-  MissingError = require('../../../../scripts/orm/sql/common/missing-error'),
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   Sessions = require(partDir + '/sessions'),
   TokenError = require(partDir + '/token-error'),
   SessionExpiredError = require(partDir + '/session-expired-error');
@@ -73,7 +73,7 @@ describe('sessions', function () {
     args.db._sessions._createRecord = function () {
       return new Promise(function (resolve) {
         if (++attempt < 3) {
-          throw new SQLError('err'); // fake duplicate token          
+          throw new SQLError('err'); // fake duplicate token
         } else {
           resolve('token');
         }

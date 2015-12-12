@@ -9,8 +9,8 @@ var partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
   commonUtils = require('deltadb-common-utils'),
-  SQLError = require('../../../../../scripts/orm/sql/common/sql-error'),
-  MissingError = require('../../../../../scripts/orm/sql/common/missing-error'),
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   AuthenticationError = require('../../../../../scripts/client/authentication-error');
 
 describe('users', function () {

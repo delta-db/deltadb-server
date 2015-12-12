@@ -8,8 +8,8 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  DBMissingError = require('../../../client/db-missing-error'),
-  DBExistsError = require('../../../client/db-exists-error'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
   commonUtils = require('deltadb-common-utils'),
   clientUtils = require('../../../client/utils');
 

@@ -4,8 +4,8 @@ var testUtils = require('../../../utils'),
   config = require('../../../../config'),
   chai = require('chai'),
   expect = chai.expect,
-  MissingError = require('../../../../scripts/orm/sql/common/missing-error'),
-  DBExistsError = require('../../../../scripts/client/db-exists-error');
+  MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
+  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error');
 
 var testORM = function (name, Adapter) {
 

@@ -9,8 +9,8 @@ var Partitioner = require('../partitioner/sql'),
   clientUtils = require('../client/utils'),
   commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
-  DBMissingError = require('../client/db-missing-error'),
-  SocketClosedError = require('../orm/sql/common/socket-closed-error'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   Users = require('../partitioner/sql/user/users');
 
 var Process = function () {
