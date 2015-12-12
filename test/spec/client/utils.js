@@ -1,7 +1,8 @@
 'use strict';
 
 var clientUtils = require('../../../scripts/client/utils'),
-  commonUtils = require('../../common-utils');
+  commonUtils = require('../../common-utils'),
+  newCommonUtils = require('deltadb-common-utils');
 
 describe('utils', function () {
 
@@ -36,7 +37,7 @@ describe('utils', function () {
 
   it('should sleep', function () {
     var before = new Date();
-    return clientUtils.timeout(1000).then(function () {
+    return newCommonUtils.timeout(1000).then(function () {
       var after = new Date();
       var elapsed = after.getTime() - before.getTime();
       (elapsed >= 1000 && elapsed < 1200).should.eql(true); // allow for 200 ms window

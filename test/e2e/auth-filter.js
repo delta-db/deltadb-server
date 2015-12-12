@@ -2,7 +2,7 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils');
+  commonUtils = require('deltadb-common-utils');
 
 describe('auth-filter', function () {
 
@@ -15,7 +15,7 @@ describe('auth-filter', function () {
 
   var createUser = function (userUUID, username, password) {
     return db.createUser(userUUID, username, password).then(function (doc) {
-      return clientUtils.once(doc, 'doc:record'); // user created
+      return commonUtils.once(doc, 'doc:record'); // user created
     });
   };
 
@@ -58,7 +58,7 @@ describe('auth-filter', function () {
     };
 
     return db.policy('tasks', pol).then(function (doc) {
-      return clientUtils.once(doc, 'doc:record');
+      return commonUtils.once(doc, 'doc:record');
     });
   };
 
@@ -77,7 +77,7 @@ describe('auth-filter', function () {
       });
       uuid = task.id();
       task.save();
-      return clientUtils.once(task, 'doc:record'); // wait for doc to be recorded
+      return commonUtils.once(task, 'doc:record'); // wait for doc to be recorded
     }).then(function () {
       return db.destroy(true); // keep remote
     });
@@ -101,7 +101,7 @@ describe('auth-filter', function () {
 
     // Wait a little bit and make sure that we only received the change for the attr to which we
     // have access. 2 secs is not enough time to guarantee we receive any changes on TravisCI.
-    return clientUtils.timeout(4000).then(function () {
+    return commonUtils.timeout(4000).then(function () {
       received.should.eql(['thing']);
       return null; // prevent runaway promise warnings
     });

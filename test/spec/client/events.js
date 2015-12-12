@@ -6,6 +6,7 @@
 
 var utils = require('deltadb-common-utils'),
   commonUtils = require('../../common-utils'),
+  clientTestUtils = require('deltadb/test/utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem');
@@ -187,7 +188,7 @@ describe('events', function () {
   // ------------------------
 
   var updateLocal = function () {
-    return commonUtils.sleep().then(function () { // sleep so update is after create
+    return clientTestUtils.sleep().then(function () { // sleep so update is after create
       task.set({
         'priority': 'high'
       }); // use _set so we can force a timestamp
@@ -263,7 +264,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyLocal = function () {
-    return commonUtils.sleep().then(function () { // sleep so destroy is after create
+    return clientTestUtils.sleep().then(function () { // sleep so destroy is after create
       task.unset('priority'); // use _set so we can force a timestamp
       return null; // prevent runaway promise warnings
     });
@@ -303,7 +304,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return commonUtils.sleep().then(function () { // sleep so destroy is after create
+    return clientTestUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -345,7 +346,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return commonUtils.sleep().then(function () { // sleep so record is after create
+    return clientTestUtils.sleep().then(function () { // sleep so record is after create
       return db.sync(server, true);
     });
   };
@@ -491,7 +492,7 @@ describe('events', function () {
   };
 
   var destroyDocLocal = function () {
-    return commonUtils.sleep().then(function () { // sleep so destroy is after create
+    return clientTestUtils.sleep().then(function () { // sleep so destroy is after create
       return task.destroy();
     });
   };
@@ -530,7 +531,7 @@ describe('events', function () {
       re: laterStr
     }]);
 
-    return commonUtils.sleep().then(function () { // sleep so destroy is after create
+    return clientTestUtils.sleep().then(function () { // sleep so destroy is after create
       return db.sync(server, true);
     });
   };
@@ -697,7 +698,7 @@ describe('events', function () {
   // ------------------------
 
   var destroyColLocal = function () {
-    return commonUtils.sleep().then(function () { // sleep so destroy is after create
+    return clientTestUtils.sleep().then(function () { // sleep so destroy is after create
       return tasks.destroy();
     });
   };

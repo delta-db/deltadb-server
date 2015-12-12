@@ -3,6 +3,7 @@
 // TODO: split up
 
 var utils = require('deltadb-common-utils'),
+  clientTestUtils = require('deltadb/test/utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
@@ -193,7 +194,7 @@ describe('client', function () {
       nextUpdated = null;
     // For some reason, waiting 1 millisecond can still occassionally result in all changes having
     // the same timestamp so we'll bump it to 2 milliseconds
-    return commonUtils.sleep().then(function () { // make sure changes occur at later timestamp
+    return clientTestUtils.sleep().then(function () { // make sure changes occur at later timestamp
       updated = new Date(); // use the same updated date for the next 2 updates
       task1._set('priority', 'low', updated);
       task1._set('priority', 'medium', updated);
@@ -237,7 +238,7 @@ describe('client', function () {
       };
       return latestShouldEql(latest);
     }).then(function () {
-      return commonUtils.sleep(); // ensure different timestamp for upcoming change
+      return clientTestUtils.sleep(); // ensure different timestamp for upcoming change
     }).then(function () {
       // Make another update at later timestamp and make sure the seq is 0
       nextUpdated = new Date();

@@ -3,7 +3,7 @@
 var inherits = require('inherits'),
   utils = require('deltadb-common-utils'),
   clientUtils = require('./utils'),
-  MemDoc = require('../orm/nosql/adapters/mem/doc'),
+  MemDoc = require('deltadb-orm-nosql/scripts/adapters/mem/doc'),
   Promise = require('bluebird');
 
 var Doc = function (data /* , col */ ) {

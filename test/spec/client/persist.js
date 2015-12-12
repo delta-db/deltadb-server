@@ -3,7 +3,8 @@
 var utils = require('deltadb-common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird'),
-  commonUtils = require('../../common-utils');
+  // commonUtils = require('../../common-utils'),
+  clientTestUtils = require('deltadb/test/utils');
 
 describe('persist', function () {
 
@@ -111,7 +112,7 @@ describe('persist', function () {
     // Populate underlying store
     return task.save().then(function () {
       // Sleep so that timestamps aren't the same and the 2nd set of changes come later
-      return commonUtils.sleep();
+      return clientTestUtils.sleep();
     }).then(function () {
       // Simulate reload using a second client
       setUpClient2();

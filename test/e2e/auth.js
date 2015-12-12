@@ -2,7 +2,7 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  clientUtils = require('../../scripts/client/utils'),
+  commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird');
 
 describe('auth', function () {
@@ -17,7 +17,7 @@ describe('auth', function () {
     // Connect anonymously first and create the user as Admin Party is in effect
     db = new DeltaDB('mydb', config.URL);
     return db.createUser('user-uuid', 'username', 'secret', status).then(function (doc) {
-      return clientUtils.once(doc, 'doc:record'); // user created
+      return commonUtils.once(doc, 'doc:record'); // user created
     }).then(function () {
       return db.destroy(true); // keep remote
     });
@@ -69,7 +69,7 @@ describe('auth', function () {
 
     task1.save();
 
-    return clientUtils.once(task1, 'attr:record');
+    return commonUtils.once(task1, 'attr:record');
 
   });
 
@@ -77,7 +77,7 @@ describe('auth', function () {
 
     db = new DeltaDB('mydb', config.URL, 'username', 'badsecret');
 
-    return clientUtils.once(db, 'error').then(function (args) {
+    return commonUtils.once(db, 'error').then(function (args) {
       (args[0].name === 'AuthenticationError').should.eql(true);
     });
 
@@ -90,7 +90,7 @@ describe('auth', function () {
 
       db = new DeltaDB('mydb', config.URL, 'username', 'secret');
 
-      return clientUtils.once(db, 'error').then(function (args) {
+      return commonUtils.once(db, 'error').then(function (args) {
         (args[0].name === 'DisabledError').should.eql(true);
       });
 

@@ -3,8 +3,8 @@
 var DB = require('../../../scripts/client/db'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Client = require('../../../scripts/client/adapter'),
-  clientUtils = require('../../../scripts/client/utils'),
-  commonUtils = require('../../common-utils'),
+  commonUtils = require('deltadb-common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
   utils = require('deltadb-common-utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Promise = require('bluebird');
@@ -48,12 +48,12 @@ describe('db', function () {
 
     // Wait for load after next tick to ensure there is no race condition. The following code was
     // failing when the DB store loading was triggered at the adapter layer.
-    return clientUtils.timeout().then(function () {
+    return commonUtils.timeout().then(function () {
       db = client.db({
         db: 'mydb',
         store: new MemAdapter().db('mydb')
       });
-      return clientUtils.once(db, 'load');
+      return commonUtils.once(db, 'load');
     });
   });
 
@@ -63,7 +63,7 @@ describe('db', function () {
       db: 'mydb',
       store: new MemAdapter().db('mydb')
     });
-    return commonUtils.shouldNonPromiseThrow(function () {
+    return commonTestUtils.shouldNonPromiseThrow(function () {
       db._onDeltaError(new Error('my err'));
     }, new Error('my err'));
   });
@@ -128,7 +128,7 @@ describe('db', function () {
       db: 'mydb',
       filter: false
     });
-    return clientUtils.once(db, 'load').then(function () {
+    return commonUtils.once(db, 'load').then(function () {
       var msg = db._emitInitMsg();
       msg.filter.should.eql(false);
     });

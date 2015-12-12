@@ -4,8 +4,8 @@
 
 var Client = require('../../scripts/client/adapter'),
   Promise = require('bluebird'),
-  clientUtils = require('../../scripts/client/utils'),
-  commonUtils = require('../common-utils');
+  commonUtilsRENAME = require('../common-utils'),
+  commonUtils = require('deltadb-common-utils');
 
 describe('race', function () {
 
@@ -65,7 +65,7 @@ describe('race', function () {
   });
 
   after(function () {
-    self.timeout(commonUtils.TIMEOUT);
+    self.timeout(commonUtilsRENAME.TIMEOUT);
   });
 
   var sendAndReceivePartialChanges = function () {
@@ -83,8 +83,8 @@ describe('race', function () {
     });
 
     return Promise.all([
-      clientUtils.once(aTasks, 'attr:record'),
-      clientUtils.once(bTasks, 'attr:record'),
+      commonUtils.once(aTasks, 'attr:record'),
+      commonUtils.once(bTasks, 'attr:record'),
       task1.save(),
       task2.save()
     ]);

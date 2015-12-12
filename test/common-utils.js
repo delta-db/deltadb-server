@@ -1,7 +1,6 @@
 'use strict';
 
-var commonUtils = require('deltadb-common-utils'),
-  clientUtils = require('../scripts/client/utils');
+var commonUtils = require('deltadb-common-utils');
 
 var Utils = function () {};
 
@@ -96,7 +95,7 @@ Utils.prototype.sleep = function (sleepMs) {
   // It is not clear as to what causes this but the solution is to sleep longer. This function is
   // also used to delay between DB writes to create predictable patterns. In this case it may be
   // that the DB adapter processes queries out of sequence.
-  return clientUtils.timeout(sleepMs ? sleepMs : 10);
+  return commonUtils.timeout(sleepMs ? sleepMs : 10);
 };
 
 Utils.prototype.allShouldEql = function (collection, expected) {
@@ -126,7 +125,7 @@ Utils.prototype.shouldDoAndOnce = function (promiseFactory, emitter, evnt) {
   });
 
   // 100 ms appears to be too short on Chrome for ost of our tests
-  return clientUtils.timeout(200).then(function () {
+  return commonUtils.timeout(200).then(function () {
     if (err) {
       self.never('should have emitted event ' + evnt);
     }
@@ -141,7 +140,7 @@ Utils.prototype.shouldDoAndNotOnce = function (promiseFactory, emitter, evnt) {
   commonUtils.doAndOnce(promiseFactory, emitter, evnt).then(function () {
     err = true;
   });
-  return clientUtils.timeout(100).then(function () {
+  return commonUtils.timeout(100).then(function () {
     if (err) {
       self.never('should not have emitted event ' + evnt);
     }

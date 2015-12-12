@@ -1,9 +1,9 @@
 'use strict';
 
-// TODO: should events be moved to nosql/common layer?
+// TODO: should events be moved to deltadb-orm-nosql layer?
 
 var inherits = require('inherits'),
-  MemAdapter = require('../orm/nosql/adapters/mem/adapter'),
+  MemAdapter = require('deltadb-orm-nosql/scripts/adapters/mem'),
   DB = require('./db'),
   utils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
