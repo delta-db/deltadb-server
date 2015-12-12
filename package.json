@@ -44,7 +44,8 @@
     "new-dev-server": "./bin/new-dev-server.js",
     "mv-coverage": "mv coverage/coverage.json coverage/browser/coverage.json",
     "new-test-browser": "mkdir -p coverage/browser && ./bin/new-test-browser.js && npm run mv-coverage",
-    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage"
+    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage",
+    "REMOVE": "npm run beautify && npm run test && npm run new-test-phantomjs"
   },
   "dependencies": {
     "bcrypt": "^0.8.1",
