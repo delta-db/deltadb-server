@@ -9,7 +9,7 @@ var Promise = require('bluebird'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
   DBMissingError = require('../client/db-missing-error'),
-  Dictionary = require('../utils/dictionary'),
+  Dictionary = require('deltadb-common-utils/scripts/dictionary'),
   Users = require('../partitioner/sql/user/users'),
   Changes = require('../partitioner/sql/changes');
 

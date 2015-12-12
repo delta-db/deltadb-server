@@ -3,7 +3,7 @@
 var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
-  Dictionary = require('../../../utils/dictionary'),
+  Dictionary = require('deltadb-common-utils/scripts/dictionary'),
   Cols = require('./cols'),
   Roles = require('../roles'),
   log = require('../../../server/log');
@@ -189,7 +189,7 @@ ColRoles.prototype.setColRoles = function (roleIds, colId, roleActions, updatedA
       var roleId = roleIds[roleAction.role],
         name = roleAction.name ? roleAction.name : null;
       if (remColRoles.exists(roleId, roleAction.action, name)) { // exists?
-        remColRoles.destroy(roleId, roleAction.action, name);
+        remColRoles.unset(roleId, roleAction.action, name);
       } else { // new?
         modColRoles.set(roleId, roleAction.action, name, null);
       }

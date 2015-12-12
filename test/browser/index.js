@@ -22,8 +22,6 @@ describe('browser', function () {
 
   require('../spec/orm/nosql');
 
-  require('../spec/utils/log');
-
   require('../spec/client');
 
   require('../e2e/e2e');
