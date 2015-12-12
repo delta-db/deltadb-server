@@ -14,7 +14,7 @@
 
 var Promise = require('bluebird');
 
-var SQL = require('../../scripts/orm/sql/adapters/mysql'),
+var SQL = require('deltadb-orm-sql/scripts/adapters/mysql'),
   config = require('../../config'),
   Promise = require('bluebird');
 

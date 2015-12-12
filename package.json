@@ -53,7 +53,7 @@
     "commander": "^2.9.0",
     "deltadb": "0.0.3",
     "deltadb-common-utils": "0.0.2",
-    "deltadb-orm-sql": "0.0.1",
+    "deltadb-orm-sql": "0.0.2",
     "express": "^4.13.3",
     "inherits": "^2.0.1",
     "mysql2": "^0.15.8",

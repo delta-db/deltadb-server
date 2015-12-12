@@ -7,7 +7,7 @@ var partDir = '../../../../../scripts/partitioner/sql',
   constants = require(partDir + '/constants'),
   Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
-  SQLError = require('../../../../../scripts/orm/sql/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
 
 describe('doc-recs', function () {
 

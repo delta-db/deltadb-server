@@ -10,8 +10,8 @@ var partDir = '../../../../../scripts/partitioner/sql',
   Attr = require(partDir + '/attr/attr'),
   System = require('../../../../../scripts/system'),
   Promise = require('bluebird'),
-  DBExistsError = require('../../../../../scripts/client/db-exists-error'),
-  DBMissingError = require('../../../../../scripts/client/db-missing-error');
+  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
 
 describe('attr', function () {
 

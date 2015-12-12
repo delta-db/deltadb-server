@@ -11,7 +11,7 @@
 var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils');
 
-var SQL = require('../../orm/sql/adapters/postgres'); // needs to be dynamic
+var SQL = require('deltadb-orm-sql/scripts/adapters/postgres'); // needs to be dynamic
 
 var Globals = require('./globals'),
   Cols = require('./col/cols'),
@@ -70,18 +70,18 @@ var Part = function (dbName, sql) {
     // this._sessions
   ];
 
-  // TODO: causes "listener memory leak" as there is only one pg instance
-  // this._addSqlErrorListener();
+  this._addSqlErrorListener();
 };
 
 inherits(Part, EventEmitter);
 
-// TODO: causes "listener memory leak" as there is only one pg instance. Better way?
-// Part.prototype._addSqlErrorListener = function () {
-//   this._sql.on('error', function (err) {
-//     log.warning('partitioner sql err=' + err.message);
-//   });
-// };
+Part.prototype._onError = function (err) {
+  log.warning('partitioner sql err=' + err.message);
+};
+
+Part.prototype._addSqlErrorListener = function () {
+  SQL.error(this._onError);
+};
 
 Part.prototype._registerDisconnectListener = function () {
   var self = this;

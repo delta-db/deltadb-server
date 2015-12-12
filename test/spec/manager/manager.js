@@ -8,7 +8,7 @@ var testUtils = require('../../utils'),
   Doc = require('../../../scripts/client/doc'),
   commonUtils = require('deltadb-common-utils'),
   Cols = require('../../../scripts/partitioner/sql/col/cols'),
-  SQL = require('../../../scripts/orm/sql/adapters/postgres'); // needs to be dynamic
+  SQL = require('deltadb-orm-sql/scripts/adapters/postgres'); // needs to be dynamic
 
 describe('manager', function () {
 

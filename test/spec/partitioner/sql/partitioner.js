@@ -2,7 +2,7 @@
 
 var testUtils = require('../../../utils'),
   Partitioner = require('../../../../scripts/partitioner/sql'),
-  DBMissingError = require('../../../../scripts/client/db-missing-error');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
 
 describe('partitioner', function () {
 
@@ -42,6 +42,10 @@ describe('partitioner', function () {
     return part.createAnotherDatabase('my_test-db-2').then(function () {
       return part.destroyAnotherDatabase('my_test-db-2');
     });
+  });
+
+  it('should process error', function () {
+    part._onError(new Error('some error'));
   });
 
 });
