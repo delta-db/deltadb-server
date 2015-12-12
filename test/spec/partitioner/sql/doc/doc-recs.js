@@ -6,7 +6,7 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
   Promise = require('bluebird'),
-  utils = require(partDir + '/../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   SQLError = require('../../../../../scripts/orm/sql/common/sql-error');
 
 describe('doc-recs', function () {
@@ -103,7 +103,7 @@ describe('doc-recs', function () {
     };
 
     return docs.findUUID('attr-name', 'attr-val').then(function (uuid) {
-      utils.notDefined(uuid).should.eql(true);
+      commonUtils.notDefined(uuid).should.eql(true);
     });
   });
 

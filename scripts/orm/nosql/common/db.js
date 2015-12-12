@@ -2,7 +2,7 @@
 
 // TODO: create all() that returns iterator for all collections
 
-var utils = require('../../../utils'),
+var utils = require('deltadb-common-utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits');
 

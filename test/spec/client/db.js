@@ -5,7 +5,7 @@ var DB = require('../../../scripts/client/db'),
   Client = require('../../../scripts/client/adapter'),
   clientUtils = require('../../../scripts/client/utils'),
   commonUtils = require('../../common-utils'),
-  utils = require('../../../scripts/utils'),
+  utils = require('deltadb-common-utils'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
   Promise = require('bluebird');
 

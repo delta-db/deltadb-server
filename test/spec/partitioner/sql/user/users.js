@@ -8,7 +8,7 @@ var partUtils = require('../utils'),
   Roles = require(partDir + '/roles'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
-  utils = require(partDir + '/../../utils'),
+  commonUtils = require('deltadb-common-utils'),
   SQLError = require('../../../../../scripts/orm/sql/common/sql-error'),
   MissingError = require('../../../../../scripts/orm/sql/common/missing-error'),
   AuthenticationError = require('../../../../../scripts/client/authentication-error');
@@ -191,7 +191,7 @@ describe('users', function () {
 
   it('should get user when missing', function () {
     return args.db._users.getUser(-1).then(function (user) {
-      utils.notDefined(user).should.eql(true);
+      commonUtils.notDefined(user).should.eql(true);
     });
   });
 

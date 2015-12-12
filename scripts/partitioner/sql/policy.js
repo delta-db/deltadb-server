@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../../utils'),
+var commonUtils = require('deltadb-common-utils'),
   constants = require('./constants'),
   Roles = require('./roles'),
   Cols = require('./col/cols'),
@@ -46,21 +46,21 @@ Policy.prototype.parsePolicy = function (policy) {
     roleActions = [];
 
   if (policy.col) {
-    utils.each(policy.col, function (roles, action) {
+    commonUtils.each(policy.col, function (roles, action) {
       self.addRoles(all, roles, action, roleActions);
     });
   }
 
   if (policy.attrs) {
-    utils.each(policy.attrs, function (attr, name) {
-      utils.each(attr, function (roles, action) {
+    commonUtils.each(policy.attrs, function (attr, name) {
+      commonUtils.each(attr, function (roles, action) {
         self.addRoles(all, roles, action, roleActions, name);
       });
     });
   }
 
   return {
-    roles: utils.keys(all),
+    roles: commonUtils.keys(all),
     roleActions: roleActions
   };
 };

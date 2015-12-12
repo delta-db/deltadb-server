@@ -2,12 +2,12 @@
 
 // TODO: is this the best dir for this file?
 
-var commonUtils = require('../common-utils'),
-  oldUtils = require('../../scripts/utils'),
+var commonTestUtils = require('../common-utils'),
+  oldUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
   IDB = require('../../scripts/orm/nosql/adapters/indexeddb'),
   newUtils = require('../new-utils'),
-  utils = require('../../scripts/utils');
+  utils = require('deltadb-common-utils');
 
 var Adapter = function (AdapterClass) {
   this._Adapter = AdapterClass;
@@ -144,7 +144,7 @@ Adapter.prototype.test = function () {
     it('should throw error when finding with offset', function () {
       var users = db.col('users');
 
-      return commonUtils.shouldThrow(function () {
+      return commonTestUtils.shouldThrow(function () {
         return users.find({
           offset: 0
         }, function () {});
@@ -155,7 +155,7 @@ Adapter.prototype.test = function () {
     it('should throw error when finding with limit', function () {
       var users = db.col('users');
 
-      return commonUtils.shouldThrow(function () {
+      return commonTestUtils.shouldThrow(function () {
         return users.find({
           limit: 1
         }, function () {});
@@ -171,7 +171,7 @@ Adapter.prototype.test = function () {
 
     it('should throw error when opening or closing', function () {
       var err = new Error('my err');
-      return commonUtils.shouldThrow(function () {
+      return commonTestUtils.shouldThrow(function () {
         return db._openClose(utils.promiseErrorFactory(err));
       }, err);
     });

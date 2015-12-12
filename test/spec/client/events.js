@@ -4,7 +4,7 @@
 
 // TODO: split up tests by event
 
-var utils = require('../../../scripts/utils'),
+var utils = require('deltadb-common-utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird'),

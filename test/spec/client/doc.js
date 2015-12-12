@@ -3,7 +3,7 @@
 var Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
   MemAdapter = require('../../../scripts/orm/nosql/adapters/mem'),
-  utils = require('../../../scripts/utils');
+  utils = require('deltadb-common-utils');
 
 describe('doc', function () {
 

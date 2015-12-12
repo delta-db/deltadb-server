@@ -33,7 +33,7 @@ var fs = require('fs'),
   log = require('../scripts/client/log'),
   serverLog = require('../scripts/server/log'),
   ServerContainer = require('../scripts/server'),
-  LogStream = require('../scripts/utils/log-stream');
+  fs = require('fs');
 
 serverLog.console(false);
 
@@ -94,7 +94,9 @@ Server.prototype._start = function (serverFilename) {
   if (this._spawn) {
     this._doSpawn(serverFilename);
   } else {
-    serverLog.stream(new LogStream('./test/' + serverFilename)); // enable server log
+    serverLog.stream(fs.createWriteStream('./test/' + serverFilename, { // enable server log
+      'flags': 'w'
+    }));
     this._serverContainer.start();
   }
 };

@@ -1,5 +1,5 @@
 {
-  "name": "deltadb",
+  "name": "deltadb-server",
   "version": "0.0.1",
   "description": "An offline-first, front-end-only database",
   "main": "index.js",
@@ -44,12 +44,16 @@
     "new-dev-server": "./bin/new-dev-server.js",
     "mv-coverage": "mv coverage/coverage.json coverage/browser/coverage.json",
     "new-test-browser": "mkdir -p coverage/browser && ./bin/new-test-browser.js && npm run mv-coverage",
-    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage"
+    "new-test-phantomjs": "npm run jshint && npm run build-test-coverage && npm run new-test-browser && npm run coverage-report && npm run check-coverage",
+    "REMOVE": "npm run beautify && npm run test && npm run new-test-phantomjs"
   },
   "dependencies": {
     "bcrypt": "^0.8.1",
     "bluebird": "^3.0.2",
     "commander": "^2.9.0",
+    "deltadb": "0.0.3",
+    "deltadb-common-utils": "0.0.2",
+    "deltadb-orm-sql": "0.0.1",
     "express": "^4.13.3",
     "inherits": "^2.0.1",
     "mysql2": "^0.15.8",

@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../../../scripts/utils'),
+var utils = require('deltadb-common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Promise = require('bluebird'),
   commonUtils = require('../../common-utils');

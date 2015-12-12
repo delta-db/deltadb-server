@@ -3,7 +3,7 @@
 var inherits = require('inherits'),
   CommonDB = require('../../common/db'),
   Collection = require('./collection'),
-  utils = require('../../../../utils');
+  utils = require('deltadb-common-utils');
 
 var DB = function ( /* name, adapter */ ) {
   CommonDB.apply(this, arguments); // apply parent constructor

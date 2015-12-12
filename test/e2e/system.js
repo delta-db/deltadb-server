@@ -2,7 +2,7 @@
 
 var DeltaDB = require('../../scripts/client/delta-db'),
   config = require('../../config'),
-  utils = require('../../scripts/utils'),
+  commonUtils = require('deltadb-common-utils'),
   clientUtils = require('../../scripts/client/utils'),
   Doc = require('../../scripts/client/doc'),
   Promise = require('bluebird');
@@ -41,7 +41,7 @@ describe('system', function () {
     task.save();
 
     // Waiting for the following event ensures that the DB has already been created
-    dbCreated = utils.once(task, 'doc:record');
+    dbCreated = commonUtils.once(task, 'doc:record');
 
     return Promise.resolve();
   };
@@ -76,21 +76,21 @@ describe('system', function () {
     };
 
     return db._systemDB().policy('$db', pol).then(function (doc) {
-      return utils.once(doc, 'doc:record');
+      return commonUtils.once(doc, 'doc:record');
     });
   };
 
   var createUser = function (uuid, username) {
     return db._systemDB().createUser(uuid, username, 'secret', 'enabled').then(function (
       doc) {
-      return utils.once(doc, 'doc:record');
+      return commonUtils.once(doc, 'doc:record');
     });
   };
 
   var updateUser = function (uuid, username) {
     return db._systemDB().updateUser(uuid, username, 'secret', 'disabled').then(function (
       doc) {
-      return utils.once(doc, 'attr:record');
+      return commonUtils.once(doc, 'attr:record');
     });
   };
 

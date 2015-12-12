@@ -14,7 +14,7 @@ var Promise = require('bluebird'),
   DBExistsError = require('../../../../client/db-exists-error'),
   log = require('../../../../server/log'),
   connections = require('./connections'),
-  utils = require('../../../../utils');
+  utils = require('deltadb-common-utils');
 
 var SQL = function () {
   AbstractSQL.apply(this, arguments); // apply parent constructor

@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../../../utils'),
+var utils = require('deltadb-common-utils'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   Promise = require('bluebird');

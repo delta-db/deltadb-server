@@ -4,14 +4,16 @@
 
 var ServerProcess = require('../server-process'),
   log = require('../../scripts/client/log'),
-  LogStream = require('../../scripts/utils/log-stream');
+  fs = require('fs');
 
 describe('e2e', function () {
 
   var server = new ServerProcess();
 
   before(function () {
-    log.stream(new LogStream('./test/node-client.log')); // enable client log
+    log.stream(fs.createWriteStream('./test/node-client.log', { // enable client log
+      'flags': 'w'
+    }));
     return server.start('node-server.log'); // start the test server
   });
 

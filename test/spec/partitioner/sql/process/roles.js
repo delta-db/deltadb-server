@@ -7,7 +7,7 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
-  utils = require(partDir + '/../../utils');
+  commonUtils = require('deltadb-common-utils');
 
 describe('roles', function () {
 
@@ -114,7 +114,7 @@ describe('roles', function () {
     }).then(function () {
       return userUtils.getRoleIds();
     }).then(function () {
-      utils.notDefined(userUtils.roleIds.brole).should.eql(true);
+      commonUtils.notDefined(userUtils.roleIds.brole).should.eql(true);
     }).then(function () {
       return findUserRoles();
     }).then(function (results) {
@@ -135,7 +135,7 @@ describe('roles', function () {
     }).then(function () {
       return userUtils.getRoleIds();
     }).then(function () {
-      utils.notDefined(userUtils.roleIds.brole).should.eql(true);
+      commonUtils.notDefined(userUtils.roleIds.brole).should.eql(true);
     }).then(function () {
       return findUserRoles();
     }).then(function (results) {

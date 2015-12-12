@@ -2,7 +2,7 @@
 
 // TODO: split up
 
-var utils = require('../../../scripts/utils'),
+var utils = require('deltadb-common-utils'),
   commonUtils = require('../../common-utils'),
   Client = require('../../../scripts/client/adapter'),
   Doc = require('../../../scripts/client/doc'),
