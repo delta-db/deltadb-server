@@ -9,7 +9,7 @@
 // TODO: (Globaly) Only protected function names need to start with underscore
 
 var Promise = require('bluebird'),
-  utils = require('../../utils');
+  commonUtils = require('deltadb-common-utils');
 
 var SQL = require('../../orm/sql/adapters/postgres'); // needs to be dynamic
 
@@ -119,7 +119,7 @@ Part.prototype.createTables = function () {
     promises.push(model.createTable());
   });
 
-  utils.each(this._partitions, function (partition) {
+  commonUtils.each(this._partitions, function (partition) {
     promises.push(partition.createTables());
   });
 
@@ -134,7 +134,7 @@ Part.prototype.truncateTables = function () {
     promises.push(model.truncateTable());
   });
 
-  utils.each(this._partitions, function (partition) {
+  commonUtils.each(this._partitions, function (partition) {
     promises.push(partition.truncateTables());
   });
 

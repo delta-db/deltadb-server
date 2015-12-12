@@ -11,7 +11,7 @@ var app = require('express')(),
   Partitioners = require('./partitioners'),
   log = require('../server/log'),
   config = require('../../config'),
-  utils = require('../utils'),
+  commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird');
 
 var Server = function (process) {
@@ -41,7 +41,7 @@ Server.prototype._since = function (msg) {
 Server.prototype._registerInitListener = function (socket) {
   var self = this;
   socket.on('init', function (msg) {
-    var clonedMsg = utils.clone(msg);
+    var clonedMsg = commonUtils.clone(msg);
     clonedMsg.password = '[hidden from log]';
     clonedMsg.hashed = '[hidden from log]';
     log.info('received (from ' + socket.conn.id + ') init:' + JSON.stringify(clonedMsg));

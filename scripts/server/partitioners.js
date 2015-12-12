@@ -5,7 +5,7 @@
 var Promise = require('bluebird'),
   Partitioner = require('../partitioner/sql'),
   log = require('../server/log'),
-  utils = require('../utils'),
+  commonUtils = require('deltadb-common-utils'),
   clientUtils = require('../client/utils'),
   SocketClosedError = require('../orm/sql/common/socket-closed-error'),
   DBMissingError = require('../client/db-missing-error'),
@@ -132,7 +132,7 @@ Partitioners.prototype.unregister = function (dbName, socket) {
   delete this._partitioners[dbName].conns[socket.conn.id];
 
   // Delete partitioner if no more connections for this partition
-  if (utils.empty(this._partitioners[dbName].conns)) {
+  if (commonUtils.empty(this._partitioners[dbName].conns)) {
     return this._unregisterPartitioner(dbName);
   } else {
     return Promise.resolve();
@@ -147,7 +147,7 @@ Partitioners.prototype._notifyAllPartitionerConnections = function (partitioner,
   var self = this;
 
   // Loop through all associated conns and notify that sync is needed
-  utils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
+  commonUtils.each(self._partitioners[partitioner._dbName].conns, function (conn) {
     self.findAndEmitChanges(partitioner._dbName, conn.socket);
   });
 
