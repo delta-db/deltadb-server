@@ -6,7 +6,7 @@ var Promise = require('bluebird'),
   Roles = require('../roles'),
   Users = require('./users'),
   SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var UserRoles = function (sql) {
   this._sql = sql;

@@ -3,7 +3,7 @@
 // TODO: move Cols.ALL up so not at SQL layer. Same for any other partitioner deps at SQL layer
 var Cols = require('../partitioner/sql/col/cols'),
   Users = require('../partitioner/sql/user/users'),
-  clientUtils = require('../client/utils'),
+  clientUtils = require('deltadb/scripts/utils'),
   Roles = require('../partitioner/sql/roles');
 
 var System = function (manager) {

@@ -7,7 +7,7 @@ var commonUtils = require('deltadb-common-utils'),
   ColRoles = require('./col/col-roles'),
   UserRoles = require('./user/user-roles'),
   DocRecs = require('./doc/doc-recs'),
-  Doc = require('../../client/doc'),
+  Doc = require('deltadb/scripts/doc'),
   Users = require('./user/users');
 
 var Policy = function (sql, roles, colRoles, userRoles) {

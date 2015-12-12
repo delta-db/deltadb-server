@@ -33,7 +33,7 @@ var Globals = require('./globals'),
   log = require('../../server/log'),
   EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
-  clientUtils = require('../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 // Sessions = require('./sessions');
 
 var Part = function (dbName, sql) {

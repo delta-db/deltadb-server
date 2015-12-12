@@ -5,10 +5,10 @@ var Promise = require('bluebird'),
   constants = require('../constants'),
   SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
-  AuthenticationError = require('../../../client/authentication-error'),
-  DisabledError = require('../../../client/disabled-error'),
+  AuthenticationError = require('deltadb/scripts/authentication-error'),
+  DisabledError = require('deltadb/scripts/disabled-error'),
   Cols = require('../col/cols'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var Users = function (sql, roles, userRoles, partitioner) {
   this._sql = sql;

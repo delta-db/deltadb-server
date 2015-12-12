@@ -4,7 +4,7 @@ var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
   ForbiddenError = require('../forbidden-error'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
 var Cols = function (sql, policy) {
   this._sql = sql;
