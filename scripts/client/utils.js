@@ -15,6 +15,7 @@ Utils.prototype.hash = function (password, salt) {
   var self = this;
   return new Promise(function (resolve, reject) {
     self._bcrypt.hash(password, salt, function (err, hash) {
+      /* istanbul ignore next */
       if (err) {
         reject(err);
       }
@@ -27,6 +28,7 @@ Utils.prototype.genSalt = function () {
   var self = this;
   return new Promise(function (resolve, reject) {
     self._bcrypt.genSalt(10, function (err, salt) {
+      /* istanbul ignore next */
       if (err) {
         reject(err);
       }
@@ -98,12 +100,12 @@ Utils.prototype.timeout = function (ms) {
 };
 
 // Executes promise and then resolves after event emitted once
-Utils.prototype.doAndOnce = function (promise, emitter, evnt) {
-  var once = this.once(emitter, evnt);
-  return promise().then(function () {
-    return once;
-  });
-};
+// Utils.prototype.doAndOnce = function (promise, emitter, evnt) {
+//   var once = this.once(emitter, evnt);
+//   return promise().then(function () {
+//     return once;
+//   });
+// };
 
 Utils.prototype.once = function (emitter, evnt) {
   return new Promise(function (resolve) {
