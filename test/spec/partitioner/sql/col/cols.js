@@ -5,12 +5,12 @@
 var partDir = '../../../../../scripts/partitioner/sql';
 
 var partUtils = require('../utils'),
-  Cols = require(partDir + '/col/cols');
+  Cols = require(partDir + '/col/cols'),
+  testUtils = require('../../../../utils');
 
 describe('cols', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var utils = args.utils;
 
   var userUtils = null;
   beforeEach(function () {
@@ -21,7 +21,7 @@ describe('cols', function () {
     return args.db._sql.find(null, 'cols', null, ['id', '<=', Cols.ID_LAST_RESERVED], ['id',
       'asc'
     ]).then(function (results) {
-      utils.contains([{
+      testUtils.contains([{
           id: Cols.ID_ALL,
           name: '$all'
         }, {

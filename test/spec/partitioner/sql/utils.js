@@ -15,7 +15,6 @@ Utils.prototype.init = function (thisArg, beforeEach, afterEach, noAll /* , befo
 
   var args = {};
   args.userUtils = new UserUtils(args);
-  args.utils = utils; // TODO: rename to testUtils
 
   beforeEach(function () {
     // Faster to truncate than destroy & create - only create/destroy once for each set of tests

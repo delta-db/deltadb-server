@@ -4,16 +4,16 @@
 
 var partUtils = require('../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants'),
-  QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs');
+  QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs'),
+  testUtils = require('../../../../utils');
 
 describe('multiple', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var queueAndProcess = function (changes) {
     // Force quorum=true. We will test the processing of quorum elsewhere
-    return utils.queueAndProcess(args.db, changes, true);
+    return testUtils.queueAndProcess(args.db, changes, true);
   };
 
   var changes = [{
@@ -70,17 +70,17 @@ describe('multiple', function () {
 
   var docsShouldEqual = function (partition) {
     // TODO: ensure rows[0].recorded_at is from the last couple seconds
-    return utils.docsShouldEql(args.db, partition, [{
-      id: utils.docId,
+    return testUtils.docsShouldEql(args.db, partition, [{
+      id: testUtils.docId,
       uuid: '1',
       updated_at: changes[2].up
     }, {
-      id: utils.docId + 1,
+      id: testUtils.docId + 1,
       uuid: '2',
       updated_at: changes[3].up,
       destroyed_at: changes[4].up
     }, {
-      id: utils.docId + 2,
+      id: testUtils.docId + 2,
       uuid: '3',
       updated_at: changes[7].up
     }]);
@@ -90,47 +90,47 @@ describe('multiple', function () {
     return queueAndProcess(changes).then(function () {
       return docsShouldEqual(partition);
     }).then(function () {
-      return utils.attrsShouldEql(args.db, partition, [{
-          doc_id: utils.docId,
+      return testUtils.attrsShouldEql(args.db, partition, [{
+          doc_id: testUtils.docId,
           name: 'priority',
           value: '"medium"',
           updated_at: changes[1].up
         }, {
-          doc_id: utils.docId,
+          doc_id: testUtils.docId,
           name: 'priority',
           value: '"high"',
           updated_at: changes[2].up
         }, {
-          doc_id: utils.docId,
+          doc_id: testUtils.docId,
           name: 'thing',
           value: '"write"',
           updated_at: changes[0].up
         },
 
         {
-          doc_id: utils.docId + 1,
+          doc_id: testUtils.docId + 1,
           name: 'thing',
           value: '"sing"',
           updated_at: changes[3].up
         }, {
-          doc_id: utils.docId + 1,
+          doc_id: testUtils.docId + 1,
           name: null,
           value: null,
           updated_at: changes[4].up
         },
 
         {
-          doc_id: utils.docId + 2,
+          doc_id: testUtils.docId + 2,
           name: 'priority',
           value: '"medium"',
           updated_at: changes[6].up
         }, {
-          doc_id: utils.docId + 2,
+          doc_id: testUtils.docId + 2,
           name: 'priority',
           value: null,
           updated_at: changes[7].up
         }, {
-          doc_id: utils.docId + 2,
+          doc_id: testUtils.docId + 2,
           name: 'thing',
           value: '"play"',
           updated_at: changes[5].up
@@ -151,37 +151,37 @@ describe('multiple', function () {
     return shouldAddToAllOrRecent(constants.ALL).then(function () {
       return docsShouldEqual(constants.LATEST);
     }).then(function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
-          doc_id: utils.docId,
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
+          doc_id: testUtils.docId,
           name: 'priority',
           value: '"high"',
           updated_at: changes[2].up
         }, {
-          doc_id: utils.docId,
+          doc_id: testUtils.docId,
           name: 'thing',
           value: '"write"',
           updated_at: changes[0].up
         },
 
         {
-          doc_id: utils.docId + 1,
+          doc_id: testUtils.docId + 1,
           name: 'thing',
           value: '"sing"',
           updated_at: changes[3].up
         }, {
-          doc_id: utils.docId + 1,
+          doc_id: testUtils.docId + 1,
           name: null,
           value: null,
           updated_at: changes[4].up
         },
 
         {
-          doc_id: utils.docId + 2,
+          doc_id: testUtils.docId + 2,
           name: 'priority',
           value: null,
           updated_at: changes[7].up
         }, {
-          doc_id: utils.docId + 2,
+          doc_id: testUtils.docId + 2,
           name: 'thing',
           value: '"play"',
           updated_at: changes[5].up
@@ -220,9 +220,9 @@ describe('multiple', function () {
     }];
 
     return queueAndProcess(changes).then(function () {
-      return utils.findAttrs(args.db, constants.LATEST);
+      return testUtils.findAttrs(args.db, constants.LATEST);
     }).then(function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: '"medium"',
         updated_at: changes[1].up

@@ -2,7 +2,8 @@
 
 var testUtils = require('../../../utils'),
   Partitioner = require('../../../../scripts/partitioner/sql'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('partitioner', function () {
 
@@ -27,7 +28,7 @@ describe('partitioner', function () {
 
   it('should throw error if trying to connect to missing db', function () {
     var otherPart = new Partitioner('testdb2');
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return otherPart.connect();
     }, new DBMissingError());
   });

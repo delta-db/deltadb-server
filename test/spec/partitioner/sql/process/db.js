@@ -6,12 +6,12 @@ var partDir = '../../../../../scripts/partitioner/sql';
 
 var partUtils = require('../utils'),
   Cols = require(partDir + '/col/cols'),
-  Roles = require(partDir + '/roles');
+  Roles = require(partDir + '/roles'),
+  testUtils = require('../../../../utils');
 
 describe('db', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {

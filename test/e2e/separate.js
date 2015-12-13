@@ -3,7 +3,8 @@
 var Client = require('deltadb/scripts/adapter'),
   DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
-  commonUtils = require('../common-utils');
+  browserTestUtils = require('../browser-utils'),
+  MemAdapter = require('deltadb-orm-nosql/scripts/adapters/mem');
 
 describe('separate', function () {
 
@@ -30,7 +31,12 @@ describe('separate', function () {
     clientB = new Client();
 
     b = clientB.db({
-      db: 'mydb'
+      db: 'mydb',
+
+      // TODO: remove once we support multiple clients per IndexedDB
+      // Use a MemAdapter here as we don't currently support two different clients in the same app
+      // sharing the same IndexedDB.
+      store: new MemAdapter().db('mydb')
     });
 
     bTasks = b.col('tasks');
@@ -68,7 +74,7 @@ describe('separate', function () {
     });
 
     var setChangesShouldEql = function (changes) {
-      commonUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -80,7 +86,7 @@ describe('separate', function () {
     };
 
     var aEmitChangesShouldEql = function () {
-      commonUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -88,7 +94,7 @@ describe('separate', function () {
     };
 
     var bEmitChangesShouldEql = function () {
-      commonUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'priority',
         val: '"high"',
         col: 'tasks'
@@ -141,7 +147,7 @@ describe('separate', function () {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
         shouldResolve(resolve, reject);
-      }, commonUtils.TIMEOUT - 2000); // commonUtils.TIMEOUT - 1 sec is not enough time
+      }, browserTestUtils.TIMEOUT - 2000); // browserTestUtils.TIMEOUT - 1 sec is not enough time
 
     });
 

@@ -8,12 +8,12 @@
 
 var partUtils = require('../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants'),
-  ProcTestUtils = require('./utils');
+  ProcTestUtils = require('./utils'),
+  testUtils = require('../../../../utils');
 
 describe('simple', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var procTestUtils = null;
 
@@ -32,7 +32,7 @@ describe('simple', function () {
   var create = function () {
 
     var attrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: createChanges[0].up
@@ -65,7 +65,7 @@ describe('simple', function () {
   var update = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: createChanges[0].up
@@ -77,7 +77,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: '"write a song"',
         updated_at: updateChanges[0].up
@@ -109,7 +109,7 @@ describe('simple', function () {
   var destroyAttr = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: createChanges[0].up
@@ -125,7 +125,7 @@ describe('simple', function () {
     };
 
     var recentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: null,
         updated_at: destroyAttrChanges[0].up
@@ -156,7 +156,7 @@ describe('simple', function () {
   var destroyDoc = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: createChanges[0].up
@@ -176,7 +176,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: null,
         updated_at: destroyAttrChanges[0].up
@@ -240,7 +240,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: changes[0].up
@@ -253,7 +253,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: '"write a song"',
         updated_at: changes[1].up,
@@ -295,7 +295,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -340,7 +340,7 @@ describe('simple', function () {
     }];
 
     var partitionAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -384,7 +384,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -397,7 +397,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: null,
         updated_at: changes[1].up,
@@ -438,7 +438,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: null,
         updated_at: changes[0].up
@@ -451,7 +451,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[1].up,
@@ -498,7 +498,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"play a song"',
         updated_at: changes[2].up
@@ -514,7 +514,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: '"write a song"',
         updated_at: changes[1].up
@@ -559,7 +559,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"write a song"',
         updated_at: changes[1].up
@@ -575,7 +575,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: '"sing a song"',
         updated_at: changes[0].up
@@ -618,7 +618,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -634,7 +634,7 @@ describe('simple', function () {
     };
 
     var recentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"low"',
         updated_at: changes[2].up
@@ -682,7 +682,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -698,7 +698,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: null,
         updated_at: changes[1].up
@@ -739,7 +739,7 @@ describe('simple', function () {
     }];
 
     var partitionAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: changes[1].up
@@ -790,7 +790,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -807,7 +807,7 @@ describe('simple', function () {
 
     var recentOrLatestAttrs = function (partition) {
       // Attr deletion causes last value to be null before doc delete
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: null,
         updated_at: changes[2].up
@@ -872,7 +872,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: changes[2].up
@@ -896,7 +896,7 @@ describe('simple', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[3].up
@@ -947,7 +947,7 @@ describe('simple', function () {
     }];
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -964,7 +964,7 @@ describe('simple', function () {
 
     var recentOrLatestAttrs = function (partition) {
       // Attr deletion causes last value to be null before doc delete
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up

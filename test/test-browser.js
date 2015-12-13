@@ -14,11 +14,11 @@ var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should(); // var should = chai.should();
 
-var commonUtils = require('./common-utils');
+var browserTestUtils = require('./browser-utils');
 
 describe('browser', function () {
 
-  this.timeout(commonUtils.TIMEOUT);
+  this.timeout(browserTestUtils.TIMEOUT);
 
   require('./browser');
 

@@ -7,27 +7,18 @@ var Promise = require('bluebird'),
   Docs = require('../scripts/partitioner/sql/doc/doc-recs'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
-  commonTestUtils = require('./common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
   clientUtils = require('deltadb/scripts/utils'),
-  clientTestUtils = require('deltadb/test/utils');
+  clientTestUtils = require('deltadb/test/utils'),
+  browserTestUtils = require('./browser-utils');
 
 var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
-Utils.prototype.TIMEOUT = commonTestUtils.TIMEOUT;
+Utils.prototype.TIMEOUT = browserTestUtils.TIMEOUT;
 
 Utils.prototype.setUp = function (thisArg) {
   thisArg.timeout(this.TIMEOUT); // increase timeout
-};
-
-Utils.prototype.toTime = function ( /* rows */ ) {
-  // TODO: change all callers to use clientTestUtils
-  return clientTestUtils.toTime.apply(clientTestUtils, arguments);
-};
-
-Utils.prototype.eqls = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use clientTestUtils
-  return clientTestUtils.eqls.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype.eql = function (v1, v2) {
@@ -98,7 +89,7 @@ Utils.prototype.timeout = function () {
 };
 
 Utils.prototype.sleep = function ( /* sleepMs */ ) {
-  // TODO: change all callers to use utils
+  // TODO: change all callers to use clientTestUtils
   return clientTestUtils.sleep.apply(clientTestUtils, arguments);
 };
 
@@ -107,7 +98,7 @@ Utils.prototype._toDate = function (val) {
 };
 
 Utils.prototype.allShouldEql = function ( /* collection, expected */ ) {
-  // TODO: change all callers to use utils
+  // TODO: change all callers to use clientUtils
   return clientTestUtils.allShouldEql.apply(clientUtils, arguments);
 };
 
@@ -222,11 +213,6 @@ Utils.prototype.attrsShouldEql = function (db, partition, expected, quorum, wher
   });
 };
 
-Utils.prototype.sortChanges = function ( /* changes */ ) {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.sortChanges.apply(commonTestUtils, arguments);
-};
-
 Utils.prototype.findColRoles = function (db, where) {
   where = commonUtils.notDefined(where) ? ['col_id', '>=', this.colId] : where;
   return db._sql.find(null, ColRoles.NAME, null, where, [
@@ -294,53 +280,6 @@ Utils.prototype.userId = Users.ID_LAST_RESERVED + 1;
 
 Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
 
-Utils.prototype.never = function () {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.never.apply(commonTestUtils, arguments);
-};
-
-Utils.prototype.shouldThrow = function () {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.shouldThrow.apply(commonTestUtils, arguments);
-};
-
-// TODO: refactor test code to use this more
-Utils.prototype.promiseErrorFactory = function (err) {
-  return function () {
-    return new Promise(function () {
-      throw err;
-    });
-  };
-};
-
-// TODO: refactor test code to use this more
-Utils.prototype.promiseResolveFactory = function (data) {
-  return commonUtils.resolveFactory(data);
-};
-
-Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use clientTestUtils
-  return clientTestUtils.changesShouldEql.apply(clientTestUtils, arguments);
-};
-
-Utils.prototype.shouldOnce = function (emitter, evnt) {
-  var self = this,
-    err = true,
-    args = null;
-
-  emitter.once(evnt, function (_args) {
-    err = false;
-    args = _args;
-  });
-
-  return self.timeout(100).then(function () {
-    if (err) {
-      self.never('should have emitted event ' + evnt);
-    }
-    return args;
-  });
-};
-
 Utils.prototype.shouldDoAndOnce = function ( /* promiseFactory, emitter, evnt */ ) {
   // TODO: change all callers to use commonTestUtils
   return commonTestUtils.shouldDoAndOnce.apply(commonTestUtils, arguments);
@@ -350,6 +289,22 @@ Utils.prototype.shouldDoAndOnce = function ( /* promiseFactory, emitter, evnt */
 Utils.prototype.shouldDoAndNotOnce = function ( /* promiseFactory, emitter, evnt */ ) {
   // TODO: change all callers to use commonTestUtils
   return commonTestUtils.shouldDoAndNotOnce.apply(commonTestUtils, arguments);
+};
+
+Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
+  return browserTestUtils.changesShouldEql.apply(browserTestUtils, arguments);
+};
+
+Utils.prototype.sortChanges = function ( /* changes */ ) {
+  return browserTestUtils.sortChanges.apply(browserTestUtils, arguments);
+};
+
+Utils.prototype.eqls = function ( /* expected, actual */ ) {
+  return browserTestUtils.eqls.apply(browserTestUtils, arguments);
+};
+
+Utils.prototype.toTime = function ( /* rows */ ) {
+  return browserTestUtils.toTime.apply(browserTestUtils, arguments);
 };
 
 module.exports = new Utils();

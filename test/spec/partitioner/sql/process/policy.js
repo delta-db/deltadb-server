@@ -10,22 +10,22 @@ var partDir = '../../../../../scripts/partitioner/sql';
 
 var partUtils = require('../utils'),
   Cols = require(partDir + '/col/cols'),
-  Docs = require(partDir + '/doc/doc-recs');
+  Docs = require(partDir + '/doc/doc-recs'),
+  testUtils = require('../../../../utils');
 
 describe('policy', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {
     // args.userUtils is no instantiated
-    utils.docId = Docs.ID_LAST_RESERVED + 4; // after $policy, $user and $role
+    testUtils.docId = Docs.ID_LAST_RESERVED + 4; // after $policy, $user and $role
     userUtils = args.userUtils;
   });
 
   afterEach(function () {
-    utils.docId = Docs.ID_LAST_RESERVED + 2; // restore to default for other tests
+    testUtils.docId = Docs.ID_LAST_RESERVED + 2; // restore to default for other tests
   });
 
   // TODO: refactor not to run through process() and move to ../policy.js
@@ -48,7 +48,7 @@ describe('policy', function () {
         .then(function (results) {
           var superRoleColId = Cols.ID_ROLE_USERS_SUPER,
             superUserColId = Cols.ID_USER_ROLES_SUPER;
-          utils.contains([
+          testUtils.contains([
 
             // DB policy
             {
@@ -121,22 +121,22 @@ describe('policy', function () {
 
             // Col policy for task
             {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleIds.$all,
               action: 'create'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleIds.$all,
               action: 'read'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleIds.$all,
               action: 'update'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleIds.$all,
               action: 'destroy'
@@ -146,7 +146,7 @@ describe('policy', function () {
     };
 
     return args.db.truncateDatabase().then(function () {
-      return utils.queueAndProcess(args.db, changes, true);
+      return testUtils.queueAndProcess(args.db, changes, true);
     }).then(function () {
       return userUtils.getRoleIds();
     }).then(function (roleIds) {
@@ -177,7 +177,7 @@ describe('policy', function () {
             roleId = roleIds[role];
           var superRoleColId = Cols.ID_ROLE_USERS_SUPER,
             superUserColId = Cols.ID_USER_ROLES_SUPER;
-          utils.contains([
+          testUtils.contains([
 
             // DB policy
             {
@@ -250,22 +250,22 @@ describe('policy', function () {
 
             // Col policy for user's roles
             {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleId,
               action: 'create'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleId,
               action: 'read'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleId,
               action: 'update'
             }, {
-              col_id: utils.colId,
+              col_id: testUtils.colId,
               name: null,
               role_id: roleId,
               action: 'destroy'
@@ -273,22 +273,22 @@ describe('policy', function () {
 
             // Col policy for role's users
             {
-              col_id: utils.colId + 1,
+              col_id: testUtils.colId + 1,
               name: null,
               role_id: roleId,
               action: 'create'
             }, {
-              col_id: utils.colId + 1,
+              col_id: testUtils.colId + 1,
               name: null,
               role_id: roleId,
               action: 'read'
             }, {
-              col_id: utils.colId + 1,
+              col_id: testUtils.colId + 1,
               name: null,
               role_id: roleId,
               action: 'update'
             }, {
-              col_id: utils.colId + 1,
+              col_id: testUtils.colId + 1,
               name: null,
               role_id: roleId,
               action: 'destroy'
@@ -296,22 +296,22 @@ describe('policy', function () {
 
             // Col policy for task
             {
-              col_id: utils.colId + 2,
+              col_id: testUtils.colId + 2,
               name: null,
               role_id: roleId,
               action: 'create'
             }, {
-              col_id: utils.colId + 2,
+              col_id: testUtils.colId + 2,
               name: null,
               role_id: roleId,
               action: 'read'
             }, {
-              col_id: utils.colId + 2,
+              col_id: testUtils.colId + 2,
               name: null,
               role_id: roleId,
               action: 'update'
             }, {
-              col_id: utils.colId + 2,
+              col_id: testUtils.colId + 2,
               name: null,
               role_id: roleId,
               action: 'destroy'
@@ -321,7 +321,7 @@ describe('policy', function () {
     };
 
     return args.db.truncateDatabase().then(function () {
-      return utils.queueAndProcess(args.db, changes, true);
+      return testUtils.queueAndProcess(args.db, changes, true);
     }).then(function () {
       return userUtils.getRoleIds();
     }).then(function (roleIds) {

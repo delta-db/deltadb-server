@@ -5,12 +5,12 @@
 // TODO: throw exception when errors in changes formatting
 
 var partUtils = require('../utils'),
-  clientTestUtils = require('deltadb/test/utils');
+  clientTestUtils = require('deltadb/test/utils'),
+  testUtils = require('../../../../utils');
 
 describe('basic', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var testUtils = args.utils;
 
   var queueAndProcess = function (changes) {
     // Force quorum=true. We don't need to consider quorum when getting changes as only changes

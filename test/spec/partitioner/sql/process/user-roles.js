@@ -7,13 +7,14 @@ var partDir = '../../../../../scripts/partitioner/sql';
 var partUtils = require('../utils'),
   Promise = require('bluebird'),
   ForbiddenError = require(partDir + '/forbidden-error'),
-  commonUtils = require('deltadb-common-utils');
+  commonUtils = require('deltadb-common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
+  testUtils = require('../../../../utils');
 
 describe('user-roles', function () {
 
   var noAll = false;
   var args = partUtils.init(this, beforeEach, afterEach, noAll, before, after);
-  var testUtils = args.utils;
 
   beforeEach(function () {
     return args.db._cols.truncateTable();
@@ -191,7 +192,7 @@ describe('user-roles', function () {
         roleName: 'role'
       })
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._process._takeUserRoleInventoryForAttr(0);
     }, new Error('err'));
   });

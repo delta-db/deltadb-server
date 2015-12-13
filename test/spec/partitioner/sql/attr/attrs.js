@@ -7,14 +7,14 @@ var partDir = '../../../../../scripts/partitioner/sql',
   constants = require(partDir + '/constants'),
   ForbiddenError = require(partDir + '/forbidden-error'),
   Attrs = require(partDir + '/attr/attrs'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('attrs', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
-  var testUtils = args.utils,
-    attrRecs = null;
+  var attrRecs = null;
 
   beforeEach(function () {
     attrRecs = args.db._partitions[constants.LATEST]._attrRecs;
@@ -28,7 +28,7 @@ describe('attrs', function () {
         return Promise.resolve(false);
       }
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return attrs.canDestroy();
     }, new ForbiddenError('cannot destroy attr undefined (docUUID=undefined)'));
   });

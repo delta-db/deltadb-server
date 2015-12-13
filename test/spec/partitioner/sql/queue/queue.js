@@ -3,12 +3,12 @@
 /* global before, after */
 
 var partUtils = require('../utils'),
-  QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs');
+  QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs'),
+  testUtils = require('../../../../utils');
 
 describe('queue', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, true, before, after);
-  var utils = args.utils;
 
   var queueAttrs = function () {
     return args.db._sql.find(null, QueueAttrRecs.NAME, null, null, [
@@ -36,7 +36,7 @@ describe('queue', function () {
       });
     });
     return queueAttrs().then(function (rows) {
-      utils.contains(attrs, rows);
+      testUtils.contains(attrs, rows);
     });
   };
 

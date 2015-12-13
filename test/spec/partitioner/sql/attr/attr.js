@@ -4,21 +4,21 @@
 
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
-  commonUtils = require('../../../../common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
   constants = require(partDir + '/constants'),
   ForbiddenError = require(partDir + '/forbidden-error'),
   Attr = require(partDir + '/attr/attr'),
   System = require('../../../../../scripts/system'),
   Promise = require('bluebird'),
   DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
+  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
+  commonUtils = require('deltadb-common-utils');
 
 describe('attr', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
-  var attrRecs = null,
-    testUtils = args.utils;
+  var attrRecs = null;
 
   beforeEach(function () {
     attrRecs = args.db._partitions[constants.LATEST]._attrRecs;
@@ -56,7 +56,7 @@ describe('attr', function () {
   it('should throw non-forbidden error when creating', function () {
     var attr = new Attr(),
       err = new Error();
-    return commonUtils.shouldNonPromiseThrow(function () {
+    return commonTestUtils.shouldNonPromiseThrow(function () {
       attr._processCreateErr(err);
     }, err);
   });
@@ -101,10 +101,10 @@ describe('attr', function () {
     };
 
     attr._partitioner = { // fake
-      createAnotherDatabase: testUtils.promiseErrorFactory(err)
+      createAnotherDatabase: commonUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return attr._createDB();
     }, err);
   });
@@ -120,7 +120,7 @@ describe('attr', function () {
     };
 
     attr._partitioner = { // fake
-      createAnotherDatabase: testUtils.promiseErrorFactory(err)
+      createAnotherDatabase: commonUtils.promiseErrorFactory(err)
     };
 
     return attr._createDB();
@@ -137,10 +137,10 @@ describe('attr', function () {
     };
 
     attr._partitioner = { // fake
-      destroyAnotherDatabase: testUtils.promiseErrorFactory(err)
+      destroyAnotherDatabase: commonUtils.promiseErrorFactory(err)
     };
 
-    return commonUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return attr._destroyDB();
     }, err);
   });
@@ -156,7 +156,7 @@ describe('attr', function () {
     };
 
     attr._partitioner = { // fake
-      destroyAnotherDatabase: testUtils.promiseErrorFactory(err)
+      destroyAnotherDatabase: commonUtils.promiseErrorFactory(err)
     };
 
     return attr._destroyDB();

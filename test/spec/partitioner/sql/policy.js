@@ -11,12 +11,12 @@ var partDir = '../../../../scripts/partitioner/sql',
   Cols = require(partDir + '/col/cols'),
   ColRoles = require(partDir + '/col/col-roles'),
   Manager = require(partDir + '/../../manager'),
-  Doc = require('deltadb/scripts/doc');
+  Doc = require('deltadb/scripts/doc'),
+  testUtils = require('../../../utils');
 
 describe('policy', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var truncate = function () {
     return docs.truncateTable().then(function () {

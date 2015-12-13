@@ -4,12 +4,12 @@
 
 var partUtils = require('../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants'),
-  ProcTestUtils = require('./utils');
+  ProcTestUtils = require('./utils'),
+  testUtils = require('../../../../utils');
 
 describe('boolean', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
   var procTestUtils = null;
 
   beforeEach(function () {
@@ -27,7 +27,7 @@ describe('boolean', function () {
   var create = function () {
 
     var attrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'completed',
         value: 'false',
         updated_at: createChanges[0].up
@@ -60,7 +60,7 @@ describe('boolean', function () {
   var update = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'completed',
         value: 'false',
         updated_at: createChanges[0].up
@@ -72,7 +72,7 @@ describe('boolean', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'completed',
         value: 'false',
         updated_at: updateChanges[0].up
@@ -104,7 +104,7 @@ describe('boolean', function () {
   var destroyAttr = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'completed',
         value: 'false',
         updated_at: createChanges[0].up
@@ -119,7 +119,7 @@ describe('boolean', function () {
     };
 
     var recentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'completed',
         updated_at: destroyAttrChanges[0].up
       }], true);

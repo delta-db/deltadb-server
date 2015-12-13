@@ -4,12 +4,12 @@
 
 var partUtils = require('../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants'),
-  clientTestUtils = require('deltadb/test/utils');
+  clientTestUtils = require('deltadb/test/utils'),
+  testUtils = require('../../../../utils');
 
 describe('archive', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var shouldArchive = function (partition, quorum) {
     var updated = null;
@@ -36,11 +36,11 @@ describe('archive', function () {
       up: '2014-01-01T10:02:00.000Z'
     }];
 
-    return utils.queueAndProcess(args.db, createChanges, quorum).then(function () {
+    return testUtils.queueAndProcess(args.db, createChanges, quorum).then(function () {
       return clientTestUtils.sleep(); // ensure different timestamp
     }).then(function () {
       updated = new Date();
-      return utils.queueAndProcess(args.db, updateChanges, quorum);
+      return testUtils.queueAndProcess(args.db, updateChanges, quorum);
     }).then(function () {
       return args.db.archive(updated); // archive everything before last change
     }).then(function () {
@@ -48,24 +48,24 @@ describe('archive', function () {
     }).then(function (archived) {
       archived.should.eql('' + updated.getTime());
     }).then(function () {
-      return utils.findDocs(args.db, partition);
+      return testUtils.findDocs(args.db, partition);
     }).then(function (results) {
       var rows = results.rows;
       if (!quorum && partition === constants.LATEST) {
         (rows === null).should.eql(true);
       } else {
-        utils.docsEql([{
+        testUtils.docsEql([{
           uuid: '1'
         }], rows);
       }
     }).then(function () {
-      return utils.findAttrs(args.db, partition);
+      return testUtils.findAttrs(args.db, partition);
     }).then(function (results) {
       var rows = results.rows;
       if (!quorum && partition === constants.LATEST) {
         (rows === null).should.eql(true);
       } else {
-        utils.attrsEql([{
+        testUtils.attrsEql([{
           name: 'priority',
           value: '"high"',
           quorum: quorum

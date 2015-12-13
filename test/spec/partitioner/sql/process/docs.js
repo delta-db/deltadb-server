@@ -7,13 +7,14 @@ var partDir = '../../../../../scripts/partitioner/sql',
   constants = require(partDir + '/constants'),
   Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
-  ForbiddenError = require(partDir + '/forbidden-error');
+  ForbiddenError = require(partDir + '/forbidden-error'),
+  testUtils = require('../../../../utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('docs', function () {
 
   var noAll = true; // don't set default policy so that the policy doesn't muddy our tests
   var args = partUtils.init(this, beforeEach, afterEach, noAll, before, after);
-  var testUtils = args.utils;
 
   var origDocId = null,
     uuidOrig = null;
@@ -110,7 +111,7 @@ describe('docs', function () {
     args.db._process._colIds = {
       'col-name': 1
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._process._getOrCreateDoc(constants.ALL, {
         colName: 'col-name',
         userUUID: 'user-uuid'

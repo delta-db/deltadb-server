@@ -7,12 +7,12 @@ var partDir = '../../../../../scripts/partitioner/sql',
   constants = require(partDir + '/constants'),
   Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('doc-recs', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var docs = null;
 
@@ -62,7 +62,7 @@ describe('doc-recs', function () {
         throw new Error('err');
       });
     };
-    testUtils.shouldThrow(function () {
+    commonTestUtils.shouldThrow(function () {
       return docs.getOrCreate();
     }, new Error('err'));
   });

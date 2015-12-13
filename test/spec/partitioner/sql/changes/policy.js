@@ -6,12 +6,12 @@
 
 // TODO: split up and/or abstract boilerplate code
 
-var partUtils = require('../utils');
+var partUtils = require('../utils'),
+  testUtils = require('../../../../utils');
 
 describe('policy', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {
