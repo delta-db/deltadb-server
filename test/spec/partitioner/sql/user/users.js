@@ -11,7 +11,7 @@ var partUtils = require('../utils'),
   commonUtils = require('deltadb-common-utils'),
   SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
-  AuthenticationError = require('../../../../../scripts/client/authentication-error');
+  AuthenticationError = require('deltadb/scripts/authentication-error');
 
 describe('users', function () {
 

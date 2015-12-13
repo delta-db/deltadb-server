@@ -8,7 +8,8 @@ var Promise = require('bluebird'),
   Users = require('../scripts/partitioner/sql/user/users'),
   Roles = require('../scripts/partitioner/sql/roles'),
   commonTestUtils = require('./common-utils'),
-  clientUtils = require('../scripts/client/utils');
+  clientUtils = require('deltadb/scripts/utils'),
+  clientTestUtils = require('deltadb/test/utils');
 
 var Utils = function () {};
 
@@ -20,13 +21,13 @@ Utils.prototype.setUp = function (thisArg) {
 };
 
 Utils.prototype.toTime = function ( /* rows */ ) {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.toTime.apply(commonTestUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.toTime.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype.eqls = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.eqls.apply(commonTestUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.eqls.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype.eql = function (v1, v2) {
@@ -92,13 +93,13 @@ Utils.prototype.contains = function (expected, actual) {
 };
 
 Utils.prototype.timeout = function () {
-  // TODO: change all callers to use utils
-  return clientUtils.timeout.apply(clientUtils, arguments);
+  // TODO: change all callers to use commonUtils
+  return commonUtils.timeout.apply(commonUtils, arguments);
 };
 
 Utils.prototype.sleep = function ( /* sleepMs */ ) {
   // TODO: change all callers to use utils
-  return commonTestUtils.sleep.apply(clientUtils, arguments);
+  return clientTestUtils.sleep.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype._toDate = function (val) {
@@ -107,7 +108,7 @@ Utils.prototype._toDate = function (val) {
 
 Utils.prototype.allShouldEql = function ( /* collection, expected */ ) {
   // TODO: change all callers to use utils
-  return commonTestUtils.allShouldEql.apply(clientUtils, arguments);
+  return clientTestUtils.allShouldEql.apply(clientUtils, arguments);
 };
 
 // docUUID id of first data attr
@@ -318,8 +319,8 @@ Utils.prototype.promiseResolveFactory = function (data) {
 };
 
 Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
-  // TODO: change all callers to use commonTestUtils
-  return commonTestUtils.changesShouldEql.apply(commonTestUtils, arguments);
+  // TODO: change all callers to use clientTestUtils
+  return clientTestUtils.changesShouldEql.apply(clientTestUtils, arguments);
 };
 
 Utils.prototype.shouldOnce = function (emitter, evnt) {

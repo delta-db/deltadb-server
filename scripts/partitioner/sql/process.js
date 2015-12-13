@@ -21,7 +21,7 @@ var Promise = require('bluebird'),
   QueueAttrRec = require('./queue/queue-attr-rec'),
   Cols = require('./col/cols'),
   Users = require('./user/users'),
-  Doc = require('../../client/doc'),
+  Doc = require('deltadb/scripts/doc'),
   UserRoles = require('./user/user-roles'),
   log = require('../../server/log');
 

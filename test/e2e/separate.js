@@ -1,7 +1,7 @@
 'use strict';
 
-var Client = require('../../scripts/client/adapter'),
-  DB = require('../../scripts/client/db'),
+var Client = require('deltadb/scripts/adapter'),
+  DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
   commonUtils = require('../common-utils');
 

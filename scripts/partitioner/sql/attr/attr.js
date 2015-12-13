@@ -11,9 +11,9 @@ var Promise = require('bluebird'),
   DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
   DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
   commonUtils = require('deltadb-common-utils'),
-  clientUtils = require('../../../client/utils');
+  clientUtils = require('deltadb/scripts/utils');
 
-var Doc = require('../../../client/doc');
+var Doc = require('deltadb/scripts/doc');
 
 var Attr = function (sql, partitionName, policy, partitions, users, docs, params, roles,
   partitioner) {

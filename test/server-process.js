@@ -4,7 +4,7 @@
 // the config first so that all of the following code uses this config.
 var config = require('../config'),
   testConfig = require('./config'),
-  clientConfig = require('../scripts/client/config'); // server also uses client
+  clientConfig = require('deltadb/scripts/config'); // server also uses client
 for (var i in testConfig) {
   config[i] = testConfig[i];
   clientConfig[i] = testConfig[i];
@@ -30,7 +30,7 @@ var fs = require('fs'),
   Manager = require('../scripts/manager'),
   System = require('../scripts/system'),
   DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
-  log = require('../scripts/client/log'),
+  log = require('deltadb/scripts/log'),
   serverLog = require('../scripts/server/log'),
   ServerContainer = require('../scripts/server'),
   fs = require('fs');
