@@ -3,7 +3,7 @@
 var Client = require('deltadb/scripts/adapter'),
   DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
-  testUtils = require('../utils');
+  browserTestUtils = require('../browser-utils');
 
 describe('separate', function () {
 
@@ -68,7 +68,7 @@ describe('separate', function () {
     });
 
     var setChangesShouldEql = function (changes) {
-      testUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -80,7 +80,7 @@ describe('separate', function () {
     };
 
     var aEmitChangesShouldEql = function () {
-      testUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'thing',
         val: '"write"',
         col: 'tasks'
@@ -88,7 +88,7 @@ describe('separate', function () {
     };
 
     var bEmitChangesShouldEql = function () {
-      testUtils.changesShouldEql([{
+      browserTestUtils.changesShouldEql([{
         name: 'priority',
         val: '"high"',
         col: 'tasks'
@@ -141,7 +141,7 @@ describe('separate', function () {
       // Wait just less than the max amount to see if extra changes were exchanged
       setTimeout(function () {
         shouldResolve(resolve, reject);
-      }, testUtils.TIMEOUT - 2000); // testUtils.TIMEOUT - 1 sec is not enough time
+      }, browserTestUtils.TIMEOUT - 2000); // browserTestUtils.TIMEOUT - 1 sec is not enough time
 
     });
 

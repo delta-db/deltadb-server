@@ -9,13 +9,13 @@ var Promise = require('bluebird'),
   Roles = require('../scripts/partitioner/sql/roles'),
   commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
   clientUtils = require('deltadb/scripts/utils'),
-  clientTestUtils = require('deltadb/test/utils');
+  clientTestUtils = require('deltadb/test/utils'),
+  browserTestUtils = require('./browser-utils');
 
 var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
-// 8000 ms doesn't appear to long enough for the e2e separate tests in phantomjs
-Utils.prototype.TIMEOUT = 10000;
+Utils.prototype.TIMEOUT = browserTestUtils.TIMEOUT;
 
 Utils.prototype.setUp = function (thisArg) {
   thisArg.timeout(this.TIMEOUT); // increase timeout
@@ -291,45 +291,20 @@ Utils.prototype.shouldDoAndNotOnce = function ( /* promiseFactory, emitter, evnt
   return commonTestUtils.shouldDoAndNotOnce.apply(commonTestUtils, arguments);
 };
 
-Utils.prototype.changesShouldEql = function (expected, actual) {
-  this.sortChanges(actual);
-  this.sortChanges(expected);
-  actual.forEach(function (change, i) {
-    if (expected[i] && change.re) {
-      expected[i].re = change.re;
-    }
-
-    if (expected[i] && change.up) {
-      expected[i].up = change.up;
-    }
-
-    if (expected[i] && change.id) {
-      expected[i].id = change.id;
-    }
-  });
-  this.eqls(expected, actual);
+Utils.prototype.changesShouldEql = function (/* expected, actual */) {
+  return browserTestUtils.changesShouldEql.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.sortChanges = function (changes) {
-  var attrs = ['col', 'name', 'up', 'seq', 'val'];
-  return commonUtils.sort(changes, attrs);
+Utils.prototype.sortChanges = function (/* changes */) {
+  return browserTestUtils.sortChanges.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.eqls = function (expected, actual) {
-  // Convert to milliseconds so that errors report specific problems--expect doesn't compare
-  // milliseconds by default
-  this.toTime(actual).should.eql(this.toTime(expected));
+Utils.prototype.eqls = function (/* expected, actual */) {
+  return browserTestUtils.eqls.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.toTime = function (rows) {
-  rows.forEach(function (cells) {
-    for (var j in cells) {
-      if (cells[j] instanceof Date) {
-        cells[j] = cells[j].getTime();
-      }
-    }
-  });
-  return rows;
+Utils.prototype.toTime = function (/* rows */) {
+  return browserTestUtils.toTime.apply(browserTestUtils, arguments);
 };
 
 module.exports = new Utils();
