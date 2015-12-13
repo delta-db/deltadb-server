@@ -4,7 +4,8 @@ var commonUtils = require('deltadb-common-utils');
 
 var Utils = function () {};
 
-Utils.prototype.TIMEOUT = 8000;
+// 8000 ms doesn't appear to long enough for the e2e separate tests in phantomjs
+Utils.prototype.TIMEOUT = 10000;
 
 Utils.prototype.never = function (msg) {
   throw new Error(commonUtils.notDefined(msg) ? 'must never execute' : msg);
