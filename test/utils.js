@@ -291,19 +291,19 @@ Utils.prototype.shouldDoAndNotOnce = function ( /* promiseFactory, emitter, evnt
   return commonTestUtils.shouldDoAndNotOnce.apply(commonTestUtils, arguments);
 };
 
-Utils.prototype.changesShouldEql = function (/* expected, actual */) {
+Utils.prototype.changesShouldEql = function ( /* expected, actual */ ) {
   return browserTestUtils.changesShouldEql.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.sortChanges = function (/* changes */) {
+Utils.prototype.sortChanges = function ( /* changes */ ) {
   return browserTestUtils.sortChanges.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.eqls = function (/* expected, actual */) {
+Utils.prototype.eqls = function ( /* expected, actual */ ) {
   return browserTestUtils.eqls.apply(browserTestUtils, arguments);
 };
 
-Utils.prototype.toTime = function (/* rows */) {
+Utils.prototype.toTime = function ( /* rows */ ) {
   return browserTestUtils.toTime.apply(browserTestUtils, arguments);
 };
 
