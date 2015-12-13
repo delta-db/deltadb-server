@@ -17,7 +17,7 @@ require('./new-dev-server');
 
 var spawn = require('child_process').spawn,
   server = require('../test/browser-server'),
-  utils = require('../test/utils');
+  utils = require('deltadb-common-utils');
 
 server.start('browser-server.log').then(function () {
 

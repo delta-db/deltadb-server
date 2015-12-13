@@ -89,7 +89,7 @@ Utils.prototype.timeout = function () {
 };
 
 Utils.prototype.sleep = function ( /* sleepMs */ ) {
-  // TODO: change all callers to use utils
+  // TODO: change all callers to use clientTestUtils
   return clientTestUtils.sleep.apply(clientTestUtils, arguments);
 };
 
@@ -98,7 +98,7 @@ Utils.prototype._toDate = function (val) {
 };
 
 Utils.prototype.allShouldEql = function ( /* collection, expected */ ) {
-  // TODO: change all callers to use utils
+  // TODO: change all callers to use clientUtils
   return clientTestUtils.allShouldEql.apply(clientUtils, arguments);
 };
 
@@ -279,48 +279,6 @@ Utils.prototype.dump = function (db, table) {
 Utils.prototype.userId = Users.ID_LAST_RESERVED + 1;
 
 Utils.prototype.roleId = Roles.ID_LAST_RESERVED + 1;
-
-// Utils.prototype.never = function () {
-//   // TODO: change all callers to use commonTestUtils
-//   return commonTestUtils.never.apply(commonTestUtils, arguments);
-// };
-//
-// Utils.prototype.shouldThrow = function () {
-//   // TODO: change all callers to use commonTestUtils
-//   return commonTestUtils.shouldThrow.apply(commonTestUtils, arguments);
-// };
-
-// // TODO: refactor test code to use this more
-// Utils.prototype.promiseErrorFactory = function (err) {
-//   return function () {
-//     return new Promise(function () {
-//       throw err;
-//     });
-//   };
-// };
-
-// // TODO: refactor test code to use this more
-// Utils.prototype.promiseResolveFactory = function (data) {
-//   return commonUtils.resolveFactory(data);
-// };
-
-Utils.prototype.shouldOnce = function (emitter, evnt) {
-  var self = this,
-    err = true,
-    args = null;
-
-  emitter.once(evnt, function (_args) {
-    err = false;
-    args = _args;
-  });
-
-  return self.timeout(100).then(function () {
-    if (err) {
-      self.never('should have emitted event ' + evnt);
-    }
-    return args;
-  });
-};
 
 Utils.prototype.shouldDoAndOnce = function ( /* promiseFactory, emitter, evnt */ ) {
   // TODO: change all callers to use commonTestUtils
