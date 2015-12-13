@@ -3,7 +3,8 @@
 var Client = require('deltadb/scripts/adapter'),
   DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
-  browserTestUtils = require('../browser-utils');
+  browserTestUtils = require('../browser-utils'),
+  MemAdapter = require('deltadb-orm-nosql/scripts/adapters/mem');
 
 describe('separate', function () {
 
@@ -30,7 +31,12 @@ describe('separate', function () {
     clientB = new Client();
 
     b = clientB.db({
-      db: 'mydb'
+      db: 'mydb',
+
+      // TODO: remove once we support multiple clients per IndexedDB
+      // Use a MemAdapter here as we don't currently support two different clients in the same app
+      // sharing the same IndexedDB.
+      store: new MemAdapter().db('mydb')
     });
 
     bTasks = b.col('tasks');
