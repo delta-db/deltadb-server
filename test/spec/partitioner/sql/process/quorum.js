@@ -4,12 +4,12 @@
 
 var partUtils = require('../utils'),
   constants = require('../../../../../scripts/partitioner/sql/constants'),
-  clientTestUtils = require('deltadb/test/utils');
+  clientTestUtils = require('deltadb/test/utils'),
+  testUtils = require('../../../../utils');
 
 describe('quorum', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var shouldQuorum = function (secondQuorum) {
 
@@ -22,7 +22,7 @@ describe('quorum', function () {
     }];
 
     var attrs = function (partition, quorum, multiple) {
-      return utils.findAttrs(args.db, partition).then(function (results) {
+      return testUtils.findAttrs(args.db, partition).then(function (results) {
         var rows = results.rows;
         if (!quorum && partition === constants.LATEST) {
           // LATEST only replaced when quorum
@@ -47,7 +47,7 @@ describe('quorum', function () {
             });
           }
 
-          utils.attrsEql(attrs, rows);
+          testUtils.attrsEql(attrs, rows);
         }
       });
     };
@@ -61,13 +61,13 @@ describe('quorum', function () {
     };
 
     // Simulate changes first from client, i.e. not setting quorum
-    return utils.queueAndProcess(args.db, changes).then(function () {
+    return testUtils.queueAndProcess(args.db, changes).then(function () {
       return allAttrs(null);
     }).then(function () {
       return clientTestUtils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
-      return utils.queueAndProcess(args.db, changes, secondQuorum);
+      return testUtils.queueAndProcess(args.db, changes, secondQuorum);
     }).then(function () {
       return allAttrs(secondQuorum, secondQuorum);
     });
@@ -101,7 +101,7 @@ describe('quorum', function () {
     }];
 
     var latestAttrsAfterClient = function () {
-      return utils.findAttrs(args.db, constants.LATEST).then(function (results) {
+      return testUtils.findAttrs(args.db, constants.LATEST).then(function (results) {
         var rows = results.rows;
         // LATEST only replaced when quorum
         (rows === null).should.eql(true);
@@ -109,7 +109,7 @@ describe('quorum', function () {
     };
 
     var allOrRecentAttrsAfterClient = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -129,7 +129,7 @@ describe('quorum', function () {
     };
 
     var latestAttrsAfterServer = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up,
@@ -138,7 +138,7 @@ describe('quorum', function () {
     };
 
     var allOrRecentAttrsAfterServer = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -163,13 +163,13 @@ describe('quorum', function () {
     };
 
     // Simulate changes first from client, i.e. not setting quorum
-    return utils.queueAndProcessEach(args.db, changes).then(function () {
+    return testUtils.queueAndProcessEach(args.db, changes).then(function () {
       return allAttrsAfterClient();
     }).then(function () {
       return clientTestUtils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
-      return utils.queueAndProcess(args.db, [changes[0]], true);
+      return testUtils.queueAndProcess(args.db, [changes[0]], true);
     }).then(function () {
       return allAttrsAfterServer();
     });
@@ -193,7 +193,7 @@ describe('quorum', function () {
     }];
 
     var latestAttrsAfterClient = function () {
-      return utils.findAttrs(args.db, constants.LATEST).then(function (results) {
+      return testUtils.findAttrs(args.db, constants.LATEST).then(function (results) {
         var rows = results.rows;
         // LATEST only replaced when quorum
         (rows === null).should.eql(true);
@@ -201,7 +201,7 @@ describe('quorum', function () {
     };
 
     var allOrRecentAttrsAfterClient = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -221,7 +221,7 @@ describe('quorum', function () {
     };
 
     var latestAttrsAfterServer = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'priority',
         value: '"low"',
         updated_at: changes[1].up,
@@ -230,7 +230,7 @@ describe('quorum', function () {
     };
 
     var allOrRecentAttrsAfterServer = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"high"',
         updated_at: changes[0].up
@@ -255,13 +255,13 @@ describe('quorum', function () {
     };
 
     // Simulate changes first from client, i.e. not setting quorum
-    return utils.queueAndProcess(args.db, changes).then(function () {
+    return testUtils.queueAndProcess(args.db, changes).then(function () {
       return allAttrsAfterClient();
     }).then(function () {
       return clientTestUtils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from server, i.e. setting quorum
-      return utils.queueAndProcess(args.db, [changes[1]], true);
+      return testUtils.queueAndProcess(args.db, [changes[1]], true);
     }).then(function () {
       return allAttrsAfterServer();
     });
@@ -302,7 +302,7 @@ describe('quorum', function () {
     ]; // doc del
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'thing',
         value: '"write"',
         updated_at: changes[0].up,
@@ -327,7 +327,7 @@ describe('quorum', function () {
     };
 
     var latestAttrs = function () {
-      return utils.attrsShouldEql(args.db, constants.LATEST, [{
+      return testUtils.attrsShouldEql(args.db, constants.LATEST, [{
         name: 'thing',
         value: null,
         updated_at: changes[2].up
@@ -347,13 +347,13 @@ describe('quorum', function () {
     };
 
     // Simulate changes from syncing with first server
-    return utils.queueAndProcess(args.db, changes, true).then(function () {
+    return testUtils.queueAndProcess(args.db, changes, true).then(function () {
       return allAttrs();
     }).then(function () {
       return clientTestUtils.sleep(); // ensure changes w/o quorum processed first
     }).then(function () {
       // Simulate changes from syncing with second server where duplicate changes would be received
-      return utils.queueAndProcess(args.db, changes, true);
+      return testUtils.queueAndProcess(args.db, changes, true);
     }).then(function () {
       return allAttrs();
     });

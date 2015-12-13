@@ -7,12 +7,12 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
-  commonUtils = require('deltadb-common-utils');
+  commonUtils = require('deltadb-common-utils'),
+  testUtils = require('../../../../utils');
 
 describe('roles', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null,
     userId = Users.ID_LAST_RESERVED + 1,

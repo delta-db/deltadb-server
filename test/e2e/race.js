@@ -4,7 +4,7 @@
 
 var Client = require('deltadb/scripts/adapter'),
   Promise = require('bluebird'),
-  commonUtilsRENAME = require('../common-utils'),
+  testUtils = require('../utils'),
   commonUtils = require('deltadb-common-utils');
 
 describe('race', function () {
@@ -65,7 +65,7 @@ describe('race', function () {
   });
 
   after(function () {
-    self.timeout(commonUtilsRENAME.TIMEOUT);
+    self.timeout(testUtils.TIMEOUT);
   });
 
   var sendAndReceivePartialChanges = function () {

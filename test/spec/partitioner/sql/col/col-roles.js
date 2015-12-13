@@ -6,12 +6,12 @@ var partDir = '../../../../../scripts/partitioner/sql';
 
 var partUtils = require('../utils'),
   ColRoles = require(partDir + '/col/col-roles'),
-  constants = require(partDir + '/constants');
+  constants = require(partDir + '/constants'),
+  testUtils = require('../../../../utils');
 
 describe('col-roles', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var utils = args.utils;
 
   var userUtils = null,
     colRoles = null;
@@ -40,7 +40,7 @@ describe('col-roles', function () {
         role_id: 1,
         action: 'create'
       }];
-      return utils.colRolesShouldEql(args.db, colRoles1, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles1, null);
     }).then(function () {
       var roleActions2 = [{
         role: 'role1',
@@ -55,7 +55,7 @@ describe('col-roles', function () {
         role_id: 1,
         action: 'destroy'
       }];
-      return utils.colRolesShouldEql(args.db, colRoles2, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles2, null);
     });
   });
 
@@ -81,11 +81,11 @@ describe('col-roles', function () {
 
     return colRoles.setColRoles(roleIds, 1, roleActions1, updatedAt).then(function () {
       // TODO: do a find and get entire table contents, including timestamps and then check below
-      return utils.colRolesShouldEql(args.db, colRoles1, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles1, null);
     }).then(function () {
       return colRoles.setColRoles(roleIds, 1, roleActions1, updatedAt);
     }).then(function () {
-      return utils.colRolesShouldEql(args.db, colRoles1, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles1, null);
     });
   });
 
@@ -126,7 +126,7 @@ describe('col-roles', function () {
         role_id: 2,
         action: 'update'
       }];
-      return utils.colRolesShouldEql(args.db, colRoles1, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles1, null);
     }).then(function () {
       var roleActions2 = [{
         role: 'role1',
@@ -159,7 +159,7 @@ describe('col-roles', function () {
         role_id: 1,
         action: 'destroy'
       }];
-      return utils.colRolesShouldEql(args.db, colRoles2, null);
+      return testUtils.colRolesShouldEql(args.db, colRoles2, null);
     });
   });
 

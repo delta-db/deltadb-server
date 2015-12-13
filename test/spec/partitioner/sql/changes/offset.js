@@ -3,12 +3,13 @@
 /* global before, after */
 
 var partUtils = require('../utils'),
-  Changes = require('../../../../../scripts/partitioner/sql/changes');
+  Changes = require('../../../../../scripts/partitioner/sql/changes'),
+  testUtils = require('../../../../utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('offset', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var testUtils = args.utils;
 
   // Note: to reliably ensure that changes are stored in a particular order, we need to
   // queueAndProcess() and then sleep after adding each change
@@ -69,7 +70,7 @@ describe('offset', function () {
   });
 
   it('should throw error if limit too large', function () {
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db.changes(null, null, Changes._MAX_LIMIT + 1);
     }, new Error('limit (' + (Changes._MAX_LIMIT + 1) + ') cannot be greater than ' +
       Changes._MAX_LIMIT));

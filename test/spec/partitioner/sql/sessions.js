@@ -16,12 +16,13 @@ var partUtils = require('./utils'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   Sessions = require(partDir + '/sessions'),
   TokenError = require(partDir + '/token-error'),
-  SessionExpiredError = require(partDir + '/session-expired-error');
+  SessionExpiredError = require(partDir + '/session-expired-error'),
+  commonUtils = require('deltadb-common-utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('sessions', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {
@@ -41,7 +42,7 @@ describe('sessions', function () {
   });
 
   it('should not create duplicate token', function () {
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._sessions._createRecord(1, 'token').then(function () {
         return args.db._sessions._createRecord(2, 'token');
       });
@@ -55,15 +56,15 @@ describe('sessions', function () {
   });
 
   it('should throw error if all creation attempts fail', function () {
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._sessions._attemptToCreate(1, Sessions.MAX_TOKEN_ATTEMPTS);
     }, new TokenError('failed to create token after ' + Sessions.MAX_TOKEN_ATTEMPTS +
       ' attempts'));
   });
 
   it('should throw error if all create record throws non-sql error', function () {
-    args.db._sessions._createRecord = testUtils.promiseErrorFactory(new Error('err'));
-    return testUtils.shouldThrow(function () {
+    args.db._sessions._createRecord = commonUtils.promiseErrorFactory(new Error('err'));
+    return commonTestUtils.shouldThrow(function () {
       return args.db._sessions._attemptToCreate();
     }, new Error('err'));
   });
@@ -87,8 +88,8 @@ describe('sessions', function () {
   });
 
   it('should authenticate', function () {
-    args.db._users.authenticated = testUtils.promiseResolveFactory(1);
-    args.db._sessions._create = testUtils.promiseResolveFactory('token');
+    args.db._users.authenticated = commonUtils.resolveFactory(1);
+    args.db._sessions._create = commonUtils.resolveFactory('token');
     return args.db._sessions.authenticate().then(function (token) {
       token.should.eql('token');
     });
@@ -103,14 +104,14 @@ describe('sessions', function () {
   });
 
   it('should not find', function () {
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._sessions._find('token');
     }, new MissingError());
   });
 
   it('should succeed when checking authentication', function () {
     var expiresAt = new Date((new Date()).getTime() - 1000000);
-    args.db._sessions._find = testUtils.promiseResolveFactory({
+    args.db._sessions._find = commonUtils.resolveFactory({
       rows: [{
         user_id: 1,
         expires_at: expiresAt
@@ -123,13 +124,13 @@ describe('sessions', function () {
 
   it('should fail authentication when session expired', function () {
     var expiresAt = new Date((new Date()).getTime() + 1000000);
-    args.db._sessions._find = testUtils.promiseResolveFactory({
+    args.db._sessions._find = commonUtils.resolveFactory({
       rows: [{
         user_id: 1,
         expires_at: expiresAt
       }]
     });
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._sessions.authenticated('token');
     }, new SessionExpiredError());
   });

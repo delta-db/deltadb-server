@@ -8,12 +8,14 @@ var partUtils = require('../utils'),
   UserRoles = require(partDir + '/user/user-roles'),
   Users = require(partDir + '/user/users'),
   Roles = require(partDir + '/roles'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
+  commonUtils = require('deltadb-common-utils'),
+  testUtils = require('../../../../utils');
 
 describe('user-roles', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null;
   beforeEach(function () {
@@ -45,23 +47,23 @@ describe('user-roles', function () {
   });
 
   it('should get or create when exists', function () {
-    args.db._userRoles.getId = testUtils.promiseResolveFactory(1);
+    args.db._userRoles.getId = commonUtils.resolveFactory(1);
     return args.db._userRoles.getOrCreate().then(function (id) {
       id.should.eql(1);
     });
   });
 
   it('should throw non-sql error when getting or creating', function () {
-    args.db._userRoles.getId = testUtils.promiseResolveFactory(null);
-    args.db._userRoles.create = testUtils.promiseErrorFactory(new Error('err'));
-    return testUtils.shouldThrow(function () {
+    args.db._userRoles.getId = commonUtils.resolveFactory(null);
+    args.db._userRoles.create = commonUtils.promiseErrorFactory(new Error('err'));
+    return commonTestUtils.shouldThrow(function () {
       return args.db._userRoles.getOrCreate();
     }, new Error('err'));
   });
 
   it('should ignore sql error when getting or creating', function () {
-    args.db._userRoles.getId = testUtils.promiseResolveFactory(null);
-    args.db._userRoles.create = testUtils.promiseErrorFactory(new SQLError('err'));
+    args.db._userRoles.getId = commonUtils.resolveFactory(null);
+    args.db._userRoles.create = commonUtils.promiseErrorFactory(new SQLError('err'));
     return args.db._userRoles.getOrCreate();
   });
 

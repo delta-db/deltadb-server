@@ -8,12 +8,13 @@ var partUtils = require('./utils'),
   Cols = require(partDir + '/col/cols'),
   Roles = require(partDir + '/roles'),
   Promise = require('bluebird'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
+  testUtils = require('../../../utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('roles', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {
@@ -61,7 +62,7 @@ describe('roles', function () {
     args.db._roles.create = function () {
       throw new Error('err');
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._roles.getOrCreateRole('role-uuid');
     }, new Error('err'));
   });

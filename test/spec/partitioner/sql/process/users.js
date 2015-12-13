@@ -3,12 +3,12 @@
 /* global before, after */
 
 var partUtils = require('../utils'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  testUtils = require('../../../../utils');
 
 describe('users', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   beforeEach(function () {
     return args.db._users.truncateTable();
@@ -23,7 +23,7 @@ describe('users', function () {
     };
     return args.db._process._cacheUsersForAttr(attr).then(function () {
       args.db._process._userIds.should.eql({
-        'user-uuid': utils.userId
+        'user-uuid': testUtils.userId
       });
     });
   });
@@ -38,8 +38,8 @@ describe('users', function () {
     };
     return args.db._process._cacheUsersForAttr(attr).then(function () {
       args.db._process._userIds.should.eql({
-        'super-uuid': utils.userId,
-        'user-uuid': utils.userId + 1
+        'super-uuid': testUtils.userId,
+        'user-uuid': testUtils.userId + 1
       });
     });
   });
@@ -59,8 +59,8 @@ describe('users', function () {
     };
     return args.db._process._cacheUsersForAttr(attr).then(function () {
       args.db._process._userIds.should.eql({
-        'auth-uuid': utils.userId,
-        'user-uuid': utils.userId + 1
+        'auth-uuid': testUtils.userId,
+        'user-uuid': testUtils.userId + 1
       });
     });
   });
@@ -75,8 +75,8 @@ describe('users', function () {
     };
     return args.db._process._cacheUsersForAttr(attr).then(function () {
       args.db._process._userIds.should.eql({
-        'auth-uuid': utils.userId,
-        'user-uuid': utils.userId + 1
+        'auth-uuid': testUtils.userId,
+        'user-uuid': testUtils.userId + 1
       });
     });
   });

@@ -5,13 +5,14 @@
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   ForbiddenError = require(partDir + '/forbidden-error'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  testUtils = require('../../../../utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('cols', function () {
 
   var noAll = true; // disable all can CRUD policy as it interferes with our tests
   var args = partUtils.init(this, beforeEach, afterEach, noAll, before, after);
-  var testUtils = args.utils;
 
   beforeEach(function () {
     return args.db._cols.truncateTable();
@@ -78,7 +79,7 @@ describe('cols', function () {
       // Don't fail for cleanup, e.g. $ru$super
       return Promise.resolve(colName !== 'col-name');
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._process._canCreateCol('col-name');
     }, new ForbiddenError('cannot create col col-name'));
   });
@@ -108,7 +109,7 @@ describe('cols', function () {
     args.db._process._userIds = {
       'user-uuid': 1
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._process._getOrCreateCol({
         userUUID: 'user-uuid'
       });

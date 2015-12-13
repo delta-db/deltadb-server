@@ -3,22 +3,22 @@
 /* global before, after */
 
 var partUtils = require('../utils'),
-  constants = require('../../../../../scripts/partitioner/sql/constants');
+  constants = require('../../../../../scripts/partitioner/sql/constants'),
+  testUtils = require('../../../../utils');
 
 describe('restore', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var utils = args.utils;
 
   var queueAndProcess = function (changes) {
     // Force quorum=true. We will test the processing of quorum elsewhere
-    return utils.queueAndProcess(args.db, changes, true);
+    return testUtils.queueAndProcess(args.db, changes, true);
   };
 
   var docs = function (partition, destroyedAt, updatedAt, lastDestroyedAt) {
     destroyedAt = (destroyedAt ? new Date(destroyedAt) : null);
     lastDestroyedAt = (lastDestroyedAt ? new Date(lastDestroyedAt) : destroyedAt);
-    return utils.docsShouldEql(args.db, partition, [{
+    return testUtils.docsShouldEql(args.db, partition, [{
       uuid: '1',
       updated_at: updatedAt,
       destroyed_at: destroyedAt,
@@ -66,7 +66,7 @@ describe('restore', function () {
   var create = function () {
 
     var attrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: createChanges[1].up
@@ -95,7 +95,7 @@ describe('restore', function () {
   var destroy = function () {
 
     var attrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: createChanges[1].up
@@ -129,7 +129,7 @@ describe('restore', function () {
   var restore = function () {
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: createChanges[1].up
@@ -159,7 +159,7 @@ describe('restore', function () {
     };
 
     var recentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: restoreChanges[0].up,
@@ -229,7 +229,7 @@ describe('restore', function () {
     var create = function () {
 
       var attrs = function (partition) {
-        return utils.attrsShouldEql(args.db, partition, [{
+        return testUtils.attrsShouldEql(args.db, partition, [{
           name: 'priority',
           value: '"medium"',
           updated_at: createChanges[0].up
@@ -254,7 +254,7 @@ describe('restore', function () {
     var destroy = function () {
 
       var attrs = function (partition) {
-        return utils.attrsShouldEql(args.db, partition, [{
+        return testUtils.attrsShouldEql(args.db, partition, [{
           name: 'priority',
           value: '"medium"',
           updated_at: createChanges[0].up
@@ -283,7 +283,7 @@ describe('restore', function () {
     var restore = function () {
 
       var allOrRecentAttrs = function (partition) {
-        return utils.attrsShouldEql(args.db, partition, [{
+        return testUtils.attrsShouldEql(args.db, partition, [{
           name: 'priority',
           value: '"high"',
           updated_at: restoreChanges[0].up
@@ -299,7 +299,7 @@ describe('restore', function () {
       };
 
       var recentOrLatestAttrs = function (partition) {
-        return utils.attrsShouldEql(args.db, partition, [{
+        return testUtils.attrsShouldEql(args.db, partition, [{
           name: 'priority',
           value: '"medium"',
           updated_at: createChanges[0].up
@@ -361,7 +361,7 @@ describe('restore', function () {
     // When the delete is registered, the update is considered the end of the restore
 
     var allOrRecentAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
           name: 'priority',
           value: '"medium"',
           updated_at: changes[1].up,
@@ -393,7 +393,7 @@ describe('restore', function () {
     };
 
     var recentOrLatestAttrs = function (partition) {
-      return utils.attrsShouldEql(args.db, partition, [{
+      return testUtils.attrsShouldEql(args.db, partition, [{
         name: 'priority',
         value: '"medium"',
         updated_at: changes[1].up

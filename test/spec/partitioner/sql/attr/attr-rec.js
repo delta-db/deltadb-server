@@ -6,15 +6,15 @@ var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
   AttrRec = require(partDir + '/attr/attr-rec'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('attr-rec', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
 
   var userUtils = null,
-    attrRecs = null,
-    testUtils = args.utils;
+    attrRecs = null;
 
   beforeEach(function () {
     userUtils = args.userUtils;
@@ -43,7 +43,7 @@ describe('attr-rec', function () {
         throw new Error('err');
       });
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return attrRec.replace();
     }, new Error('err'));
   });

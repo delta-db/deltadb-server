@@ -5,12 +5,12 @@
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   constants = require(partDir + '/constants'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils');
 
 describe('attrs', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, null, before, after);
-  var testUtils = args.utils;
 
   it('should create or update attr', function () {
     return args.db._process._createOrUpdateAttr(constants.ALL, {
@@ -24,7 +24,7 @@ describe('attrs', function () {
         throw new Error('err');
       });
     };
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._process._processAttr();
     }, new Error('err'));
   });

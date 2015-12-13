@@ -11,12 +11,14 @@ var partUtils = require('../utils'),
   commonUtils = require('deltadb-common-utils'),
   SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
-  AuthenticationError = require('deltadb/scripts/authentication-error');
+  AuthenticationError = require('deltadb/scripts/authentication-error'),
+  testUtils = require('../../../../utils'),
+  commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
+  commonUtils = require('deltadb-common-utils');
 
 describe('users', function () {
 
   var args = partUtils.init(this, beforeEach, afterEach, false, before, after);
-  var testUtils = args.utils;
 
   var userUtils = null; // for convenience
   beforeEach(function () {
@@ -168,23 +170,23 @@ describe('users', function () {
   });
 
   it('should throw error when creating user', function () {
-    args.db._users.createUserAndImplicitRole = testUtils.promiseErrorFactory(new Error(
+    args.db._users.createUserAndImplicitRole = commonUtils.promiseErrorFactory(new Error(
       'err'));
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._users.createUserAndImplicitRoleOrGetId();
     }, new Error('err'));
   });
 
   it('should ignore sql error when creating user', function () {
-    args.db._users.createUserAndImplicitRole = testUtils.promiseErrorFactory(new SQLError(
+    args.db._users.createUserAndImplicitRole = commonUtils.promiseErrorFactory(new SQLError(
       'err'));
     return args.db._users.createUserAndImplicitRoleOrGetId();
   });
 
   it('should throw error when creating or updating user', function () {
-    args.db._users.createUserAndImplicitRole = testUtils.promiseErrorFactory(new Error(
+    args.db._users.createUserAndImplicitRole = commonUtils.promiseErrorFactory(new Error(
       'err'));
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._users.createUserAndImplicitRoleOrUpdateUser();
     }, new Error('err'));
   });
@@ -216,14 +218,14 @@ describe('users', function () {
   });
 
   it('should throw if user missing when authenticating', function () {
-    return testUtils.shouldThrow(function () {
+    return commonTestUtils.shouldThrow(function () {
       return args.db._users.authenticated('user', 'secret');
     }, new MissingError('user not found (username=user)'));
   });
 
   it('should throw if password incorrect when authenticating', function () {
     return userUtils.createUser(userUtils.userUUID, 'user', 'secret').then(function () {
-      return testUtils.shouldThrow(function () {
+      return commonTestUtils.shouldThrow(function () {
         return args.db._users.authenticated('user', 'badsecret');
       }, new AuthenticationError('username (username=user) and/or password invalid'));
     });
