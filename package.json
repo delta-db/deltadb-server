@@ -20,15 +20,12 @@
     "url": "https://github.com/redgeoff/deltadb/issues"
   },
   "scripts": {
+    "assert-beautified": "beautify-proj -i test -c beautify.json -e bundle.js && beautify-proj -i scripts -c beautify.json",
+    "beautify": "beautify-proj -i test -o . -c beautify.json -e bundle.js && beautify-proj -i scripts -o . -c beautify.json",
+    "jshint": "jshint -c .jshintrc *.js test scripts",
     "test-node": "istanbul test --dir coverage/node ./node_modules/mocha/bin/_mocha test/test.js",
     "test-performance": "istanbul test ./node_modules/mocha/bin/_mocha -- -g 'delta' test/performance.js",
     "test-browser": "./bin/test-browser.js",
-    "beautify-for-test": "node scripts/beautify-proj/index.js -i test -o beautified/beautified -c beautify.json && node scripts/beautify-proj/index.js -i scripts -o beautified/beautified -c beautify.json",
-    "copy-to-beautified": "copyfiles 'test/**/*.js' beautified/original && copyfiles 'scripts/**/*.js' beautified/original",
-    "beautified": "git diff --quiet --no-index beautified/original beautified/beautified",
-    "assert-beautified": "npm run beautify-for-test && npm run copy-to-beautified && npm run beautified",
-    "beautify": "node scripts/beautify-proj/index.js -i test -o . -c beautify.json && node scripts/beautify-proj/index.js -i scripts -o . -c beautify.json",
-    "jshint": "jshint -c .jshintrc *.js test scripts",
     "test": "npm run jshint && npm run test-node",
     "test-firefox": "npm run jshint && CLIENT=selenium:firefox npm run test-browser",
     "test-chrome": "npm run jshint && CLIENT=selenium:chrome npm run test-browser",
@@ -64,6 +61,7 @@
   },
   "devDependencies": {
     "bcryptjs": "^2.2.1",
+    "beautify-proj": "0.0.4",
     "browserify": "^12.0.1",
     "browserify-istanbul": "^0.2.1",
     "chai": "^3.0.0",
