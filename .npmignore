@@ -6,4 +6,4 @@ test/logs/*
 .DS_Store
 *~
 npm-debug.log
-config.js
+/config.js
