@@ -8,7 +8,9 @@ var selenium = require('selenium-standalone');
 var querystring = require('querystring');
 var SauceResultsUpdater = require('./sauce-results-updater');
 
-var dbServer = require('../deltadb-server');
+var ServerProcess = require('../server-process');
+
+var dbServer = new ServerProcess(true);
 
 var server = require('./server.js');
 

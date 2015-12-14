@@ -97,7 +97,7 @@ You can then view code coverage details by visiting coverage/lcov-report/index.h
 
 You can filter the PhantomJS tests using the GREP env variable, e.g.
 
-    $ GREP='e2e basic' npm run new-test-phantomjs 
+    $ GREP='e2e basic' npm run new-test-phantomjs
 
 
 Running Tests in Chrome and Firefox Automatically
@@ -111,10 +111,10 @@ Currently, this cannot be done in the VM as this project has not been configured
 to test outside the VM, assuming you have Firefox and Chrome installed.
 
 
-Running Tests Without Code Coverage In Any Browser Manually
+Running Tests In Any Browser Manually
 
-    $ npm run dev-server
-    $ ./test/server # in a separate window
+    $ npm run browser-server
+    $ ./test/deltadb-server # in a separate window
     Point any browser to http://127.0.0.1:8001/test/index.html
     You can also run a specific test, e.g. http://127.0.0.1:8001/test/index.html?grep=mytest
 
