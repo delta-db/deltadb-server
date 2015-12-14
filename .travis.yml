@@ -9,6 +9,7 @@ before_script:
   # Change postgres password
   - sudo -u postgres psql -c "ALTER USER Postgres WITH PASSWORD 'secret'"
 
+  # Use the default config
   - cp config-default.js config.js
 
 after_script: cat ./coverage/node/lcov.info | ./node_modules/coveralls/bin/coveralls.js
@@ -19,8 +20,14 @@ after_failure:
 env:
   matrix:
   - COMMAND=assert-beautified
+
+  # Test in node and require 100% code coverage
   - COMMAND=node-full-test
+
+  # Test in phantomjs with WebSQL
   - COMMAND=browser-test-phantomjs
+
+  # Test in Firefox with IndexedDB
   - COMMAND=browser-test-firefox
 
 branches:
