@@ -5,6 +5,12 @@ node_js:
 
 script: npm run $COMMAND
 
+before_script:
+  # Change postgres password
+  - sudo -u postgres psql -c "ALTER USER Postgres WITH PASSWORD 'secret'"
+
+  - cp config-default.js config.js
+
 after_script: cat ./coverage/node/lcov.info | ./node_modules/coveralls/bin/coveralls.js
 
 after_failure:
