@@ -5,7 +5,10 @@
 var Client = require('deltadb/scripts/adapter'),
   Promise = require('bluebird'),
   browserTestUtils = require('../browser-utils'),
-  commonUtils = require('deltadb-common-utils');
+  commonUtils = require('deltadb-common-utils'),
+  MemAdapter = require('deltadb-orm-nosql/scripts/adapters/mem'),
+  clientUtils = require('deltadb/scripts/utils'),
+  config = require('deltadb/scripts/config');
 
 describe('race', function () {
 
@@ -37,7 +40,23 @@ describe('race', function () {
     clientB = new Client();
 
     b = clientB.db({
-      db: 'mydb'
+      db: 'mydb',
+
+      // TODO: remove once we support multiple clients per IndexedDB
+      // Use a MemAdapter here as we don't currently support two different clients in the same app
+      // sharing the same IndexedDB.
+      store: new MemAdapter().db('mydb')
+    });
+
+    // TODO: remove once we support multiple clients per IndexedDB
+    // Use a MemAdapter here as we don't currently support two different clients in the same app
+    // sharing the same IndexedDB.
+    b._sysDB = b._adapter.db({
+      db: clientUtils.SYSTEM_DB_NAME,
+      alias: config.SYSTEM_DB_NAME_PREFIX + b._name,
+      url: b._url,
+      local: b._localOnly,
+      store: new MemAdapter().db('system')
     });
 
     bTasks = b.col('tasks');
@@ -49,9 +68,7 @@ describe('race', function () {
   };
 
   var destroyBoth = function () {
-    // IndexedDB doesn't allow us to destroy a DB that is in use. Therefore, we use keepLocal=true
-    // so that we can close connection b first.
-    return b.destroy(false, true).then(function () {
+    return b.destroy().then(function () {
       return a.destroy();
     });
   };

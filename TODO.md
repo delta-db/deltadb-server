@@ -102,6 +102,7 @@ Next 2
 - Make sure cannot create a DB that conflicts with the System DB
 - What if lose connection to underlying DB when doing things like creating tables? Need a way of wiping out tables and retrying?
 - add concept of foreign keys to SQL ORM and use it for cleaner deletions of records and their children
+- Allow two different instances of the same client to point to the same underlying store. Currently, the breakdown occurs when both instances try to create the same DB simultaneously, which results in only one of the clients sending both "create DB" deltas to the server, causing the 2nd client to hang as it never gets confirmation that the DB was created. Is there an easy way to prevent these clients from competing in this way?
 - multiple instances of same IDB in 2 tabs:
 	- We use shared adapters within the same app to support this functionality, but don't have a good solution for multiple tabs. We could just no support this at this time. We could detect the use in two browsers using some instance id and a timestamp and then display an alert to the user if we detect two tabs
 	- Future option: have IDB be fault tolerant so if say creating same DB at same time then handle errors and try to reopen. Simulate with unit tests on IDB.

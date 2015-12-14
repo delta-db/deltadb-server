@@ -39,6 +39,8 @@ var Globals = require('./globals'),
 var Part = function (dbName, sql) {
   EventEmitter.apply(this, arguments); // apply parent constructor
 
+  this._addSqlErrorListener(); // register error handler before any SQL is executed
+
   this._dbName = dbName;
   this._sql = sql ? sql : new SQL(); // TODO: remove new SQL() as sql should always be injected
   this._registerDisconnectListener();
@@ -69,8 +71,6 @@ var Part = function (dbName, sql) {
     this._colRoles, this._queueAttrRecs
     // this._sessions
   ];
-
-  this._addSqlErrorListener();
 };
 
 inherits(Part, EventEmitter);
