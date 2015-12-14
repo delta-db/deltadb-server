@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var utils = require('../utils'),
   Client = require('deltadb/scripts/adapter'),
   partUtils = require('../spec/partitioner/sql/utils');

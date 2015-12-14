@@ -10,8 +10,8 @@ var Server = require('./server'),
   Partitioner = require('../partitioner/sql'),
   Manager = require('../manager');
 
-var process = new Process(),
-  server = new Server(process);
+var proc = new Process(),
+  server = new Server(proc);
 
 // TODO: rename? Or rename Server in server.js?
 var ServerContainer = function () {
@@ -42,7 +42,7 @@ ServerContainer.prototype._ensureSystemDBCreated = function () {
 
 ServerContainer.prototype.start = function () {
   return this._ensureSystemDBCreated().then(function () {
-    process.run();
+    proc.run();
     server.listen();
   });
 };

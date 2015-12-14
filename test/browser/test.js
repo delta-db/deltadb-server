@@ -1,55 +1,66 @@
 #!/usr/bin/env node
+
 'use strict';
 
 var wd = require('wd');
-// var sauceConnectLauncher = require('sauce-connect-launcher'); // uncomment later for sauce labs
+var sauceConnectLauncher = require('sauce-connect-launcher');
 var selenium = require('selenium-standalone');
-var querystring = require("querystring");
+var querystring = require('querystring');
+var SauceResultsUpdater = require('./sauce-results-updater');
 
-var server = require('../test/browser-server');
+var ServerProcess = require('../server-process');
 
-var devserver = require('./dev-server.js');
+var dbServer = new ServerProcess(true);
+
+var server = require('./server.js');
 
 var testTimeout = 30 * 60 * 1000;
+
+var retries = 0;
+var MAX_RETRIES = 10;
+var MS_BEFORE_RETRY = 60000;
 
 var username = process.env.SAUCE_USERNAME;
 var accessKey = process.env.SAUCE_ACCESS_KEY;
 
+var sauceResultsUpdater = new SauceResultsUpdater(username, accessKey);
+
 // process.env.CLIENT is a colon seperated list of
 // (saucelabs|selenium):browserName:browserVerion:platform
-var tmp = (process.env.CLIENT || 'selenium:firefox').split(':');
+var clientStr = process.env.CLIENT || 'selenium:phantomjs';
+var tmp = clientStr.split(':');
 var client = {
   runner: tmp[0] || 'selenium',
-  browser: tmp[1] || 'firefox',
+  browser: tmp[1] || 'phantomjs',
   version: tmp[2] || null, // Latest
   platform: tmp[3] || null
 };
 
-var testUrl = 'http://127.0.0.1:8001/test/index.html';
+var testUrl = 'http://127.0.0.1:8001/test/browser/index.html';
 var qs = {};
 
 var sauceClient;
 var sauceConnectProcess;
 var tunnelId = process.env.TRAVIS_JOB_NUMBER || 'tunnel-' + Date.now();
 
+var jobName = tunnelId + '-' + clientStr;
+
+var build = (process.env.TRAVIS_COMMIT ? process.env.TRAVIS_COMMIT : Date.now());
+
 if (client.runner === 'saucelabs') {
   qs.saucelabs = true;
 }
+
 if (process.env.GREP) {
   qs.grep = process.env.GREP;
 }
+
+if (process.env.NOINDEXEDDB) {
+  qs.noindexeddb = process.env.NOINDEXEDDB;
+}
+
 testUrl += '?';
 testUrl += querystring.stringify(qs);
-
-if (process.env.TRAVIS &&
-    client.browser !== 'firefox' &&
-    client.browser !== 'phantomjs' &&
-    client.browser !== 'chrome' &&
-    process.env.TRAVIS_SECURE_ENV_VARS === 'false') {
-  console.error('Not running test, cannot connect to saucelabs');
-  process.exit(1);
-  return;
-}
 
 function testError(e) {
   console.error(e);
@@ -59,14 +70,19 @@ function testError(e) {
 }
 
 function postResult(result) {
-  server.stop().then(function () {
-    process.exit(!process.env.PERF && result.failed ? 1 : 0);
+  dbServer.stop().then(function () {
+    var failed = !process.env.PERF && result.failed;
+    if (client.runner === 'saucelabs') {
+      sauceResultsUpdater.setPassed(jobName, build, !failed).then(function () {
+        process.exit(failed ? 1 : 0);
+      });
+    } else {
+      process.exit(failed ? 1 : 0);
+    }
   });
 }
 
 function testComplete(result) {
-  console.log(result);
-
   sauceClient.quit().then(function () {
     if (sauceConnectProcess) {
       sauceConnectProcess.close(function () {
@@ -80,13 +96,15 @@ function testComplete(result) {
 
 function startSelenium(callback) {
   // Start selenium
-  var opts = {version: '2.45.0'};
-  selenium.install(opts, function(err) {
+  var opts = {
+    version: '2.45.0'
+  };
+  selenium.install(opts, function (err) {
     if (err) {
       console.error('Failed to install selenium');
       process.exit(1);
     }
-    selenium.start(opts, function(err, server) {
+    selenium.start(opts, function ( /* err, server */ ) {
       sauceClient = wd.promiseChainRemote();
       callback();
     });
@@ -101,15 +119,25 @@ function startSauceConnect(callback) {
     tunnelIdentifier: tunnelId
   };
 
-  sauceConnectLauncher(options, function (err, process) {
+  sauceConnectLauncher(options, function (err, _sauceConnectProcess) {
     if (err) {
-      console.error('Failed to connect to saucelabs');
-      console.error(err);
-      return process.exit(1);
+      console.error('Failed to connect to saucelabs, err=', err);
+
+      if (++retries > MAX_RETRIES) {
+        console.log('Max retries reached, exiting');
+        process.exit(1);
+      } else {
+        console.log('Retry', retries, '...');
+        setTimeout(function () {
+          startSauceConnect(callback);
+        }, MS_BEFORE_RETRY);
+      }
+
+    } else {
+      sauceConnectProcess = _sauceConnectProcess;
+      sauceClient = wd.promiseChainRemote('localhost', 4445, username, accessKey);
+      callback();
     }
-    sauceConnectProcess = process;
-    sauceClient = wd.promiseChainRemote("localhost", 4445, username, accessKey);
-    callback();
   });
 }
 
@@ -122,7 +150,7 @@ function startTest() {
     version: client.version,
     platform: client.platform,
     tunnelTimeout: testTimeout,
-    name: client.browser + ' - ' + tunnelId,
+    name: jobName,
     'max-duration': 60 * 30,
     'command-timeout': 599,
     'idle-timeout': 599,
@@ -133,23 +161,26 @@ function startTest() {
 
     /* jshint evil: true */
     var interval = setInterval(function () {
+
       sauceClient.eval('window.results', function (err, results) {
+
+        console.log('=> ', results);
+
         if (err) {
           clearInterval(interval);
           testError(err);
         } else if (results.completed || results.failures.length) {
           clearInterval(interval);
           testComplete(results);
-        } else {
-          console.log('=> ', results);
         }
+
       });
     }, 10 * 1000);
   });
 }
 
-server.start('browser-server.log').then(function () {
-  devserver.start(function () {
+dbServer.start('logs/browser-server.log').then(function () {
+  server.start(function () {
     if (client.runner === 'saucelabs') {
       startSauceConnect(startTest);
     } else {

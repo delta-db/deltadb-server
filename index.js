@@ -1,5 +1,3 @@
 'use strict';
 
-var DeltaDB = require('deltadb');
-
-module.exports = DeltaDB;
+module.exports = require('./scripts/server');

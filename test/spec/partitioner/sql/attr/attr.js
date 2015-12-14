@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partDir = '../../../../../scripts/partitioner/sql',
   partUtils = require('../utils'),
   commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),

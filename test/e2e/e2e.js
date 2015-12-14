@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before */
-
 var Client = require('deltadb/scripts/adapter');
 
 describe('e2e', function () {

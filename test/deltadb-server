@@ -6,4 +6,4 @@ var ServerProcess = require('./server-process');
 
 var server = new ServerProcess();
 
-server.start('browser-server.log');
+server.start('logs/browser-server.log');

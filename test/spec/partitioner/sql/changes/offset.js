@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partUtils = require('../utils'),
   Changes = require('../../../../../scripts/partitioner/sql/changes'),
   testUtils = require('../../../../utils'),

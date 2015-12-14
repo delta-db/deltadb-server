@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partUtils = require('../utils'),
   QueueAttrRecs = require('../../../../../scripts/partitioner/sql/queue/queue-attr-recs'),
   testUtils = require('../../../../utils');
