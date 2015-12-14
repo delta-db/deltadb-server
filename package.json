@@ -33,7 +33,8 @@
     "browser-test-firefox": "npm run jshint && CLIENT=selenium:firefox npm run browser-test",
     "browser-test-chrome": "npm run jshint && CLIENT=selenium:chrome npm run browser-test",
     "browser-test-phantomjs": "npm run jshint && CLIENT=selenium:phantomjs npm run browser-test",
-    "test": "npm run assert-beautified && npm run node-full-test && npm run browser-test-phantomjs"
+    "test": "npm run assert-beautified && npm run node-full-test && npm run browser-test-phantomjs",
+    "test-performance": "istanbul test ./node_modules/mocha/bin/_mocha -- -g 'delta' test/performance"
   },
   "dependencies": {
     "bluebird": "^3.0.2",
@@ -58,6 +59,7 @@
     "istanbul": "^0.4.0",
     "jshint": "^2.8.0",
     "mocha": "^2.2.5",
+    "mysql2": "^0.15.8",
     "request": "^2.51.0",
     "sauce-connect-launcher": "^0.13.0",
     "saucelabs": "^1.0.1",
