@@ -86,6 +86,7 @@ to test outside the VM, assuming you have Firefox and Chrome installed.
 
 
 Running Tests In Any Browser Manually
+---
 
     $ npm run browser-server
     $ ./test/deltadb-server # in a separate window
