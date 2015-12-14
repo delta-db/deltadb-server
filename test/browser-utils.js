@@ -9,7 +9,7 @@ var Utils = function () {};
 
 // Added to prototype so that it can be accessed outside this module
 // 8000 ms doesn't appear to long enough for the e2e separate tests in phantomjs
-Utils.prototype.TIMEOUT = 10000;
+Utils.prototype.TIMEOUT = 15000;
 
 Utils.prototype.changesShouldEql = function (expected, actual) {
   this.sortChanges(actual);
