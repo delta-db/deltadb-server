@@ -1,10 +1,9 @@
 .git*
+coverage
 node_modules
+test/browser/bundle.js
+test/logs/*
 .DS_Store
 *~
-coverage
 npm-debug.log
 config.js
-vendor/
-beautify
-beautified
