@@ -60,7 +60,7 @@ Run subset of tests and analyze coverage
 Running Basic Performance Test
 ---
 
-    npm run performance
+    npm run test-performance
 
 
 Running Tests in PhantomJS

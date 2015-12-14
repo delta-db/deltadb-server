@@ -50,6 +50,13 @@
 // ✓ should process quickly (230944ms)
 // ✓ should read quickly (1077ms) <---- MUCH FASTER!!
 
+// 12/13/2015
+// (10,000 docs)
+// delta
+//   ✓ should write quickly (8842ms)
+//   ✓ should process quickly (349793ms)
+//   ✓ should read quickly (922ms)
+
 var Promise = require('bluebird');
 
 var DB = require('../../scripts/partitioner/sql');
