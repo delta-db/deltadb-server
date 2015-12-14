@@ -1,7 +1,7 @@
 {
   "name": "deltadb-server",
   "version": "0.0.1",
-  "description": "An offline-first, front-end-only database",
+  "description": "An offline-first database",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -17,7 +17,10 @@
   "author": "Geoffrey Cox",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/redgeoff/deltadb/issues"
+    "url": "https://github.com/delta-db/deltadb-server/issues"
+  },
+  "bin": {
+    "deltadb-server": "./bin/deltadb-server"
   },
   "scripts": {
     "assert-beautified": "beautify-proj -i test -c beautify.json -e bundle.js && beautify-proj -i scripts -c beautify.json",
@@ -78,13 +81,5 @@
     "walk": "^2.3.9",
     "watchify": "^3.4.0",
     "wd": "^0.4.0"
-  },
-  "browser": {
-    "crypto": false
-  },
-  "browserify": {
-    "transform": [
-      "es3ify"
-    ]
   }
 }

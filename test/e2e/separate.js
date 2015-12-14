@@ -3,7 +3,7 @@
 var Client = require('deltadb/scripts/adapter'),
   DB = require('deltadb/scripts/db'),
   Promise = require('bluebird'),
-  browserTestUtils = require('../browser-utils'),
+  browserTestUtils = require('../browser/utils'),
   MemAdapter = require('deltadb-orm-nosql/scripts/adapters/mem'),
   clientUtils = require('deltadb/scripts/utils'),
   config = require('deltadb/scripts/config');

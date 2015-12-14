@@ -10,7 +10,7 @@ var Promise = require('bluebird'),
   commonTestUtils = require('deltadb-common-utils/scripts/test-utils'),
   clientUtils = require('deltadb/scripts/utils'),
   clientTestUtils = require('deltadb/test/utils'),
-  browserTestUtils = require('./browser-utils');
+  browserTestUtils = require('./browser/utils');
 
 var Utils = function () {};
 

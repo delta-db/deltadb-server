@@ -14,7 +14,7 @@ var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should(); // var should = chai.should();
 
-var browserTestUtils = require('../browser-utils'),
+var browserTestUtils = require('./utils'),
   log = require('deltadb/scripts/log');
 
 describe('browser', function () {

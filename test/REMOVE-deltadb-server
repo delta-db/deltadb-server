@@ -1,9 +1,0 @@
-#!/usr/bin/env node
-
-'use strict';
-
-var ServerProcess = require('./server-process');
-
-var server = new ServerProcess();
-
-server.start('logs/browser-server.log');
