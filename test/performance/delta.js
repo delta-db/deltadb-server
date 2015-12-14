@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 // INSERTING BASELINE (10,000 RECORDS)
 // Note: DeltaDB will never be faster than this as this this is the min time it takes to just insert
 //       the data.

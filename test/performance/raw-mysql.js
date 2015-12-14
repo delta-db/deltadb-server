@@ -10,8 +10,6 @@
 // TODO: how fast would a stored procedure be? Probably couldn't beat even a C program talking
 // directly to MySQL
 
-/* global before, after */
-
 var Promise = require('bluebird');
 
 var SQL = require('deltadb-orm-sql/scripts/adapters/mysql'),

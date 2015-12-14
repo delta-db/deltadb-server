@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var ServerProcess = require('../server-process'),
   log = require('deltadb/scripts/log'),
   fs = require('fs');

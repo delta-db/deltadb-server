@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 // TODO: split into smaller files!!
 
 // TODO: remove destroyed_at from attrs

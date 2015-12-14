@@ -1,7 +1,5 @@
 'use strict';
 
-/* global after */
-
 var Client = require('deltadb/scripts/adapter'),
   Promise = require('bluebird'),
   browserTestUtils = require('../browser/utils'),

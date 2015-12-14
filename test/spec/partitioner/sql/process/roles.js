@@ -1,7 +1,5 @@
 'use strict';
 
-/* global before, after */
-
 var partDir = '../../../../../scripts/partitioner/sql',
   constants = require(partDir + '/constants'),
   partUtils = require('../utils'),

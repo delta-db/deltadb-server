@@ -8,8 +8,6 @@
 //
 // MySQL: TODO
 
-/* global before, after */
-
 var Promise = require('bluebird');
 
 var SQL = require('deltadb-orm-sql/scripts/adapters/postgres'),
