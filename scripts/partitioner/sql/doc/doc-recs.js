@@ -12,7 +12,7 @@
 // TODO: separate DB specific logic to doc-rec & doc-recs and use doc and docs for layer above
 
 var constants = require('../constants'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  commonUtils = require('deltadb-common-utils');
 
 var DocRecs = function (sql, partition, policy, attrRecs, userRoles) {
   this._sql = sql;
@@ -126,7 +126,7 @@ DocRecs.prototype.getOrCreate = function (docUUID, colId, userId, destroyedAt, r
 
     return self.create(docUUID, colId, userId, destroyedAt, recordedAt, updatedAt)
       .catch(function (err) {
-        if (!(err instanceof SQLError)) {
+        if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
           throw err;
         }
         return self.getId(docUUID);

@@ -3,8 +3,7 @@
 var commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
   core = require('../core'),
-  AttrRecs = require('./attr-recs'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  AttrRecs = require('./attr-recs');
 
 // AttrRec should closely mimic the attrs table, e.g. the value of the attr is stored in JSON
 var AttrRec = function (sql, partition, params, partitioner) {
@@ -116,7 +115,7 @@ AttrRec.prototype.update = function () {
 AttrRec.prototype.replace = function () {
   var self = this;
   return self.create().catch(function (err) {
-    if (!(err instanceof SQLError)) {
+    if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
       throw err;
     }
     return self.update();

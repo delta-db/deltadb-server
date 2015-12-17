@@ -8,8 +8,6 @@ var Promise = require('bluebird'),
   UserRoles = require('../user/user-roles'),
   System = require('../../../system'),
   log = require('../../../server/log'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
-  DBExistsError = require('deltadb-common-utils/scripts/errors/db-exists-error'),
   commonUtils = require('deltadb-common-utils'),
   clientUtils = require('deltadb/scripts/utils');
 
@@ -45,8 +43,8 @@ Attr.prototype._canDestroyOrUpdateDoc = function () {
 Attr.prototype._processCreateErr = function (err) {
   // We can expect a DBExistsError/DBMissingError if two clients try to create/destroy the same DB
   // simultaneously
-  if (err instanceof ForbiddenError || err instanceof DBExistsError ||
-    err instanceof DBMissingError) {
+  if (commonUtils.errorInstanceOf(err, 'ForbiddenError') || commonUtils.errorInstanceOf(err,
+      'DBExistsError') || commonUtils.errorInstanceOf(err, 'DBMissingError')) {
     log.warning('Cannot create attr, err=' + err.message + ', stack=' + err.stack);
   } else {
     throw err;
@@ -137,7 +135,7 @@ Attr.prototype.createIfPermitted = function () {
 Attr.prototype._destroyDB = function () {
   return this._partitioner.destroyAnotherDatabase(this._params.value.name).catch(function (err) {
     // Ignore DBMissingErrors caused by race conditions when destroying the database
-    if (!(err instanceof DBMissingError)) {
+    if (!commonUtils.errorInstanceOf(err, 'DBMissingError')) {
       throw err;
     }
   });
@@ -146,7 +144,7 @@ Attr.prototype._destroyDB = function () {
 Attr.prototype._createDB = function () {
   return this._partitioner.createAnotherDatabase(this._params.value.name).catch(function (err) {
     // Ignore DBMissingErrors caused by race conditions when creating the database
-    if (!(err instanceof DBExistsError)) {
+    if (!commonUtils.errorInstanceOf(err, 'DBExistsError')) {
       throw err;
     }
   });

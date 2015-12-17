@@ -7,8 +7,7 @@
 var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   constants = require('./constants'),
-  Cols = require('./col/cols'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error');
+  Cols = require('./col/cols');
 
 var Roles = function (sql, partitioner) {
   this._sql = sql;
@@ -130,7 +129,7 @@ Roles.prototype.getOrCreateRole = function (uuid, changedByUserId, changedByUUID
     }
     return self.create(uuid, changedByUserId, changedByUUID, updatedAt)
       .catch(function (err) { // did another process add the role?
-        if (!(err instanceof SQLError)) {
+        if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
           throw err;
         }
         return self.getRoleId(uuid);
