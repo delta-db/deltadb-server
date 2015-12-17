@@ -1,6 +1,5 @@
 Now
 ---
-- split into deltadb, deltadb-server, deltadb-sql-orm, deltadb-nosql-orm
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - event for connect. Disconnect event already exists, but add info about both to wiki
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
