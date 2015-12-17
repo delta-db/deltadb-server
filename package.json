@@ -34,7 +34,7 @@
     "browser-test-chrome": "npm run jshint && CLIENT=selenium:chrome npm run browser-test",
     "browser-test-phantomjs": "npm run jshint && CLIENT=selenium:phantomjs npm run browser-test",
     "test": "npm run assert-beautified && npm run node-full-test && npm run browser-test-phantomjs",
-    "test-performance": "istanbul test ./node_modules/mocha/bin/_mocha -- -g 'delta' test/performance"
+    "test-performance": "./node_modules/mocha/bin/_mocha -g 'e2e' test/performance/index.js"
   },
   "dependencies": {
     "bluebird": "^3.0.2",
