@@ -1,5 +1,8 @@
 'use strict';
 
+// TODO: make this test part of the standard tests and disable by default by checking for an env
+// var. This way, we can test the performance in an actual browser.
+
 // Benchmarks:
 
 // 10,000 docs on 12/17/15
