@@ -329,6 +329,7 @@ Partitioners.prototype._addUserUUID = function (dbName, socket, changes) {
 Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
 
+  // TODO: can a race condition lead to self._partitioners[dbName] not existing?
   var self = this,
     part = self._partitioners[dbName].part;
 
