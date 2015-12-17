@@ -7,7 +7,7 @@ var testUtils = require('../../utils'),
   Manager = require('../../../scripts/manager'),
   UserUtils = require('../../user-utils'),
   System = require('../../../scripts/system'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error');
+  commonUtils = require('deltadb-common-utils');
 
 describe('system', function () {
 
@@ -32,7 +32,7 @@ describe('system', function () {
     return system.destroy().then(function () {
       return partitioner.destroyAnotherDatabase('myotherdb').catch(function (err) {
         // Ignore error in case trying to destroy after DB has already been destroyed
-        if (!(err instanceof DBMissingError)) {
+        if (!commonUtils.errorInstanceOf(err, 'DBMissingError')) {
           throw err;
         }
       });

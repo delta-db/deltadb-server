@@ -104,7 +104,7 @@ Sessions.prototype._attemptToCreate = function (userId, attempt) {
     }
 
     return self._createRecord(userId, self._genToken()).catch(function (err) {
-      if (!(err instanceof SQLError)) {
+      if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
         throw err;
       }
       // Allow SQL errors caused by a duplicate token

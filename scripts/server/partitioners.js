@@ -7,7 +7,6 @@ var Promise = require('bluebird'),
   log = require('../server/log'),
   commonUtils = require('deltadb-common-utils'),
   clientUtils = require('deltadb/scripts/utils'),
-  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
   Dictionary = require('deltadb-common-utils/scripts/dictionary'),
   Users = require('../partitioner/sql/user/users'),
@@ -186,7 +185,7 @@ Partitioners.prototype._hasChanges = function (partitioner, since) {
   return partitioner.changes(since, null, 1, null, all, Users.ID_SUPER).then(function (changes) {
     return changes.length > 0;
   }).catch(function (err) {
-    if (err instanceof SocketClosedError) {
+    if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
       // TODO: why do we randomly get these errors w/ postgres? Is there a better way to handle
       // them, e.g. reconnect?
       self._unregisterPartitioner(partitioner._dbName);
@@ -348,7 +347,7 @@ Partitioners.prototype._changes = function (partitioner, since, limit, offset, u
   var all = true;
   return partitioner.changes(since, null, limit, offset, all, userId).catch(function (err) {
     // Ignore SocketClosedError as it could have been caused when a db was destroyed
-    if (!(err instanceof SocketClosedError)) {
+    if (!commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
       throw err;
     }
   });

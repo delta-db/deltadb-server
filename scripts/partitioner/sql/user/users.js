@@ -3,7 +3,6 @@
 var Promise = require('bluebird'),
   commonUtils = require('deltadb-common-utils'),
   constants = require('../constants'),
-  SQLError = require('deltadb-orm-sql/scripts/common/sql-error'),
   MissingError = require('deltadb-orm-sql/scripts/common/missing-error'),
   AuthenticationError = require('deltadb/scripts/authentication-error'),
   DisabledError = require('deltadb/scripts/disabled-error'),
@@ -190,7 +189,7 @@ Users.prototype.createUserAndImplicitRoleOrGetId = function (userUUID, username,
       changedByUserId, changedByUUID)
     .catch(function (err) {
       // TODO: can SQL ORM generate SQLDuplicateError so that can throw other errors?
-      if (!(err instanceof SQLError)) {
+      if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
         throw err;
       }
       // avoid race condition where 2 threads try to create at the same time
@@ -204,7 +203,7 @@ Users.prototype.createUserAndImplicitRoleOrUpdateUser = function (userUUID, user
   return self.createUserAndImplicitRole(userUUID, username, salt, password, status, updatedAt,
       changedByUserId, changedByUUID)
     .catch(function (err) {
-      if (!(err instanceof SQLError)) {
+      if (!commonUtils.errorInstanceOf(err, 'SQLError')) {
         throw err;
       }
       // avoid race condition where 2 threads try to create at the same time

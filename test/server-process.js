@@ -29,11 +29,11 @@ var fs = require('fs'),
   Partitioner = require('../scripts/partitioner/sql'),
   Manager = require('../scripts/manager'),
   System = require('../scripts/system'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
   log = require('deltadb/scripts/log'),
   serverLog = require('../scripts/server/log'),
   ServerContainer = require('../scripts/server'),
-  fs = require('fs');
+  fs = require('fs'),
+  commonUtils = require('deltadb-common-utils');
 
 serverLog.console(false);
 
@@ -54,7 +54,7 @@ Server.prototype._destroyAndCreateSystemDB = function () {
     adminParty = true;
   return self._system.destroy().catch(function (err) {
     // Ignore errors caused from missing DB
-    if (!(err instanceof DBMissingError)) {
+    if (!commonUtils.errorInstanceOf(err, 'DBMissingError')) {
       throw err;
     }
   }).then(function () {
@@ -64,7 +64,7 @@ Server.prototype._destroyAndCreateSystemDB = function () {
   }).catch(function (err) {
     // Ignore errors caused from "mydb" missing which is actually the expected case as long as the
     // previous set of tests passed
-    if (!(err instanceof DBMissingError)) {
+    if (!commonUtils.errorInstanceOf(err, 'DBMissingError')) {
       throw err;
     }
   }).then(function () {

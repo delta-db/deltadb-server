@@ -9,8 +9,6 @@ var Partitioner = require('../partitioner/sql'),
   clientUtils = require('deltadb/scripts/utils'),
   commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
-  DBMissingError = require('deltadb-common-utils/scripts/errors/db-missing-error'),
-  SocketClosedError = require('deltadb-orm-sql/scripts/common/socket-closed-error'),
   Users = require('../partitioner/sql/user/users');
 
 var Process = function () {
@@ -96,7 +94,8 @@ Process.prototype._initSystemDB = function () {
 Process.prototype._processAndCatch = function (part) {
   var self = this;
   return part.process().catch(function (err) {
-    if (err instanceof SocketClosedError) { // was the socket closed due to destroying a DB?
+    // Was the socket closed due to destroying a DB?
+    if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
       // Remove partitioner from pool
       delete self._partitioners[part._dbName];
 
@@ -136,7 +135,8 @@ Process.prototype._processDB = function (dbName) {
   }).catch(function (err) {
     // Don't throw DBMissingError or SocketClosedError as the DB may have just been destroyed and
     // not yet removed from _dbNames.
-    if (!(err instanceof DBMissingError) && !(err instanceof SocketClosedError)) {
+    if (!commonUtils.errorInstanceOf(err, 'DBMissingError') && !commonUtils.errorInstanceOf(
+        err, 'SocketClosedError')) {
       throw err;
     }
   });
