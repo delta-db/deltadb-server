@@ -44,7 +44,7 @@ Because it doesn't exist and true support for offline environments needs to be e
 ---
 
 
-[Examples](EXAMPLES.md)
+[Examples](https://github.com/delta-db/deltadb/blob/master/EXAMPLES.md)
 ---
 
 
