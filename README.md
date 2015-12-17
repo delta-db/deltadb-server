@@ -7,7 +7,7 @@ DeltaDB is an offline-first database designed to talk directly to clients and wo
 Status
 ---
 
-DeltaDB is currently available as a prototype release. The core engine is functioning well and demonstrates offline capabilities for creating users, roles, policies, databases, collections and docs. The wrapping RESTful API has yet to be written, but will be written shortly. The short term goal is to be an open source Firebase that works offline.
+DeltaDB is currently available as a prototype release. The core engine is functioning well and demonstrates offline capabilities for creating users, roles, policies, databases, collections and docs. The short term goal is to be an open source Firebase that works offline.
 
 
 Main Principles
@@ -48,7 +48,7 @@ Because it doesn't exist and true support for offline environments needs to be e
 ---
 
 
-[API](https://github.com/delta-db/deltadb-server/wiki)
+[API](https://github.com/delta-db/deltadb/wiki)
 ---
 
 
