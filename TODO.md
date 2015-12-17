@@ -112,15 +112,6 @@ Next 2
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
 
 
-NoSQL support
----
-- CouchDB
-- Indexes
-- LevelDB
-- firebase (can use to make fb offline-first)
-- Riak
-- etc...
-
 Future?
 ---
 - make checking for local changes more efficient? Currently, need to loop through all docs, even those that have not changed and this could be very inefficient when there are a lot of docs. Could make the collection keep track of doc ids that have changed and only check these docs.
@@ -176,6 +167,23 @@ Future?
 	- token expiration should be refreshed with each sync
 	- token expiration configurable
 	- client gets new token after token expiration
+- Split off selenium/browser/saucelabs custom code into separate repo once figure out how it would need to be used with deltadb-client, etc…
+- common-utils build (and everything else as a result)
+  - node-uuid contributes 500K alone!!
+  - bluebird adds 176k--can we use lie instead to make this smaller?
+  - bcryptjs adds 600k
+- Create a repo with vagrant that benchmarks deltadb, pouchdb, delta-pouch, firebase & meteor
+
+
+NoSQL support
+---
+- CouchDB
+- Indexes
+- LevelDB
+- firebase (can use to make fb offline-first)
+- Riak
+- etc...
+
 
 Docs
 ----
@@ -184,4 +192,3 @@ Docs
 Misc
 ---
 - Use BaaS (Backend as a Service) phrase?
-- Create a repo with vagrant that benchmarks deltadb, pouchdb, delta-pouch, firebase & meteor
