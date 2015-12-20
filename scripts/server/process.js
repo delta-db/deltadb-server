@@ -9,7 +9,8 @@ var Partitioner = require('../partitioner/sql'),
   clientUtils = require('deltadb/scripts/utils'),
   commonUtils = require('deltadb-common-utils'),
   Promise = require('bluebird'),
-  Users = require('../partitioner/sql/user/users');
+  Users = require('../partitioner/sql/user/users'),
+  config = require('../../config');
 
 var Process = function () {
   this._dbNames = {};
@@ -46,7 +47,6 @@ Process.prototype._createSystemDBDestroyListener = function () {
 };
 
 Process.prototype._newSystemDB = function (hashedPassword) {
-  // TODO: doesn't url need to be set here?
   this._systemDB = this._client.db({
     db: clientUtils.SYSTEM_DB_NAME,
 
@@ -54,7 +54,10 @@ Process.prototype._newSystemDB = function (hashedPassword) {
     filter: false,
 
     // We need super user access so that we can guarantee that we will be monitoring all the DBs
-    hashed: hashedPassword
+    hashed: hashedPassword,
+
+    // Set the URL in case we have configured a different URL (including port)
+    url: config.URL
   });
 };
 
