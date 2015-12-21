@@ -36,4 +36,27 @@ describe('server', function () {
     return server._queueChanges();
   });
 
+  it('should set options for ssl with ca', function () {
+    var file = 'index.js', // Fake cert files with any file
+      options = {};
+    server._setOptions(true, options, file, file, file);
+  });
+
+  it('should set options for ssl without ca', function () {
+    var file = 'index.js', // Fake cert files with any file
+      options = {};
+    server._setOptions(true, options, file, file);
+  });
+
+  it('should create server for ssl', function () {
+    var https = {
+      createServer: function () {} // fake
+    };
+    server._createServer(true, {}, https);
+  });
+
+  it('should get scheme for ssl', function () {
+    server._scheme(true).should.eql('https');
+  });
+
 });
