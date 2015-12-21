@@ -5,9 +5,10 @@
 // prioritize a DB over another! If multiple DBs per socket then how to handle connections with diff
 // servers if DBs on diff servers? Chosing socket per DB for now.
 
-var app = require('express')(),
-  http = require('http').Server(app),
-  io = require('socket.io')(http),
+var http = require('http'),
+  https = require('https'),
+  fs = require('fs'),
+  socketio = require('socket.io'),
   Partitioners = require('./partitioners'),
   log = require('../server/log'),
   config = require('../../config'),
@@ -112,16 +113,44 @@ Server.prototype._registerChangesListener = function (socket, partitioner) {
   socket.on('changes', this._onChangesFactory(socket, partitioner));
 };
 
+Server.prototype._setOptions = function (useSSL, options, key, cert, ca) {
+  if (useSSL) { // using https?
+    options.key = fs.readFileSync(key);
+    options.cert = fs.readFileSync(cert);
+
+    if (ca) { // Certificate authority optional
+      options.ca = fs.readFileSync(ca);
+    }
+  }
+};
+
+// Pass in https and http so that we can test SSL without a cert
+Server.prototype._createServer = function (useSSL, options, https, http) {
+  return useSSL ? https.createServer(options) : http.createServer();
+};
+
+Server.prototype._scheme = function (useSSL) {
+  return 'http' + (useSSL ? 's' : '');
+};
+
 Server.prototype.listen = function () {
-  var self = this;
+  var self = this,
+    options = {},
+    useSSL = config.URL.substr(0, 5).toLowerCase() === 'https';
+
+  self._setOptions(useSSL, options, config.SSL_KEY, config.SSL_CERT, config.SSL_CA);
+
+  var server = self._createServer(useSSL, options, https, http);
+
+  var io = socketio(server);
 
   io.on('connection', function (socket) {
     log.info(socket.conn.id + ' (' + socket.conn.remoteAddress + ') connected');
     self._registerInitListener(socket);
   });
 
-  http.listen(config.PORT, function () {
-    log.info('listening on *:' + config.PORT);
+  server.listen(config.PORT, function () {
+    log.info('listening on ' + self._scheme(useSSL) + '://*:' + config.PORT);
   });
 };
 
