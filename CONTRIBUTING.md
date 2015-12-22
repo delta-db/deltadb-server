@@ -29,7 +29,6 @@ Publishing to npm
 ---
 
 	tin -v VERSION
-	npm run build
 	git add -A
 	git commit -m 'VERSION'
 	git tag vVERSION
