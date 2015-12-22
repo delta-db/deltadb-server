@@ -1,6 +1,6 @@
 {
   "name": "deltadb-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An offline-first database",
   "main": "index.js",
   "repository": {
