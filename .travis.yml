@@ -15,7 +15,7 @@ before_script:
   - sudo -u postgres psql -c "ALTER USER Postgres WITH PASSWORD 'secret'"
 
   # Use the default config
-  - cp config-default.js config.js
+  - cp config-default.json config.json
 
 after_script: cat ./coverage/node/lcov.info | ./node_modules/coveralls/bin/coveralls.js
 

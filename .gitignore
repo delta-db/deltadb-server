@@ -1,7 +1,7 @@
 coverage
 node_modules
 test/browser/bundle.js
-/config.js
+/config.json
 .DS_Store
 *~
 npm-debug.log

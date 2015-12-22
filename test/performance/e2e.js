@@ -32,7 +32,7 @@ describe('e2e', function () {
     tasks = null;
 
   var createDB = function () {
-    db = new DeltaDB('mydb', config.URL);
+    db = new DeltaDB('mydb', config.url());
     tasks = db.col('tasks');
   };
 

@@ -15,7 +15,7 @@ describe('basic', function () {
     aTasks = null;
 
   beforeEach(function () {
-    a = new DeltaDB('mydb', config.URL);
+    a = new DeltaDB('mydb', config.url());
     aTasks = a.col('tasks');
   });
 

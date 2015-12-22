@@ -1,0 +1,30 @@
+{
+
+  "dbNamePrefix": "delta_",
+
+  "systemDBNamePrefix": "delta_sys_",
+
+  "url": {
+    "scheme": "http",
+    "host": "localhost",
+    "port": 8090
+  },
+
+  "ssl": {
+    "key": "",
+    "cert": "",
+    "ca": ""
+  },
+
+  "adapters": {
+
+    "postgres": {
+      "host": "localhost",
+      "port": "",
+      "username": "postgres",
+      "password": "secret"
+    }
+
+  }
+
+}

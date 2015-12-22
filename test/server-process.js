@@ -6,8 +6,8 @@ var config = require('../config'),
   testConfig = require('./config'),
   clientConfig = require('deltadb/scripts/config'); // server also uses client
 for (var i in testConfig) {
-  config[i] = testConfig[i];
-  clientConfig[i] = testConfig[i];
+  config.vals[i] = testConfig[i];
+  clientConfig.vals[i] = testConfig[i];
 }
 
 // Uncomment for debugging
@@ -80,8 +80,8 @@ Server.prototype._doSpawn = function (serverFilename) {
   });
 
   this._server = spawn('./bin/deltadb-server', [
-    '--port', config.PORT,
-    '--prefix', config.DB_NAME_PREFIX
+    '--port', config.vals.url.port,
+    '--prefix', config.vals.dbNamePrefix
   ]);
 
   this._server.stdout.pipe(this._log);

@@ -81,16 +81,16 @@ describe('raw-orm', function () {
   };
 
   before(function () {
-    return sql.createAndUse('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
-      config.POSTGRES_PWD).then(
+    return sql.createAndUse('testdb_raw', config.vals.adapters.postgres.host, config.vals.adapters
+      .postgres.username, config.vals.adapters.postgres.password).then(
       function () {
         return createTable();
       });
   });
 
   after(function () {
-    return sql.dropAndCloseDatabase('testdb_raw', config.POSTGRES_HOST, config.POSTGRES_USER,
-      config.POSTGRES_PWD);
+    return sql.dropAndCloseDatabase('testdb_raw', config.vals.adapters.postgres.host,
+      config.vals.adapters.postgres.username, config.vals.adapters.postgres.password);
   });
 
   var insert = function () {

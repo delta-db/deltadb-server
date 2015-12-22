@@ -15,7 +15,7 @@ describe('auth', function () {
 
   var createUser = function (status) {
     // Connect anonymously first and create the user as Admin Party is in effect
-    db = new DeltaDB('mydb', config.URL);
+    db = new DeltaDB('mydb', config.url());
     return db.createUser('user-uuid', 'username', 'secret', status).then(function (doc) {
       return commonUtils.once(doc, 'doc:record'); // user created
     }).then(function () {
@@ -38,7 +38,7 @@ describe('auth', function () {
 
   var updateUser = function (status) {
     // Connect anonymously first and create the user as Admin Party is in effect
-    db = new DeltaDB('mydb', config.URL);
+    db = new DeltaDB('mydb', config.url());
 
     var ts = new Date();
 
@@ -59,7 +59,7 @@ describe('auth', function () {
 
   it('should sync when authenticated', function () {
 
-    db = new DeltaDB('mydb', config.URL, 'username', 'secret');
+    db = new DeltaDB('mydb', config.url(), 'username', 'secret');
 
     var tasks = db.col('tasks');
 
@@ -75,7 +75,7 @@ describe('auth', function () {
 
   it('should report error when authentication fails', function () {
 
-    db = new DeltaDB('mydb', config.URL, 'username', 'badsecret');
+    db = new DeltaDB('mydb', config.url(), 'username', 'badsecret');
 
     return commonUtils.once(db, 'error').then(function (args) {
       (args[0].name === 'AuthenticationError').should.eql(true);
@@ -88,7 +88,7 @@ describe('auth', function () {
     // Disable user
     return updateUser('disabled').then(function () {
 
-      db = new DeltaDB('mydb', config.URL, 'username', 'secret');
+      db = new DeltaDB('mydb', config.url(), 'username', 'secret');
 
       return commonUtils.once(db, 'error').then(function (args) {
         (args[0].name === 'DisabledError').should.eql(true);
