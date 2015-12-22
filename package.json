@@ -39,7 +39,7 @@
   "dependencies": {
     "bluebird": "^3.0.2",
     "commander": "^2.9.0",
-    "deltadb": "0.0.7",
+    "deltadb": "0.0.9",
     "deltadb-common-utils": "0.0.4",
     "deltadb-orm-sql": "0.0.3",
     "events": "^1.1.0",
