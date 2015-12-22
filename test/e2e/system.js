@@ -33,7 +33,7 @@ describe('system', function () {
     roleUsersUpdated = [];
 
   var createDB = function (dbName) {
-    db = new DeltaDB(dbName, config.URL);
+    db = new DeltaDB(dbName, config.url());
     var tasks = db.col('tasks');
     var task = tasks.doc({
       thing: 'write'

@@ -136,9 +136,9 @@ Server.prototype._scheme = function (useSSL) {
 Server.prototype.listen = function () {
   var self = this,
     options = {},
-    useSSL = config.URL.substr(0, 5).toLowerCase() === 'https';
+    useSSL = config.url().substr(0, 5).toLowerCase() === 'https';
 
-  self._setOptions(useSSL, options, config.SSL_KEY, config.SSL_CERT, config.SSL_CA);
+  self._setOptions(useSSL, options, config.vals.ssl.key, config.vals.ssl.cert, config.vals.ssl.ca);
 
   var server = self._createServer(useSSL, options, https, http);
 
@@ -149,8 +149,8 @@ Server.prototype.listen = function () {
     self._registerInitListener(socket);
   });
 
-  server.listen(config.PORT, function () {
-    log.info('listening on ' + self._scheme(useSSL) + '://*:' + config.PORT);
+  server.listen(config.vals.url.port, function () {
+    log.info('listening on ' + self._scheme(useSSL) + '://*:' + config.vals.url.port);
   });
 };
 

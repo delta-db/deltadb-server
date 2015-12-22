@@ -100,12 +100,12 @@ Part.prototype._initPartitions = function () {
   this._partitions[constants.ALL] = this._all;
 };
 
-Part.prototype._host = config.POSTGRES_HOST;
-Part.prototype._dbUser = config.POSTGRES_USER;
-Part.prototype._dbPwd = config.POSTGRES_PWD;
-Part.prototype._port = null;
+Part.prototype._host = config.vals.adapters.postgres.host;
+Part.prototype._dbUser = config.vals.adapters.postgres.username;
+Part.prototype._dbPwd = config.vals.adapters.postgres.password;
+Part.prototype._port = config.vals.adapters.postgres.port;
 
-Part.prototype._DB_NAME_PREFIX = config.DB_NAME_PREFIX;
+Part.prototype._DB_NAME_PREFIX = config.vals.dbNamePrefix;
 
 Part.prototype._toUniqueDBName = function (dbName) {
   return this._DB_NAME_PREFIX + clientUtils.escapeDBName(dbName);

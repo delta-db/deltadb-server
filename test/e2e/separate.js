@@ -46,7 +46,7 @@ describe('separate', function () {
     // sharing the same IndexedDB.
     b._sysDB = b._adapter.db({
       db: clientUtils.SYSTEM_DB_NAME,
-      alias: config.SYSTEM_DB_NAME_PREFIX + b._name,
+      alias: config.vals.systemDBNamePrefix + b._name,
       url: b._url,
       local: b._localOnly,
       store: new MemAdapter().db('system')

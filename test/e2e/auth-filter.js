@@ -21,7 +21,7 @@ describe('auth-filter', function () {
 
   var createUsers = function () {
     // Connect anonymously first and create the users as Admin Party is in effect
-    db = new DeltaDB('mydb', config.URL);
+    db = new DeltaDB('mydb', config.url());
     return createUser('user-uuid-1', 'username1', 'secret').then(function () {
       return createUser('user-uuid-2', 'username2', 'secret');
     }).then(function () {
@@ -65,7 +65,7 @@ describe('auth-filter', function () {
   // Authenticate with 1st user and create the doc
   var setPolicyAndCreateDoc = function () {
 
-    db = new DeltaDB('mydb', config.URL, 'username1', 'secret');
+    db = new DeltaDB('mydb', config.url(), 'username1', 'secret');
 
     // Set policy so that only owner can access "private" attr
     return setPolicy().then(function () {
@@ -86,7 +86,7 @@ describe('auth-filter', function () {
 
   // Authenticate with the 2nd user and make sure the "private" attr isn't received
   var privateShouldNotBeReceived = function () {
-    db = new DeltaDB('mydb', config.URL, 'username2', 'secret');
+    db = new DeltaDB('mydb', config.url(), 'username2', 'secret');
 
     var tasks = db.col('tasks');
     var task = tasks.doc({
