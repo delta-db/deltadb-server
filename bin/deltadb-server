@@ -27,6 +27,29 @@ if (program.prefix) {
   clientConfig.vals.url.dbNamePrefix = program.prefix;
 }
 
+// Use env vars for adapter credentials so that they don't appear in process lists
+if (process.env.DELTA_ADAPTER) {
+  var adapter = config.vals.adapters[process.env.DELTA_ADAPTER];
+
+  if (process.env.DELTA_ADAPTER_HOST) {
+    adapter.host = process.env.DELTA_ADAPTER_HOST;
+  } else if (process.env.POSTGRES_PORT_5432_TCP_ADDR) {
+    adapter.host = process.env.POSTGRES_PORT_5432_TCP_ADDR;
+  }
+
+  if (process.env.DELTA_ADAPTER_PORT) {
+    adapter.port = process.env.DELTA_ADAPTER_PORT;
+  }
+
+  if (process.env.DELTA_ADAPTER_USERNAME) {
+    adapter.username = process.env.DELTA_ADAPTER_USERNAME;
+  }
+
+  if (process.env.DELTA_ADAPTER_PASSWORD) {
+    adapter.password = process.env.DELTA_ADAPTER_PASSWORD;
+  }
+}
+
 // Start server
 var Server = require('../scripts/server');
 var server = new Server();

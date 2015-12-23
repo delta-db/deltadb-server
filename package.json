@@ -1,6 +1,6 @@
 {
   "name": "deltadb-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An offline-first database",
   "main": "index.js",
   "repository": {
@@ -34,7 +34,8 @@
     "browser-test-chrome": "npm run jshint && CLIENT=selenium:chrome npm run browser-test",
     "browser-test-phantomjs": "npm run jshint && CLIENT=selenium:phantomjs npm run browser-test",
     "test": "npm run assert-beautified && npm run node-full-test && npm run browser-test-phantomjs",
-    "test-performance": "./node_modules/mocha/bin/_mocha -g 'e2e' test/performance/index.js"
+    "test-performance": "./node_modules/mocha/bin/_mocha -g 'e2e' test/performance/index.js",
+    "start": "./bin/deltadb-server"
   },
   "dependencies": {
     "bluebird": "^3.0.2",
