@@ -8,7 +8,8 @@ var Server = require('./server'),
   Process = require('./process'),
   System = require('../system'),
   Partitioner = require('../partitioner/sql'),
-  Manager = require('../manager');
+  Manager = require('../manager'),
+  commonUtils = require('deltadb-common-utils');
 
 var proc = new Process(),
   server = new Server(proc);
@@ -19,6 +20,8 @@ var ServerContainer = function () {
   this._manager = new Manager(this._partitioner);
   this._system = new System(this._manager);
 };
+
+ServerContainer._RETRY_MS = 5000;
 
 ServerContainer.prototype._createSystemAndClose = function () {
   var self = this;
@@ -37,6 +40,11 @@ ServerContainer.prototype._ensureSystemDBCreated = function () {
     if (!exists) {
       return self._createSystemAndClose();
     }
+  }).catch(function (err) {
+    log.warning('error ensuring System DB created: ' + err.message + '. Retrying...');
+    return commonUtils.timeout(ServerContainer._RETRY_MS).then(function () {
+      return self._ensureSystemDBCreated();
+    });
   });
 };
 
