@@ -35,7 +35,9 @@
     "browser-test-phantomjs": "npm run jshint && CLIENT=selenium:phantomjs npm run browser-test",
     "test": "npm run assert-beautified && npm run node-full-test && npm run browser-test-phantomjs",
     "test-performance": "./node_modules/mocha/bin/_mocha -g 'e2e' test/performance/index.js",
-    "start": "./bin/deltadb-server"
+    "start": "./bin/deltadb-server",
+    "link": "npm link ../deltadb && npm link ../deltadb-common-utils && npm link ../deltadb-orm-nosql && npm link ../deltadb-orm-sql",
+    "unlink": "npm unlink deltadb && npm unlink deltadb-common-utils && npm unlink deltadb-orm-nosql && npm unlink deltadb-orm-sql && npm install"
   },
   "dependencies": {
     "bluebird": "^3.0.2",

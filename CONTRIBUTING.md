@@ -99,3 +99,17 @@ Debugging Tests Using Node Inspector
     $ node-inspector # leave this running in this window
     Use *Chrome* to visit http://127.0.0.1:8080/?ws=127.0.0.1:8080&port=5858
     $ mocha -g 'should restore from store' test --debug-brk
+
+
+Linking to dev dependencies
+---
+
+Sometimes a new feature will require modifying multiple deltadb sub projects. You can use npm's linking feature to then test with local versions of these sub projects:
+
+		$ sudo npm run link
+
+Make sure you have cloned all the sub projects in the directory above deltadb-server.
+
+Then, to unlink and return to using the production dependencies you can use:
+
+		$ sudo npm run unlink
