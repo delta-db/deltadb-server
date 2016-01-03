@@ -17,6 +17,8 @@ var Partitioners = function () {
   this._systemPartitioner = new Partitioner(clientUtils.SYSTEM_DB_NAME);
 };
 
+Partitioners._RECONNECT_MS = 5000;
+
 Partitioners.prototype.dbExists = function (dbName) {
   return this._systemPartitioner.dbExists(dbName).then(function (exists) {
     if (!exists) {
@@ -173,7 +175,35 @@ Partitioners.prototype._doPoll = function (partitioner) {
     });
 };
 
+// TODO: should we have an autoReconnect option built into orm-sql layer?
+Partitioners.prototype._reconnect = function (partitioner) {
+  // Sleep for a little bit and then try to reconnect
+  var self = this;
+  return commonUtils.timeout(Partitioners._RECONNECT_MS).then(function () {
+    log.info('Attempting to reconnect to ' + partitioner._dbName + '...');
+    return partitioner.connect().catch(function (err) {
+      if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
+        return self._reconnect(partitioner).then(function () {
+          log.info('Reconnected to ' + partitioner._dbName);
+        });
+      } else {
+        throw err;
+      }
+    });
+  });
+};
+
+Partitioners.prototype._reconnectOrThrow = function (partitioner, err) {
+  if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
+    log.warning('Lost connection to ' + partitioner._dbName);
+    return this._reconnect(partitioner);
+  } else {
+    throw err;
+  }
+};
+
 Partitioners.prototype._hasChanges = function (partitioner, since) {
+
   // TODO: refactor partitioner so that you can just check for changes instead of actually getting
   // the changes?
   var self = this;
@@ -185,13 +215,7 @@ Partitioners.prototype._hasChanges = function (partitioner, since) {
   return partitioner.changes(since, null, 1, null, all, Users.ID_SUPER).then(function (changes) {
     return changes.length > 0;
   }).catch(function (err) {
-    if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
-      // TODO: why do we randomly get these errors w/ postgres? Is there a better way to handle
-      // them, e.g. reconnect?
-      self._unregisterPartitioner(partitioner._dbName);
-    } else {
-      throw err;
-    }
+    return self._reconnectOrThrow(partitioner, err);
   });
 };
 
@@ -325,32 +349,44 @@ Partitioners.prototype._addUserUUID = function (dbName, socket, changes) {
   });
 };
 
+Partitioners.prototype._queueAndReconnectOrThrowIfError = function (partitioner, msg) {
+  var self = this;
+
+  // TODO: this needs to be a variable, e.g. false if there is only one DB server and true if there
+  // is more than 1
+  var quorum = true;
+
+  return partitioner.queue(msg.changes, quorum).catch(function (err) {
+    return self._reconnectOrThrow(partitioner, err);
+  });
+};
+
 // TODO: remove dbName parameter as can derive dbName from socket
 Partitioners.prototype._queueChanges = function (dbName, socket, msg) {
   log.info('received (from ' + socket.conn.id + ') ' + JSON.stringify(msg));
 
-  // TODO: can a race condition lead to self._partitioners[dbName] not existing?
   var self = this,
-    part = self._partitioners[dbName].part;
+    partitioner = self._partitioners[dbName];
+
+  if (!partitioner) {
+    // A race condition caused by the underlying DB closing can result in the partitioner missing.
+    // If this occurs we'll just ignore it and expect the client to retry the queue.
+    return Promise.resolve();
+  }
 
   self._addUserUUID(dbName, socket, msg.changes);
 
   self._saveFilters(dbName, socket, msg.changes);
 
-  // TODO: this needs to be a variable, e.g. false if there is only one DB server and true if there
-  // is more than 1
-  var quorum = true;
-  return part.queue(msg.changes, quorum);
+  return self._queueAndReconnectOrThrowIfError(partitioner.part, msg);
 };
 
 Partitioners.prototype._changes = function (partitioner, since, limit, offset, userId) {
   // var all = dbName === clientUtils.SYSTEM_DB_NAME; // TODO: make configurable?
-  var all = true;
+  var self = this,
+    all = true;
   return partitioner.changes(since, null, limit, offset, all, userId).catch(function (err) {
-    // Ignore SocketClosedError as it could have been caused when a db was destroyed
-    if (!commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
-      throw err;
-    }
+    return self._reconnectOrThrow(partitioner, err);
   });
 };
 

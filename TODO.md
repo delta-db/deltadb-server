@@ -110,6 +110,7 @@ Next 2
 - Way of specifying name of client store so that we can have 2 DBs with the same name, e.g. '$system', that point point to different servers
 - Is there a better form of authentication that doesn't require the client to store the password? A token would be nice. We could require the user to enter their username and password when the client goes online and then store a token and not the password. Then whenever the token expires and the user is online, they would have to enter their password again.
 - Need to separate user password into another attr so that by default it can be hidden from users with policy
+- Use transactions when creating initial SQL database so that if a connection to the server is lost then can retry without worrying about missing tables? Or, could do a remove SQL db if installation not finished
 
 
 Future?

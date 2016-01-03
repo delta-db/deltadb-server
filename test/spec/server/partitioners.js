@@ -9,9 +9,11 @@ var Partitioners = require('../../../scripts/server/partitioners'),
 
 describe('partitioners', function () {
 
-  var partitioners = null;
+  var partitioners = null,
+    defReconnectMS = Partitioners._RECONNECT_MS;
 
   beforeEach(function () {
+    Partitioners._RECONNECT_MS = defReconnectMS;
     partitioners = new Partitioners();
   });
 
@@ -98,17 +100,6 @@ describe('partitioners', function () {
     }, err);
   });
 
-  it('should ignore error when finding changes', function () {
-    // Fake
-    var err = new SocketClosedError('an error');
-    var partitioner = {
-      changes: commonUtils.promiseErrorFactory(err)
-    };
-
-    // An SocketClosedErrors are not thrown as the DB may have just been destroyed
-    return partitioners._changes(partitioner);
-  });
-
   it('should paginate', function () {
     var emitted = [];
 
@@ -161,6 +152,57 @@ describe('partitioners', function () {
         since: newSince
       }]);
     });
+  });
+
+  it('should handle race condition when unregistering', function () {
+    // Fake partitioner missing for db-name
+    return partitioners.unregister('db-name');
+  });
+
+  it('should reconnect when receive socket closed error', function () {
+    Partitioners._RECONNECT_MS = 1; // reduce sleep for testing
+
+    var retry = 0;
+
+    var partitioner = { // fake
+      connect: function () {
+        return new Promise(function (resolve, reject) {
+          if (++retry === 2) {
+            resolve();
+          } else {
+            reject(new SocketClosedError('my error'));
+          }
+        });
+      }
+    };
+
+    // This will timeout if something goes wrong
+    return partitioners._reconnect(partitioner);
+  });
+
+  it('should handle race conditions when queueing changes', function () {
+    var socket = { // fake
+      conn: {
+        id: 'someid'
+      }
+    };
+
+    // Fake partitioner missing for db-name
+    return partitioners._queueChanges('db-name', socket);
+  });
+
+  it('should reconnect if socket closed when queueing', function () {
+    partitioners._reconnectOrThrow = commonUtils.resolveFactory(); // fake
+
+    var partitioner = { // fake
+      queue: commonUtils.promiseErrorFactory(new SocketClosedError('my error'))
+    };
+
+    var msg = { // fake
+      changes: null
+    };
+
+    return partitioners._queueAndReconnectOrThrowIfError(partitioner, msg);
   });
 
 });

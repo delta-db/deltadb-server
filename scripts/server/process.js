@@ -97,12 +97,21 @@ Process.prototype._initSystemDB = function () {
 Process.prototype._processAndCatch = function (part) {
   var self = this;
   return part.process().catch(function (err) {
+
     // Was the socket closed due to destroying a DB?
     if (commonUtils.errorInstanceOf(err, 'SocketClosedError')) {
+
       // Remove partitioner from pool
       delete self._partitioners[part._dbName];
 
-      return part.closeDatabase();
+      // TODO: need to sleep after close?
+
+      return part.closeDatabase().then(function () {
+
+        // We still need to throw the err, e.g. SocketClosedError so that caller can handle
+        // accordingly
+        throw err;
+      });
     } else {
       throw err;
     }
@@ -128,14 +137,17 @@ Process.prototype._partitioner = function (dbName) {
 };
 
 Process.prototype._processDB = function (dbName) {
+
   // TODO: if keep with partitioner pooling then what happens when we have many DBs?
 
   var self = this,
     part = null;
   return self._partitioner(dbName).then(function (_part) {
+
     part = _part;
     return self._processAndCatch(part);
   }).catch(function (err) {
+
     // Don't throw DBMissingError or SocketClosedError as the DB may have just been destroyed and
     // not yet removed from _dbNames.
     if (!commonUtils.errorInstanceOf(err, 'DBMissingError') && !commonUtils.errorInstanceOf(
