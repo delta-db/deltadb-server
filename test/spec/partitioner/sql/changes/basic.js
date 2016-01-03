@@ -191,6 +191,12 @@ describe('basic', function () {
     }).then(function (chngs) {
       testUtils.changesShouldEql(
         [{
+          col: 'task',
+          id: '123',
+          name: 'priority',
+          val: '"medium"',
+          up: '2014-01-01T10:00:00.000Z'
+        }, {
           id: '123',
           col: 'task',
           name: 'priority',
@@ -218,8 +224,14 @@ describe('basic', function () {
     }).then(function () {
       return args.db.changes(since);
     }).then(function (chngs) {
-      // client only gets latest recent changes
-      chngs.should.eql([]);
+      testUtils.changesShouldEql(
+        [{
+          col: 'task',
+          id: '123',
+          name: 'priority',
+          val: '"low"',
+          up: '2014-01-01T09:00:00.000Z'
+        }], chngs);
     });
   });
 
@@ -264,11 +276,23 @@ describe('basic', function () {
     }).then(function (chngs) {
       testUtils.changesShouldEql(
         [{
+          col: 'task',
+          id: '123',
+          name: 'priority',
+          val: '"medium"',
+          up: '2014-01-01T10:00:00.000Z'
+        }, {
           id: '123',
           col: 'task',
           name: 'priority',
           val: '"high"',
           up: '2014-01-01T10:01:00.000Z'
+        }, {
+          col: 'task',
+          id: '123',
+          name: 'thing',
+          val: '"write a song"',
+          up: '2014-01-01T10:00:00.000Z'
         }, {
           id: '123',
           col: 'task',
@@ -292,7 +316,14 @@ describe('basic', function () {
     }).then(function () {
       return args.db.changes(since);
     }).then(function (chngs) {
-      chngs.should.eql([]); // del still latest
+      testUtils.changesShouldEql(
+        [{
+          col: 'task',
+          id: '123',
+          name: 'priority',
+          val: '"low"',
+          up: '2014-01-01T09:00:00.000Z'
+        }], chngs);
     });
   });
 
@@ -424,6 +455,12 @@ describe('basic', function () {
     }).then(function (chngs) {
       testUtils.changesShouldEql(
         [{
+          col: 'task',
+          id: '1',
+          name: 'priority',
+          val: '"high"',
+          up: '2014-01-01T10:00:00.300Z'
+        }, {
           id: '1',
           col: 'task',
           name: 'priority',

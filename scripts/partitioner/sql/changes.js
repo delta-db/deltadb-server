@@ -71,11 +71,7 @@ Changes.prototype._pageOfChanges = function (since, history, limit, offset, all,
 
   return self._globals.get('archived').then(function (archived) {
     if (since && since.getTime() > archived) { // recent?
-      if (history) {
-        return self._changes(constants.RECENT, since, limit, offset, all, userId);
-      } else {
-        return self._changes(constants.LATEST, since, limit, offset, all, userId);
-      }
+      return self._changes(constants.RECENT, since, limit, offset, all, userId);
     } else if (history) {
       return self._allChanges(since, limit, offset, all, userId);
     } else {
