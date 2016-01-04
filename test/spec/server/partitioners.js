@@ -205,4 +205,18 @@ describe('partitioners', function () {
     return partitioners._queueAndReconnectOrThrowIfError(partitioner, msg);
   });
 
+  it('should throw error when reconnecting', function () {
+    Partitioners._RECONNECT_MS = 1; // reduce sleep for testing
+
+    var err = new Error('my error');
+
+    var partitioner = { // fake
+      connect: commonUtils.promiseErrorFactory(err)
+    };
+
+    return commonTestUtils.shouldThrow(function () {
+      return partitioners._reconnect(partitioner);
+    }, err);
+  });
+
 });
