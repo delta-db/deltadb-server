@@ -23,4 +23,26 @@ describe('config', function () {
     (config.url() === null).should.eql(false);
   });
 
+  it('should load values from config.json', function () {
+    var fs = {
+      readFileSync: function () { // fake
+        return '{}';
+      }
+    };
+    config._loadVals(fs);
+  });
+
+  it('should load values from config-default.json', function () {
+    var fs = {
+      readFileSync: function (name) { // fake
+        if (name === 'config.json') {
+          throw new Error('config.json missing');
+        } else {
+          return '{}';
+        }
+      }
+    };
+    config._loadVals(fs);
+  });
+
 });
