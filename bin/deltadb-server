@@ -23,8 +23,8 @@ if (program.port) {
 }
 
 if (program.prefix) {
-  config.vals.url.dbNamePrefix = program.prefix;
-  clientConfig.vals.url.dbNamePrefix = program.prefix;
+  config.vals.dbNamePrefix = program.prefix;
+  clientConfig.vals.dbNamePrefix = program.prefix;
 }
 
 // Use env vars for adapter credentials so that they don't appear in process lists
