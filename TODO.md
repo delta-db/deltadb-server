@@ -1,5 +1,9 @@
 Now
 ---
+- Install docs:
+	- Docker (recommended)
+	- Manual
+	- Dev (vagrant)
 - Doc on how to run port 80 with iptables: http://stackoverflow.com/questions/23281895/node-js-eacces-error-when-listening-on-http-80-port-permission-denied.
 - event for connect. Disconnect event already exists, but add info about both to wiki
 - ability for DB to sync from system layer so that all DBs are synced between 2 servers
@@ -15,6 +19,7 @@ Now
 
 Next 1
 ---
+- Create way to point to local dev copies of all sub projects, e.g. deltadb-orm-nosql, so that dev can be done without building a new npm package or manually modifying files in node_modules
 - How to best handle timing of initial connection? (needs to be streamlined and handled behind the scenes)
 	- User registers with account
 	- Creates docs
@@ -33,7 +38,6 @@ Next 1
 	- How to report errors, e.g. ForbiddenErrors, to client? What other errors can we expect? If the underlying DB is unavailable then a retry will solve the problem.
 	- 1: Don't do any reporting and expect client to retry and if permanent error (is there such a thing?) then expect client to know why
 	- 2: Store error deltas, like recordings with name and value, but also with an error code
-- test in all browsers using saucelabs
 - Admin UI, e.g. "Delta Admin"
 - mysql & mariadb adapters (benchmark for fastest to see which one should be recommended by deltadb)
 	- use Sequelize to abstract all adapters?
