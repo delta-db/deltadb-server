@@ -15,8 +15,19 @@ It is possible that a client's clock is not in sync with that of a server. This 
 3. Warning - during connection, the server could compare its timestamp with one that is sent from the client. If the skew is large enough, the server could send a warning message to the client to help app developers alert users that they should change their clocks. This may be helpful when used in conjunction with another solution.
 
 
-
 Policies and Data Consistency
 ===
 
 This may not be an issue and if it isn't then this should be moved to NOTES.md. Depending on the order in which policy changes/users edits are received it is possible for data to be recorded in non-deterministic ways. The servers should have super user permissions so that they can sync all changes and ensure eventual consistency. Could this ever be avoided?
+
+
+Recording and Recent Window
+===
+
+The "recent window" is the period of time in which deltas remain in the Recent partition before being archived. Currently, there exists a scenario where a client will not receive a recording for a delta that is not in the recent window when there is a later delta. For example:
+  - Assume a recent window of 30 days
+  - Client sends { text: 'one', up: '2015-01-01' } and { text: 'two', up: '2015-01-02' }
+  - Client immediately goes offline
+  - An archive is performed 30 days later
+  - Client comes back online and never receives recording for 'one' as 'two' is the latest value
+TODO: make client throw out deltas that are older than the "recent window?"
