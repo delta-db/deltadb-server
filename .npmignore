@@ -1,9 +1,4 @@
-.git*
 coverage
-node_modules
 test/browser/bundle.js
 test/logs/*
-.DS_Store
-*~
-npm-debug.log
 /config.json
