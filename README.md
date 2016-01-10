@@ -60,7 +60,7 @@ Because it doesn't exist and true support for offline environments needs to be e
 ---
 
 
-[Roadmap](https://github.com/delta-db/deltadb-server/wiki/Roadmap)
+[Roadmap](https://github.com/delta-db/deltadb-server/wiki/DeltaDB-Roadmap)
 ---
 
 
