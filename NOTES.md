@@ -88,16 +88,18 @@ Background: back-to-back writes can be made e.g. via
 which can result in both n=1 and n=2 having the same timestamp as the timestamp is measured in milliseconds. To ensure that the second write wins, a local sequence number is used. This number is only considered relevant when the timestamps are exactly the same.
 
 Other possible solutions:
-a. Make define into a promise and then check if need to sleep for 1 millisecond before returning--same needs to be done for set? But what about the millisecond delay? Can this greatly slow down the code? would also make it impossible to then have api with calls like db.put(doc), like PouchDB, unless require use of promises
-b. Is there a way to just use <= e.g. so that change overwrites previous change? Yes, but then the same logic has to persist on the server and this method is no longer deterministic as changes can appear "out of order"
-c. Also store microseconds - problem is that microsecond timing is not available for all browsers - window.performance.now() - https://developer.mozilla.org/en-US/docs/Web/API/Performance.now. Furthermore, it is possible that faster computers in the future will be able to reproduce the same problem with identical microsecond timestamps
-e. Make .set(), replace if timestamp matches - this then requires parsing through the entire list of local changes, which can get large if the client hasn't sync'd in a while
+
+- Make define into a promise and then check if need to sleep for 1 millisecond before returning--same needs to be done for set? But what about the millisecond delay? Can this greatly slow down the code? would also make it impossible to then have api with calls like db.put(doc), like PouchDB, unless require use of promises
+- Is there a way to just use <= e.g. so that change overwrites previous change? Yes, but then the same logic has to persist on the server and this method is no longer deterministic as changes can appear "out of order"
+- Also store microseconds - problem is that microsecond timing is not available for all browsers - window.performance.now() - https://developer.mozilla.org/en-US/docs/Web/API/Performance.now. Furthermore, it is possible that faster computers in the future will be able to reproduce the same problem with identical microsecond timestamps
+- Make .set(), replace if timestamp matches - this then requires parsing through the entire list of local changes, which can get large if the client hasn't sync'd in a while
 
 
 Data is eventually consistent (and deterministic)
 ==========
 
 TSV (Timestamp Sequence Value) Conflict Resolution
+
 1. Latest updated_at wins
 2. If updated_at the same then highest seq wins
 3. If updated_at the same and seq the same then highest value wins
@@ -193,6 +195,7 @@ You need the update permission to "create" any attr values due to the fact that 
 Permission Race Conditions
 ==========
 No changes are guaranteed to be received in any order so something like:
+
 1. ClientA locks down MyRole
 2. ClientA gives ThatUser access to MyRole
 3. ClientB (ThatUser) makes a change to MyData that requires MyRole
