@@ -1,3 +1,22 @@
+Reasonable Ordering
+===
+
+Even though technologies like NTP exist, the fact remains that different computers, including those of your users, will have clocks that are not in sync. DeltaDB uses a timestamp skew detection algorithm that sends multiple timestamps, at regular intervals, over an already established websocket connection. The difference in the expected timestamps, as calculated by the client, and the received timestamps is then averaged and stored as the timestamp skew. As the speed of a data packet being transmitted over the Internet can vary, this calculation is approximate. It is typically reasonable to consider that these calculations are accurate within a few seconds.
+
+Timestamps are associated with each attribute-level change in DeltaDB. Because changes are tracked at the attribute layer, it is less common that two clients will be modifying the exact same piece of data simultaneously. When they do however, the ordering of their changes is dictated by the timestamps and we can therefore only expect the ordering to be accurate within a few seconds. If your use case demands a greater degree of ordering accuracy then you should consider using a database solution other than DeltaDB.
+
+
+The Last-Write-Wins Conflict Resolution Policy in DeltaDB
+===
+
+[Lamport clocks](https://en.wikipedia.org/wiki/Lamport_timestamps) require each node to increment a counter upon receiving the latest change. This would therefore require all the servers to record a change before a change is considered completely recorded. This adds a ton of overhead and would result in significant problems when a section of the database cluster goes offline for a significant portion of time. In real-time systems that remain mostly online, this wouldn’t pose much of a problem. However, in a system where the nodes are frequently offline, and offline for relatively large amounts of time, use of lamport clocks would result in a number of conflicts that would be very difficult to resolve.
+
+[Vector clocks](https://en.wikipedia.org/wiki/Vector_clock) which use logical clocks, like lamport clocks, require each node to store a logical time for all the nodes that have made a change. In scenarios where nodes are frequently offline and where a single piece of data is changed by many nodes, your clock values would grow to be very large. This would be a particularly significant problem when a clock value is associated with each attribute-level change.
+
+DeltaDB strives to avoid the problems with these clocks by storing a timestamp in milliseconds with the belief that most applications only need millisecond precision to resolve conflicts. It then implements (will implement) a “Timestamp Adjustment” algorithm that accounts for timestamp skew between nodes. We assume the server's clock is accurate enough and enforce this using clock syncing via NTP. When establishing a connection, the server sends its current timestamp to the client. If the timestamp skew is large enough, the client modifies all pending changes to account for the skew and then creates any new changes with an "adjusted timestamp" as defined by the skew. This adjustment is also considered whenever comparing the local time with any time in a delta. The downside here is that it takes a small amount of time, e.g. a sec to transmit the timestamp from the server and so the accuracy could vary. This handoff of the timestamp can be improved by sending and receiving several messages sequentially to estimate hop duration. In the end, the accuracy is probably sufficient enough for most applications.
+
+To prevent the problem on the client where a single piece of data is rapidly changed, a “sequence number” is used. E.G. `doc.set('n', 1)` immediately followed by `doc.set('n', 2)` can result in both n=1 and n=2 having the same timestamp, as the timestamp is measured in milliseconds. To ensure that the second write wins, a local sequence number is used where the sequence number is an integer value that is incremented whenever the timestamps are equal.
+
 Partitions
 ==========
 1. QUEUED - pending changes
