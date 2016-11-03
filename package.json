@@ -65,7 +65,7 @@
     "jshint": "^2.8.0",
     "mocha": "^2.2.5",
     "mysql2": "^0.15.8",
-    "request": "^2.51.0",
+    "request": "^2.78.0",
     "sauce-connect-launcher": "^0.14.0",
     "saucelabs": "^1.0.1",
     "selenium-standalone": "^4.5.3",
