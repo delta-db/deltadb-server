@@ -71,6 +71,6 @@
     "selenium-standalone": "^4.5.3",
     "utf-8-validate": "^1.2.1",
     "watchify": "^3.4.0",
-    "wd": "^0.4.0"
+    "wd": "^1.1.1"
   }
 }
