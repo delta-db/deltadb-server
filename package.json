@@ -68,7 +68,7 @@
     "request": "^2.51.0",
     "sauce-connect-launcher": "^0.14.0",
     "saucelabs": "^1.0.1",
-    "selenium-standalone": "^4.5.3",
+    "selenium-standalone": "^5.10.0",
     "utf-8-validate": "^1.2.1",
     "watchify": "^3.4.0",
     "wd": "^0.4.0"
