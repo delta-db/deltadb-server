@@ -54,7 +54,7 @@
   "devDependencies": {
     "beautify-proj": "0.0.4",
     "browserify": "^13.0.0",
-    "bufferutil": "^1.2.1",
+    "bufferutil": "^2.0.1",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "coveralls": "^2.11.4",
