@@ -57,7 +57,7 @@
     "bufferutil": "^1.2.1",
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
-    "coveralls": "^2.11.4",
+    "coveralls": "^2.13.0",
     "deltadb-orm-nosql": "0.0.4",
     "es5-shim": "^4.0.5",
     "http-server": "^0.8.5",
