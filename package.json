@@ -46,7 +46,7 @@
     "deltadb-common-utils": "0.0.4",
     "deltadb-orm-sql": "0.0.4",
     "events": "^1.1.0",
-    "express": "^4.13.3",
+    "express": "^4.15.3",
     "https": "^1.0.0",
     "inherits": "^2.0.1",
     "socket.io": "^1.4.2"
