@@ -52,7 +52,7 @@
     "socket.io": "^1.4.2"
   },
   "devDependencies": {
-    "beautify-proj": "0.0.4",
+    "beautify-proj": "1.0.0",
     "browserify": "^13.0.0",
     "bufferutil": "^1.2.1",
     "chai": "^3.0.0",
